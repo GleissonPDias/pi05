@@ -1,48 +1,81 @@
-import {
-  ArchiveIcon,
-  Calendar,
-  CarFrontIcon,
-  CircleQuestionMarkIcon,
-  ClipboardList,
-  LayoutDashboard,
-  ScrollTextIcon,
-  SettingsIcon,
-  TrendingUpIcon,
-  UsersIcon,
-} from "lucide-react";
-import "./styles.css";
+import { useEffect } from "react";
+import { XIcon } from "lucide-react";
+import { footerNav, mainNav } from "../../config/navigation";
+import { cn } from "../../utils/cn";
 import AsideButtons from "./ButtonAside";
 
-function Aside() {
+/**
+ * Menu lateral.
+ * - lg+: fixo e sempre visível.
+ * - Abaixo de lg: gaveta deslizante (controlada por isOpen/onClose) com overlay.
+ */
+function Aside({ isOpen, onClose }) {
+  // Fecha a gaveta com a tecla Esc
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const handleKeyDown = (event) => {
+      if (event.key === "Escape") onClose();
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [isOpen, onClose]);
+
   return (
-    <aside className="bg-[#213145] flex flex-col box-border p-4 max-w-70 h-screen gap-8">
-      <div className="flex gap-3 text-left">
-        <div className="bg-amber-50 p-1">
-          <img src="./public/favicon.svg"></img>
+    <>
+      {/* Overlay (somente mobile/tablet) */}
+      <div
+        aria-hidden="true"
+        onClick={onClose}
+        className={cn(
+          "fixed inset-0 z-30 bg-slate-900/60 transition-opacity duration-300 lg:hidden",
+          isOpen ? "opacity-100" : "pointer-events-none opacity-0",
+        )}
+      />
+
+      <aside
+        id="menu-lateral"
+        className={cn(
+          "fixed inset-y-0 left-0 z-40 flex w-70 flex-col gap-8 overflow-y-auto bg-sidebar p-4 text-white",
+          "transition-transform duration-300 ease-in-out",
+          "lg:sticky lg:top-0 lg:z-auto lg:h-screen lg:shrink-0 lg:translate-x-0",
+          isOpen ? "translate-x-0" : "-translate-x-full",
+        )}
+      >
+        <div className="flex items-center gap-3 text-left">
+          <div className="rounded bg-amber-50 p-1">
+            <img src="/favicon.svg" alt="" className="size-8" />
+          </div>
+          <div className="min-w-0 flex-1">
+            <p className="font-bold leading-tight">Salvô</p>
+            <p className="text-[11px] tracking-wider text-slate-300">
+              GESTÃO AUTOMOTIVA
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={onClose}
+            aria-label="Fechar menu"
+            className="rounded-lg p-1.5 text-slate-300 hover:bg-slate-700/50 hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 lg:hidden"
+          >
+            <XIcon className="size-5" />
+          </button>
         </div>
-        <div>
-          <p className="font-bold">Salvô</p>
-          <p>GESTÃO AUTOMOTIVA</p>
+
+        <nav aria-label="Menu principal" className="flex flex-col gap-2">
+          {mainNav.map((item) => (
+            <AsideButtons key={item.to} {...item} onClick={onClose} />
+          ))}
+        </nav>
+
+        <div className="mt-auto flex flex-col gap-2 border-t border-slate-700 pt-4">
+          {footerNav.map((item) => (
+            <AsideButtons key={item.to} {...item} onClick={onClose} />
+          ))}
         </div>
-      </div>
-      <div className="flex flex-col gap-2">
-        <AsideButtons label="Dashboard" icon={<LayoutDashboard />} />
-        <AsideButtons label="Agenda" icon={<Calendar />} />
-        <AsideButtons label="Clientes" icon={<UsersIcon />} />
-        <AsideButtons label="Veículos" icon={<CarFrontIcon />} />
-        <AsideButtons label="OS (Ordens de Serviço)" icon={<ClipboardList />} />
-        <AsideButtons label="Orçamentos" icon={<ScrollTextIcon />} />
-        <AsideButtons label="Estoque" icon={<ArchiveIcon />} />
-        <AsideButtons label="Financeiro" icon={<TrendingUpIcon />} />
-      </div>
-      <div className="mt-auto flex flex-col gap-4 pt-4 border-t border-slate-700">
-        <AsideButtons label="Configurações" icon={<SettingsIcon />} />
-        <AsideButtons
-          label="Ajuda / Suporte"
-          icon={<CircleQuestionMarkIcon />}
-        />
-      </div>
-    </aside>
+      </aside>
+    </>
   );
 }
 

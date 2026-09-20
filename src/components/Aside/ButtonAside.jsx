@@ -1,27 +1,28 @@
-function AsideButtons({ label, icon, isActive = false }) {
-  return (
-    <button
-      className={`
-        flex items-center gap-3 w-full py-2.5 px-3 rounded-lg text-sm font-medium
+import { NavLink } from "react-router-dom";
+import { cn } from "../../utils/cn";
 
-        transition-all duration-200 ease-in-out
-        
-        /* Estado Fixo Selecionado (Passado via Prop) */
-        ${isActive ? "bg-blue-600 text-white font-bold" : "text-slate-300"}
-        
-        /* Efeito de Passar o Mouse (Hover) */
-        hover:bg-slate-700/50 hover:text-white
-        
-        /* Efeito de Clique Rápido (Active) - Dá um feedback tátil */
-        active:scale-98 active:duration-300
-        
-        /* Acessibilidade de Teclado (Focus) - Cria um contorno suave ao usar Tab */
-        focus:outline-none focus:ring-2 focus:ring-blue-500
-      `}
+/** Item do menu lateral. O estado "ativo" vem automaticamente da rota atual. */
+function AsideButtons({ label, icon: Icon, to, end = false, onClick }) {
+  return (
+    <NavLink
+      to={to}
+      end={end}
+      onClick={onClick}
+      className={({ isActive }) =>
+        cn(
+          "flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left text-sm font-medium",
+          "transition-all duration-200 ease-in-out",
+          "focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500",
+          "active:scale-98",
+          isActive
+            ? "bg-blue-600 font-bold text-white"
+            : "text-slate-300 hover:bg-slate-700/50 hover:text-white",
+        )
+      }
     >
-      {icon}
-      <span>{label}</span>
-    </button>
+      <Icon className="size-5 shrink-0" />
+      <span className="truncate">{label}</span>
+    </NavLink>
   );
 }
 
