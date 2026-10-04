@@ -16,3 +16,8 @@ export function formatBRL(value, fractionDigits = 2) {
 export function formatK(value) {
   return `${(value / 1000).toLocaleString("pt-BR")}k`;
 }
+
+/** 45200 -> "45.200 km" */
+export function formatKm(value) {
+  return `${Number(value).toLocaleString("pt-BR")} km`;
+}

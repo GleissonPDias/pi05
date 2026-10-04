@@ -1,7 +1,7 @@
 import { BellIcon, MenuIcon, SearchIcon } from "lucide-react";
+import { currentUser as user } from "../../mocks/user";
 
-// TODO: substituir pelos dados reais quando a API (Spring Boot) estiver conectada.
-const user = { name: "Carlos Eduardo", role: "Gerente de Oficina" };
+// TODO: notificações reais virão da API (Spring Boot).
 const unreadNotifications = 3;
 
 function getInitials(name) {
