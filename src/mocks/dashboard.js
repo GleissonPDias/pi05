@@ -113,34 +113,5 @@ export const dashboardMock = {
     ],
   },
 
-  // level: "urgent" | "low"
-  stockAlerts: [
-    {
-      id: 1,
-      name: "Pastilha Freio Diant. Cerâmica",
-      code: "PF-2041",
-      current: 2,
-      minimum: 6,
-      unit: "unid.",
-      level: "urgent",
-    },
-    {
-      id: 2,
-      name: "Óleo Sintético SW30 1L",
-      code: "OL-530S",
-      current: 4,
-      minimum: 15,
-      unit: "frascos",
-      level: "low",
-    },
-    {
-      id: 3,
-      name: "Filtro de Ar Onix/Tracker",
-      code: "FA-882",
-      current: 1,
-      minimum: 5,
-      unit: "unid.",
-      level: "urgent",
-    },
-  ],
+  // Os alertas de estoque vêm do almoxarifado (tela de Estoque), não deste mock.
 };

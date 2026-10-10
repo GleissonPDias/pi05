@@ -88,3 +88,29 @@
     overflow: visible !important;
   }
 }
+
+/*
+ * Impressão de documentos (OS e comprovante de entrada): o botão "Imprimir"
+ * coloca a classe "printing-doc" no <body> e o documento ".print-doc" (que fica
+ * escondido na tela) passa a ser a única coisa impressa.
+ */
+.print-doc {
+  display: none;
+}
+
+@media print {
+  @page {
+    margin: 12mm;
+  }
+  body.printing-doc {
+    overflow: visible !important;
+    background: #fff;
+  }
+  body.printing-doc #root,
+  body.printing-doc [data-modal-overlay] {
+    display: none !important;
+  }
+  body.printing-doc .print-doc {
+    display: block;
+  }
+}

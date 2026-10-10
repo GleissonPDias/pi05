@@ -41,7 +41,7 @@ function Dashboard() {
           total={data.pendingQuotes.total}
           items={data.pendingQuotes.items}
         />
-        <StockAlertCard items={data.stockAlerts} />
+        <StockAlertCard />
       </div>
     </div>
   );

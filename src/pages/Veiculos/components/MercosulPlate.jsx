@@ -2,6 +2,7 @@ import { cn } from "../../../utils/cn";
 import { maskPlate } from "../../../utils/masks";
 
 const sizes = {
+  xs: { box: "w-16", strip: "h-2.5 px-1 text-[5px]", text: "py-0.5 text-[11px]" },
   sm: { box: "w-[5.5rem]", strip: "h-3.5 px-1.5 text-[6px]", text: "py-1 text-sm" },
   md: { box: "w-28", strip: "h-4 px-2 text-[7px]", text: "py-1.5 text-base" },
   lg: { box: "w-40", strip: "h-5 px-2.5 text-[9px]", text: "py-2 text-2xl" },

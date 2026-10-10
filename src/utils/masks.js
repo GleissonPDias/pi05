@@ -86,3 +86,20 @@ export function maskKm(value) {
 export function parseKm(value) {
   return Number(onlyDigits(value) || 0);
 }
+
+/** Valor em reais digitado como "caixa registradora": "120550" -> "1.205,50". */
+export function maskMoney(value) {
+  const digits = onlyDigits(String(value)).slice(0, 10);
+  if (!digits) return "";
+  return (Number(digits) / 100).toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+
+/** "1.205,50" -> 1205.5 */
+export function parseMoney(value) {
+  return Number(onlyDigits(String(value)) || 0) / 100;
+}
+
+/** 1205.5 -> "1.205,50" (para preencher um campo de valor). */
+export function moneyToInput(number) {
+  return maskMoney(String(Math.round(Number(number || 0) * 100)));
+}

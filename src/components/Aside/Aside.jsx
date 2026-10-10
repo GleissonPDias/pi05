@@ -1,8 +1,11 @@
 import { useEffect } from "react";
+import { NavLink } from "react-router-dom";
 import { XIcon } from "lucide-react";
+import logo from "../../assets/brand/logo-salvo.png";
 import { footerNav, mainNav } from "../../config/navigation";
 import { cn } from "../../utils/cn";
 import AsideButtons from "./ButtonAside";
+import AsideSubmenu from "./AsideSubmenu";
 
 /**
  * Menu lateral.
@@ -43,16 +46,10 @@ function Aside({ isOpen, onClose }) {
           isOpen ? "translate-x-0" : "-translate-x-full",
         )}
       >
-        <div className="flex items-center gap-3 text-left">
-          <div className="rounded bg-amber-50 p-1">
-            <img src="/favicon.svg" alt="" className="size-8" />
-          </div>
-          <div className="min-w-0 flex-1">
-            <p className="font-bold leading-tight">Salvô</p>
-            <p className="text-[11px] tracking-wider text-slate-300">
-              GESTÃO AUTOMOTIVA
-            </p>
-          </div>
+        <div className="flex items-start gap-2">
+          <NavLink to="/" onClick={onClose} className="min-w-0 flex-1 rounded-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500">
+            <img src={logo} alt="Salvô — Gestão para Oficina" className="h-auto w-full max-w-60" />
+          </NavLink>
           <button
             type="button"
             onClick={onClose}
@@ -65,7 +62,10 @@ function Aside({ isOpen, onClose }) {
 
         <nav aria-label="Menu principal" className="flex flex-col gap-2">
           {mainNav.map((item) => (
-            <AsideButtons key={item.to} {...item} onClick={onClose} />
+            <div key={item.to} className="flex flex-col gap-2">
+              <AsideButtons {...item} onClick={onClose} />
+              {item.children && <AsideSubmenu item={item} onClick={onClose} />}
+            </div>
           ))}
         </nav>
 

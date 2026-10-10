@@ -256,10 +256,23 @@ function VehicleDetailModal({ vehicle, owner, onUpdateMileage, onEdit, onToast, 
                   <p className="text-xs text-slate-600">
                     Mecânico: <strong>{vehicle.box.mechanic}</strong>
                   </p>
-                  <p className="text-xs font-semibold text-amber-700">
+                  <Link
+                    to={`/ordens-de-servico/${vehicle.openOrder}`}
+                    className="text-xs font-semibold text-amber-700 hover:underline"
+                  >
                     Em atendimento • OS #{vehicle.openOrder}
-                  </p>
+                  </Link>
                 </div>
+              ) : vehicle.openOrder ? (
+                <p className="text-sm text-slate-600">
+                  <Link
+                    to={`/ordens-de-servico/${vehicle.openOrder}`}
+                    className="font-semibold text-amber-700 hover:underline"
+                  >
+                    OS #{vehicle.openOrder} em andamento
+                  </Link>
+                  . O veículo está no pátio, fora dos boxes.
+                </p>
               ) : (
                 <p className="text-sm text-slate-600">
                   Nenhuma OS em andamento. O veículo não está em nenhum box da oficina.
@@ -402,20 +415,30 @@ function VehicleDetailModal({ vehicle, owner, onUpdateMileage, onEdit, onToast, 
         </Button>
         <div className="flex flex-col-reverse gap-3 sm:flex-row">
           <Link
-            to={`/ordens-de-servico?busca=${encodeURIComponent(vehicle.plate)}`}
+            to={`/ordens-de-servico?visao=lista&status=todas&busca=${encodeURIComponent(vehicle.plate)}`}
             className={buttonClassName({ variant: "outline", size: "lg", className: "w-full sm:w-auto" })}
           >
             <HistoryIcon className="size-4" />
             Histórico Completo ({vehicle.servicesCount})
           </Link>
-          <Link
-            to="/ordens-de-servico"
-            state={{ novaOs: { vehicleId: vehicle.id } }}
-            className={buttonClassName({ size: "lg", className: "w-full sm:w-auto" })}
-          >
-            <ClipboardListIcon className="size-4" />
-            Abrir Nova OS para este Veículo
-          </Link>
+          {vehicle.openOrder ? (
+            <Link
+              to={`/ordens-de-servico/${vehicle.openOrder}`}
+              className={buttonClassName({ size: "lg", className: "w-full sm:w-auto" })}
+            >
+              <ClipboardListIcon className="size-4" />
+              Ver OS #{vehicle.openOrder} em andamento
+            </Link>
+          ) : (
+            <Link
+              to="/ordens-de-servico"
+              state={{ novaOs: { vehicleId: vehicle.id } }}
+              className={buttonClassName({ size: "lg", className: "w-full sm:w-auto" })}
+            >
+              <ClipboardListIcon className="size-4" />
+              Abrir Nova OS para este Veículo
+            </Link>
+          )}
         </div>
       </ModalFooter>
     </Modal>

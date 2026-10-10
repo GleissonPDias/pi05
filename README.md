@@ -31,9 +31,9 @@ Este repositório contém o **front-end** (React). O back-end (API em Spring Boo
 | Agenda | `/agenda` | Pendente |
 | Clientes | `/clientes` | Pronto (lista + cadastro, edição e exclusão em pop-ups, com dados fictícios) |
 | Veículos | `/veiculos` | Pronto (lista, ficha técnica, cadastro/edição com rascunho e exclusão em pop-ups, com dados fictícios) |
-| OS (Ordens de Serviço) | `/ordens-de-servico` | Pendente |
-| Orçamentos | `/orcamentos` | Pendente |
-| Estoque | `/estoque` | Pendente |
+| OS (Ordens de Serviço) | `/ordens-de-servico`, `/ordens-de-servico/:numero` e `/ordens-de-servico/servicos` (catálogo de serviços) | Pronto (quadro Kanban, lista, detalhes em 4 abas, pop-ups e impressão, com dados fictícios) |
+| Orçamentos | `/orcamentos` | Pronto (indicadores, funil comercial, lista, propostas em pop-up, WhatsApp, impressão e conversão em OS, com dados fictícios) |
+| Estoque | `/estoque` | Pronto (indicadores, inventário, movimentações, cadastro de peças, entradas/saídas/ajustes, cotação rápida e pedido de compra, com dados fictícios) |
 | Financeiro | `/financeiro` | Pendente |
 | Configurações | `/configuracoes` | Pendente |
 | Ajuda / Suporte | `/ajuda` | Pendente |
@@ -116,14 +116,17 @@ pi05/
     ├── layouts/
     │   └── MainLayout.jsx      # Estrutura base: menu lateral + cabeçalho + conteúdo
     │
+    ├── assets/brand/           # Logo do sistema (menu lateral e documentos impressos)
+    │
     ├── components/             # Componentes compartilhados entre telas
     │   ├── Aside/              # Menu lateral (gaveta no celular)
     │   ├── Header/             # Cabeçalho (busca, status, notificações, usuário)
+    │   ├── print/              # PrintHeader: cabeçalho com logo dos documentos impressos
     │   └── ui/                 # Peças reutilizáveis: Button, Card, Modal, TextField...
     │
-    ├── context/                # Dados compartilhados entre telas (clientes e veículos) + AppProviders
+    ├── context/                # Dados compartilhados (clientes, veículos, OS, serviços, orçamentos e estoque) + AppProviders
     │
-    ├── hooks/                  # Hooks compartilhados: useToast, useClientes, useVeiculos
+    ├── hooks/                  # Hooks compartilhados: useToast, useClientes, useVeiculos, useOrdens, useServicos, useOrcamentos, useEstoque
     │
     ├── pages/                  # Uma pasta por tela
     │   ├── Dashboard/
@@ -141,12 +144,37 @@ pi05/
     │   │   ├── vehicleForm.js  # Valores iniciais, conversão e validação do formulário
     │   │   ├── vehicleUtils.js # Situação de manutenção, filtros, indicadores e CSV
     │   │   └── constants.js    # Combustíveis, câmbios, categorias, limites da foto...
+    │   ├── OrdensServico/
+    │   │   ├── OrdensServico.jsx  # Quadro Kanban / lista, indicadores, filtros, atalhos (N e F)
+    │   │   ├── OrdemDetalhe.jsx   # Detalhes da OS (rota /ordens-de-servico/:numero)
+    │   │   ├── components/        # Cards, quadro, tabela, pop-ups Nova OS / Cancelar / Entregar
+    │   │   ├── detalhe/           # Abas (dados, vistoria, diagnóstico, fechamento), resumo, impressão
+    │   │   ├── hooks/             # useStatusFlow: regras e pop-ups de mudança de etapa
+    │   │   ├── servicos/          # Catálogo de serviços (lista, indicadores e CRUD em pop-up)
+    │   │   ├── ordemUtils.js      # Totais, regras de etapa, filtros, indicadores, WhatsApp e CSV
+    │   │   ├── ordemForm.js       # Validação do pop-up Nova OS
+    │   │   └── constants.js       # Etapas, prioridades, checklist, avarias, pagamentos, garantias...
+    │   ├── Estoque/
+    │   │   ├── Estoque.jsx        # Indicadores, inventário, movimentações e pop-ups
+    │   │   ├── components/        # Tabela, peça, movimentação, histórico, pedido de compra e impressão
+    │   │   ├── estoqueUtils.js    # Situação (normal/baixo/crítico), reservas em OS, markup, giro, CSV
+    │   │   └── constants.js       # Situações, tipos de movimentação, motivos e unidades
+    │   ├── Orcamentos/
+    │   │   ├── Orcamentos.jsx     # Indicadores, funil, filtros, lista e ações (enviar, aprovar, converter)
+    │   │   ├── components/        # Tabela, pop-ups (proposta, formulário, rejeição, conversão) e impressão
+    │   │   ├── quoteUtils.js      # Situação comercial, validade, filtros, indicadores, WhatsApp e CSV
+    │   │   └── constants.js       # Situações, períodos, validades e motivos de rejeição
     │   └── PlaceholderPage.jsx # Página provisória das telas pendentes
     │
     ├── mocks/                  # Dados fictícios (serão trocados pela API)
     │   ├── dashboard.js
     │   ├── clientes.js
     │   ├── veiculos.js         # Veículos ligados aos clientes pelo campo ownerId
+    │   ├── ordens.js           # Ordens de serviço (em andamento e histórico)
+    │   ├── oficina.js          # Boxes, mecânicos, consultores e dados da oficina (impressão)
+    │   ├── catalogo.js         # Peças (estoque), fornecedores e tabela de serviços
+    │   ├── orcamentos.js       # Orçamentos (propostas comerciais)
+    │   ├── estoque.js          # Movimentações de estoque (histórico)
     │   └── user.js             # Usuário logado fictício
     │
     ├── services/               # Chamadas a serviços externos (ex.: busca de CEP)
@@ -155,7 +183,7 @@ pi05/
     └── utils/                  # Funções auxiliares
         ├── cn.js               # Junta classes CSS condicionais
         ├── format.js           # Formatação de moeda (BRL) e números
-        ├── masks.js            # Máscaras: CPF/CNPJ, telefone, CEP, placa, km
+        ├── masks.js            # Máscaras: CPF/CNPJ, telefone, CEP, placa, km, dinheiro
         ├── validators.js       # Validação de CPF, CNPJ, e-mail, telefone, placa e chassi
         ├── dates.js            # Datas: "14/08/2026", "Há 2 dias"
         └── csv.js              # Download de arquivos CSV
@@ -218,7 +246,11 @@ Antes de criar algo novo, veja se já existe em `src/components/ui/`:
 | `CardHeader` | Cabeçalho de card: ícone + título + subtítulo + ação à direita |
 | `Badge` | Etiquetas pequenas (contadores, prioridades) |
 | `Modal` | Pop-up acessível (fecha com Esc, prende o foco). Use com `ModalHeader`, `ModalBody` e `ModalFooter`; renderize só enquanto estiver aberto |
-| `TextField` / `SelectField` / `Checkbox` | Campos de formulário com rótulo, mensagem de erro e acessibilidade já ligados |
+| `TextField` / `SelectField` / `TextAreaField` / `Checkbox` | Campos de formulário com rótulo, mensagem de erro e acessibilidade já ligados |
+| `MoneyInput` / `QuantityStepper` | Valor em reais (digitação estilo caixa registradora) e quantidade com − / + |
+| `StatCard` | Cartão de indicador (ícone + rótulo + valor) |
+| `ChipSelect` | Lista suspensa com visual de chip para barras de filtro ("Vendedor: Todos") |
+| `buttonClassName()` (`buttonStyles.js`) | Aparência de botão para `<Link>` e `<a>` |
 | `Pagination` | Paginação com reticências ("1 2 3 ... 21") |
 | `Toast` + `useToast` | Aviso temporário de sucesso/alerta no canto da tela |
 
@@ -262,10 +294,17 @@ O back-end será uma API em **Spring Boot**. Enquanto ela não está disponível
 
 - As telas leem os dados de `src/mocks/`. O formato dos mocks foi pensado para ser o mesmo da resposta esperada da API.
 - Ao integrar, o plano é criar uma pasta `src/services/` com as chamadas HTTP e substituir a importação do mock por essas chamadas, sem precisar reescrever os componentes visuais.
-- Pontos já marcados no código com `TODO`: dados do usuário (`mocks/user.js`), filtro de período do Dashboard e as operações do CRUD de clientes e de veículos (`context/useClientesState.js` e `context/useVeiculosState.js`, hoje em memória: os dados voltam ao original ao recarregar a página).
+- Pontos já marcados no código com `TODO`: dados do usuário (`mocks/user.js`), filtro de período do Dashboard e as operações de clientes, veículos e ordens de serviço (`context/useClientesState.js`, `context/useVeiculosState.js` e `context/useOrdensState.js`, hoje em memória: os dados voltam ao original ao recarregar a página).
 - A busca de endereço pelo CEP já usa a API pública ViaCEP (`src/services/cep.js`).
 - Clientes e veículos ficam em `src/context/` (estado compartilhado), porque as telas se conversam: o cadastro de veículo permite criar um cliente na hora, a lista de clientes mostra os veículos de cada um e desativar um cliente desvincula os veículos dele. Ao integrar a API, troque o corpo das funções de `context/useClientesState.js` e `context/useVeiculosState.js` por chamadas HTTP, mantendo as assinaturas.
-- A foto do veículo hoje é um endereço temporário do navegador; na API ela deve ser enviada como arquivo (multipart) e a resposta traz a URL definitiva.
+- **Ordens de serviço:** a situação de cada veículo (OS em andamento, box em uso, histórico e última passagem) é calculada a partir das OS (`context/vehicleOrders.js`). A API pode devolver esses campos prontos no veículo.
+- **Rascunho da OS:** as edições da página de detalhes ficam em rascunho (`drafts`) até clicar em "Salvar". Mudanças de etapa, aprovação e entrega são gravadas na hora. Sugestão de rotas: `POST /ordens`, `PATCH /ordens/{numero}`, `POST /ordens/{numero}/status`.
+- **Catálogo de serviços:** fica em `context/useServicosState.js` e alimenta o "Adicionar Serviço" das OS e dos orçamentos (só os ativos). Serviço já usado não pode ser excluído, apenas desativado.
+- **Orçamentos:** `context/useOrcamentosState.js`. A situação "Vencido" é calculada (enviado e fora da validade). Ao converter, é criada uma OS com os itens e a aprovação do cliente, e a OS guarda o `quoteId` de origem. Sugestão de rotas: `POST /orcamentos`, `POST /orcamentos/{id}/enviar`, `/aprovar`, `/rejeitar` e `/converter`.
+- **Estoque:** `context/useEstoqueState.js`. Toda mudança de quantidade passa por `registerMovement` (gera histórico e recalcula o custo médio nas entradas). Peças de OS em andamento contam como **reservadas** (estoque disponível = físico − reservado) e a entrega da OS dá **baixa automática** (`consumeForOrder`). Sugestão de rotas: `/pecas`, `POST /estoque/movimentacoes`, `POST /compras/pedidos`.
+- **Impressão:** `utils/print.js` (`printDocument`) renderiza o documento, espera a logo carregar e abre a impressão. Os documentos usam `components/print/PrintHeader.jsx`.
+- **Regras de etapa** (ex.: só executa com orçamento aprovado; só finaliza com todos os serviços concluídos) ficam em `canMoveTo` (`pages/OrdensServico/ordemUtils.js`). O back-end deve validar as mesmas regras.
+- A foto do veículo e as fotos da vistoria hoje são endereços temporários do navegador; na API elas devem ser enviadas como arquivo (multipart) e a resposta traz as URLs definitivas.
 - "Excluir" um cliente **desativa** o cadastro (não apaga), para preservar o histórico de serviços e os registros fiscais. A API deve seguir o mesmo comportamento.
 
 Combine em equipe o formato dos contratos (JSON) com quem desenvolve o back-end antes de ligar cada tela.

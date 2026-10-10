@@ -1,16 +1,51 @@
+import { useMemo } from "react";
+import { Link } from "react-router-dom";
 import { ShoppingCartIcon, TriangleAlertIcon } from "lucide-react";
 import Badge from "../../../components/ui/Badge";
-import Button from "../../../components/ui/Button";
+import { buttonClassName } from "../../../components/ui/buttonStyles";
 import Card from "../../../components/ui/Card";
 import CardHeader from "../../../components/ui/CardHeader";
+import { useEstoque } from "../../../hooks/useEstoque";
+import { useOrdens } from "../../../hooks/useOrdens";
 import { cn } from "../../../utils/cn";
+import { reservedByCode, stockStatus } from "../../Estoque/estoqueUtils";
 
 const levels = {
   urgent: { label: "URGENTE", badge: "red", bar: "bg-red-600" },
   low: { label: "BAIXO", badge: "slate", bar: "bg-slate-500" },
 };
 
-function StockAlertCard({ items }) {
+/** Os 3 itens mais críticos do estoque (dados ao vivo do almoxarifado). */
+function useStockAlerts() {
+  const { parts } = useEstoque();
+  const { orders } = useOrdens();
+  return useMemo(() => {
+    const reserved = reservedByCode(orders);
+    return parts
+      .filter((part) => part.status === "ativo")
+      .map((part) => ({ part, status: stockStatus(part, reserved.get(part.code)) }))
+      .filter(({ status }) => status.key === "critico" || status.key === "baixo")
+      // Críticos primeiro; depois, os mais distantes do mínimo
+      .sort(
+        (a, b) =>
+          (a.status.key === "critico" ? 0 : 1) - (b.status.key === "critico" ? 0 : 1) ||
+          a.status.available - a.part.minStock - (b.status.available - b.part.minStock),
+      )
+      .slice(0, 3)
+      .map(({ part, status }) => ({
+        id: part.code,
+        name: part.description,
+        code: part.code,
+        current: Math.max(0, status.available),
+        minimum: part.minStock,
+        unit: part.unit,
+        level: status.key === "critico" ? "urgent" : "low",
+      }));
+  }, [parts, orders]);
+}
+
+function StockAlertCard() {
+  const items = useStockAlerts();
   return (
     <Card className="flex flex-col lg:col-span-2 xl:col-span-1">
       <CardHeader
@@ -26,7 +61,7 @@ function StockAlertCard({ items }) {
           const level = levels[item.level];
           const percent = Math.min(
             100,
-            Math.round((item.current / item.minimum) * 100),
+            Math.round((item.current / Math.max(1, item.minimum)) * 100),
           );
 
           return (
@@ -71,9 +106,14 @@ function StockAlertCard({ items }) {
         })}
       </ul>
 
-      <Button fullWidth size="lg" icon={ShoppingCartIcon} className="mt-4">
+      <Link
+        to="/estoque"
+        state={{ cotacao: true }}
+        className={buttonClassName({ size: "lg", fullWidth: true, className: "mt-4" })}
+      >
+        <ShoppingCartIcon className="size-4" />
         Repor Estoque / Pedido
-      </Button>
+      </Link>
     </Card>
   );
 }

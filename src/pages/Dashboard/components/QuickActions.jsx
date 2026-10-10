@@ -18,6 +18,7 @@ const actions = [
   {
     label: "+ Nova OS",
     to: "/ordens-de-servico",
+    state: { novaOs: true }, // abre o pop-up "Nova OS" direto
     description: "Abrir ordem de serviço",
     icon: FilePlus2Icon,
     iconClassName: "bg-blue-100 text-blue-600",
@@ -25,6 +26,7 @@ const actions = [
   {
     label: "+ Criar Orçamento",
     to: "/orcamentos",
+    state: { novo: true }, // abre o pop-up "Novo Orçamento" direto
     description: "Precificar peças e mão de obra",
     icon: CircleDollarSignIcon,
     iconClassName: "bg-emerald-500 text-white",

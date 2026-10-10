@@ -35,10 +35,6 @@ export function useVeiculosState() {
       const vehicle = {
         ...data,
         id: nextId(vehicles),
-        openOrder: null,
-        box: null,
-        servicesCount: 0,
-        lastService: null,
         nextReviewKm: null,
         nextReviewDate: null,
         mileageUpdatedAt: toISODate(new Date()),

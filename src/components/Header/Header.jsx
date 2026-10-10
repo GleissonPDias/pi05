@@ -1,3 +1,5 @@
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { BellIcon, MenuIcon, SearchIcon } from "lucide-react";
 import { currentUser as user } from "../../mocks/user";
 
@@ -13,7 +15,36 @@ function getInitials(name) {
     .toUpperCase();
 }
 
+/**
+ * Decide para onde a busca global leva:
+ * - número de OS (#1042 ou 1042) -> detalhes da OS
+ * - número de orçamento (ORC-0089) -> Orçamentos
+ * - placa (ABC-1234 / ABC1D23) -> Veículos
+ * - qualquer outro texto (nome, CPF, CNPJ) -> Clientes
+ */
+function searchDestination(query) {
+  const text = query.trim();
+  if (/^#?\d{4,6}$/.test(text)) return `/ordens-de-servico/${text.replace("#", "")}`;
+  const busca = encodeURIComponent(text);
+  if (/^#?orc-?\d+$/i.test(text)) {
+    const number = text.replace(/\D/g, "").padStart(4, "0");
+    return `/orcamentos?busca=ORC-${number}`;
+  }
+  if (/^[a-z]{3}-?\d[a-z0-9]\d{2}$/i.test(text)) return `/veiculos?busca=${busca}`;
+  return `/clientes?busca=${busca}`;
+}
+
 function Header({ isAsideOpen, onMenuClick }) {
+  const navigate = useNavigate();
+  const [query, setQuery] = useState("");
+
+  const handleSubmit = (event) => {
+    event.preventDefault();
+    if (!query.trim()) return;
+    navigate(searchDestination(query));
+    setQuery("");
+  };
+
   return (
     <header className="sticky top-0 z-20 flex h-16 items-center gap-3 border-b border-slate-200 bg-white px-4 sm:gap-4 sm:px-6">
       {/* Botão do menu (somente mobile/tablet) */}
@@ -29,15 +60,17 @@ function Header({ isAsideOpen, onMenuClick }) {
       </button>
 
       {/* Busca global */}
-      <div className="relative min-w-0 max-w-md flex-1">
+      <form role="search" onSubmit={handleSubmit} className="relative min-w-0 max-w-md flex-1">
         <SearchIcon className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-slate-400" />
         <input
           type="search"
+          value={query}
+          onChange={(event) => setQuery(event.target.value)}
           placeholder="Pesquisar por placa, CPF, nome ou número da OS..."
-          aria-label="Pesquisar"
+          aria-label="Pesquisar (Enter para buscar)"
           className="w-full truncate rounded-lg bg-blue-50 py-2 pl-9 pr-3 text-sm text-slate-700 placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
         />
-      </div>
+      </form>
 
       <div className="ml-auto flex items-center gap-3 sm:gap-4">
         {/* Status da unidade */}

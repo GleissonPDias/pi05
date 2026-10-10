@@ -1,8 +1,11 @@
+import { BOXES } from "../../mocks/oficina";
+
 /** Quantidade de veículos por página na listagem. */
 export const PAGE_SIZE = 6;
 
+
 /** Capacidade de boxes da oficina (usada no cálculo da taxa de ocupação). */
-export const BOXES_TOTAL = 8;
+export const BOXES_TOTAL = BOXES.length;
 
 export const FUELS = [
   "Flex (Álcool / Gasolina)",
