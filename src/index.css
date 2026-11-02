@@ -96,6 +96,19 @@
  */
 .print-doc {
   display: none;
+  /* Mantém os fundos (cabeçalho das tabelas, mapa de avarias, total) no PDF */
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+}
+
+/* Repete o cabeçalho das tabelas quando a lista de itens passa de uma página */
+.print-doc thead {
+  display: table-header-group;
+}
+
+/* ...e mostra o rodapé (subtotal) só no fim da tabela, não em toda página */
+.print-doc tfoot {
+  display: table-row-group;
 }
 
 @media print {

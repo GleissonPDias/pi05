@@ -1,7 +1,12 @@
 import { createPortal } from "react-dom";
 import PrintHeader from "../../../components/print/PrintHeader";
+import {
+  PartsPrintTable,
+  PrintItemsSummary,
+  PrintTotals,
+  ServicesPrintTable,
+} from "../../../components/print/PrintItemTables";
 import { CONSULTANTS } from "../../../mocks/oficina";
-import { formatBRL } from "../../../utils/format";
 import { maskCpfCnpj, maskPhone, maskPlate } from "../../../utils/masks";
 import { formatDateTimeShort } from "../../OrdensServico/ordemUtils";
 import { quoteTitle, quoteTotals } from "../quoteUtils";
@@ -39,43 +44,10 @@ function QuotePrint({ quote }) {
       </div>
 
       <p className="mt-4 text-sm font-bold">{quoteTitle(quote)}</p>
-      <table className="mt-2 w-full text-[11px]">
-        <thead>
-          <tr className="border-b border-black text-left">
-            <th className="py-1">Descrição</th>
-            <th className="text-center">Qtd</th>
-            <th className="text-right">Unitário</th>
-            <th className="text-right">Total</th>
-          </tr>
-        </thead>
-        <tbody>
-          {quote.services.map((line) => (
-            <tr key={line.id} className="border-b border-gray-300">
-              <td className="py-1">{line.description} <span className="text-gray-600">(mão de obra)</span></td>
-              <td className="text-center">1</td>
-              <td className="text-right">{formatBRL(line.price)}</td>
-              <td className="text-right">{formatBRL(line.price)}</td>
-            </tr>
-          ))}
-          {quote.parts.map((line) => (
-            <tr key={line.id} className="border-b border-gray-300">
-              <td className="py-1">{line.description}{line.code && <span className="text-gray-600"> ({line.code})</span>}</td>
-              <td className="text-center">{line.qty} {line.unit}</td>
-              <td className="text-right">{formatBRL(line.unitPrice)}</td>
-              <td className="text-right">{formatBRL(line.qty * line.unitPrice)}</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-
-      <div className="mt-3 flex justify-end">
-        <dl className="w-64 text-[11px]">
-          <div className="flex justify-between"><dt>Mão de obra</dt><dd>{formatBRL(totals.labor)}</dd></div>
-          <div className="flex justify-between"><dt>Peças</dt><dd>{formatBRL(totals.parts)}</dd></div>
-          <div className="flex justify-between"><dt>Desconto</dt><dd>-{formatBRL(totals.discount)}</dd></div>
-          <div className="mt-1 flex justify-between border-t border-black pt-1 text-sm font-extrabold"><dt>Total</dt><dd>{formatBRL(totals.total)}</dd></div>
-        </dl>
-      </div>
+      <PrintItemsSummary services={quote.services} parts={quote.parts} />
+      <ServicesPrintTable services={quote.services} />
+      <PartsPrintTable parts={quote.parts} />
+      <PrintTotals totals={totals} />
 
       {quote.notes && <p className="mt-4 text-[11px]"><strong>Observações: </strong>{quote.notes}</p>}
       <p className="mt-4 text-[10px]">
