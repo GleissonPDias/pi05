@@ -1,13 +1,12 @@
 import { FlagIcon, KanbanSquareIcon, ListIcon, SearchIcon, UserCogIcon } from "lucide-react";
 import ChipSelect from "../../../components/ui/ChipSelect";
-import { MECHANICS } from "../../../mocks/oficina";
+import { useOficina } from "../../../hooks/useOficina";
 import { cn } from "../../../utils/cn";
 import { PRIORITIES, STATUS } from "../constants";
 
 const chip =
   "relative inline-flex shrink-0 items-center gap-2 whitespace-nowrap rounded-lg border px-3 py-2 text-xs font-semibold transition-colors focus-within:ring-2 focus-within:ring-blue-500";
 
-const mechanicOptions = MECHANICS.map((m) => ({ value: m.id, label: m.name }));
 const priorityOptions = Object.entries(PRIORITIES).map(([value, item]) => ({ value, label: item.label }));
 const statusOptions = [
   { value: "ativas", label: "Ativas (no pátio)" },
@@ -34,6 +33,8 @@ function OrdensToolbar({
   canceledCount,
   searchRef,
 }) {
+  const { mechanics } = useOficina();
+  const mechanicOptions = mechanics.map((m) => ({ value: m.id, label: m.name }));
   return (
     <div className="flex flex-col gap-3 xl:flex-row xl:items-center">
       <div className="relative min-w-0 flex-1">

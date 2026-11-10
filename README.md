@@ -2,7 +2,7 @@
 
 Sistema de gestão para oficinas mecânicas. Reúne em um só lugar o dia a dia da oficina: agenda, clientes, veículos, ordens de serviço (OS), orçamentos, estoque e financeiro.
 
-Este repositório contém o **front-end** (React). O back-end (API em Spring Boot) está planejado e será integrado em breve — por enquanto as telas usam dados fictícios (mocks).
+Este repositório contém o **front-end** (React), integrado à API **salvo-api** (Spring Boot). Clientes, veículos, ordens de serviço, catálogo de serviços/peças e equipe técnica vêm da API; o restante continua com dados fictícios ou overlays locais (veja [Integração com a API](#integração-com-a-api)). Sem back-end disponível, use o **modo demonstração** na tela de login.
 
 > **Status:** em desenvolvimento. O sistema deve ser **100% responsivo** (celular e desktop) e **100% em português**.
 
@@ -29,11 +29,11 @@ Este repositório contém o **front-end** (React). O back-end (API em Spring Boo
 | --- | --- | --- |
 | Dashboard | `/` | Pronto (com dados fictícios) |
 | Agenda | `/agenda` | Pendente |
-| Clientes | `/clientes` | Pronto (lista + cadastro, edição e exclusão em pop-ups, com dados fictícios) |
-| Veículos | `/veiculos` | Pronto (lista, ficha técnica, cadastro/edição com rascunho e exclusão em pop-ups, com dados fictícios) |
-| OS (Ordens de Serviço) | `/ordens-de-servico`, `/ordens-de-servico/:numero` e `/ordens-de-servico/servicos` (catálogo de serviços) | Pronto (quadro Kanban, lista, detalhes em 4 abas, pop-ups e impressão, com dados fictícios) |
-| Orçamentos | `/orcamentos` | Pronto (indicadores, funil comercial, lista, propostas em pop-up, WhatsApp, impressão e conversão em OS, com dados fictícios) |
-| Estoque | `/estoque` | Pronto (indicadores, inventário, movimentações, cadastro de peças, entradas/saídas/ajustes, cotação rápida e pedido de compra, com dados fictícios) |
+| Clientes | `/clientes` | Pronto (lista + cadastro, edição e exclusão em pop-ups; dados da API) |
+| Veículos | `/veiculos` | Pronto (lista, ficha técnica, cadastro/edição com rascunho e exclusão em pop-ups; dados da API + overlay local) |
+| OS (Ordens de Serviço) | `/ordens-de-servico`, `/ordens-de-servico/:numero` e `/ordens-de-servico/servicos` (catálogo de serviços) | Pronto (quadro Kanban, lista, detalhes em 4 abas, pop-ups e impressão; dados da API + overlay local) |
+| Orçamentos | `/orcamentos` | Pronto (indicadores, funil comercial, lista, propostas em pop-up, WhatsApp, impressão e conversão em OS; dados fictícios) |
+| Estoque | `/estoque` | Pronto (indicadores, inventário, movimentações, cadastro de peças, entradas/saídas/ajustes, cotação rápida e pedido de compra; catálogo da API + movimentações locais) |
 | Financeiro | `/financeiro` | Pendente |
 | Configurações | `/configuracoes` | Pendente |
 | Ajuda / Suporte | `/ajuda` | Pendente |
@@ -290,24 +290,73 @@ Antes de criar algo novo, veja se já existe em `src/components/ui/`:
 
 ## Integração com a API
 
-O back-end será uma API em **Spring Boot**. Enquanto ela não está disponível:
+O front-end está integrado ao back-end **salvo-api** (Spring Boot), por meio da camada `src/services/`. A interface continua funcionando sem o servidor graças ao **modo demonstração**.
 
-- As telas leem os dados de `src/mocks/`. O formato dos mocks foi pensado para ser o mesmo da resposta esperada da API.
-- Ao integrar, o plano é criar uma pasta `src/services/` com as chamadas HTTP e substituir a importação do mock por essas chamadas, sem precisar reescrever os componentes visuais.
-- Pontos já marcados no código com `TODO`: dados do usuário (`mocks/user.js`), filtro de período do Dashboard e as operações de clientes, veículos e ordens de serviço (`context/useClientesState.js`, `context/useVeiculosState.js` e `context/useOrdensState.js`, hoje em memória: os dados voltam ao original ao recarregar a página).
-- A busca de endereço pelo CEP já usa a API pública ViaCEP (`src/services/cep.js`).
-- Clientes e veículos ficam em `src/context/` (estado compartilhado), porque as telas se conversam: o cadastro de veículo permite criar um cliente na hora, a lista de clientes mostra os veículos de cada um e desativar um cliente desvincula os veículos dele. Ao integrar a API, troque o corpo das funções de `context/useClientesState.js` e `context/useVeiculosState.js` por chamadas HTTP, mantendo as assinaturas.
-- **Ordens de serviço:** a situação de cada veículo (OS em andamento, box em uso, histórico e última passagem) é calculada a partir das OS (`context/vehicleOrders.js`). A API pode devolver esses campos prontos no veículo.
-- **Rascunho da OS:** as edições da página de detalhes ficam em rascunho (`drafts`) até clicar em "Salvar". Mudanças de etapa, aprovação e entrega são gravadas na hora. Sugestão de rotas: `POST /ordens`, `PATCH /ordens/{numero}`, `POST /ordens/{numero}/status`.
-- **Catálogo de serviços:** fica em `context/useServicosState.js` e alimenta o "Adicionar Serviço" das OS e dos orçamentos (só os ativos). Serviço já usado não pode ser excluído, apenas desativado.
-- **Orçamentos:** `context/useOrcamentosState.js`. A situação "Vencido" é calculada (enviado e fora da validade). Ao converter, é criada uma OS com os itens e a aprovação do cliente, e a OS guarda o `quoteId` de origem. Sugestão de rotas: `POST /orcamentos`, `POST /orcamentos/{id}/enviar`, `/aprovar`, `/rejeitar` e `/converter`.
-- **Estoque:** `context/useEstoqueState.js`. Toda mudança de quantidade passa por `registerMovement` (gera histórico e recalcula o custo médio nas entradas). Peças de OS em andamento contam como **reservadas** (estoque disponível = físico − reservado) e a entrega da OS dá **baixa automática** (`consumeForOrder`). Sugestão de rotas: `/pecas`, `POST /estoque/movimentacoes`, `POST /compras/pedidos`.
-- **Impressão:** `utils/print.js` (`printDocument`) renderiza o documento, espera a logo carregar e abre a impressão. Os documentos usam `components/print/PrintHeader.jsx`.
-- **Regras de etapa** (ex.: só executa com orçamento aprovado; só finaliza com todos os serviços concluídos) ficam em `canMoveTo` (`pages/OrdensServico/ordemUtils.js`). O back-end deve validar as mesmas regras.
-- A foto do veículo e as fotos da vistoria hoje são endereços temporários do navegador; na API elas devem ser enviadas como arquivo (multipart) e a resposta traz as URLs definitivas.
-- "Excluir" um cliente **desativa** o cadastro (não apaga), para preservar o histórico de serviços e os registros fiscais. A API deve seguir o mesmo comportamento.
+### Configuração
 
-Combine em equipe o formato dos contratos (JSON) com quem desenvolve o back-end antes de ligar cada tela.
+```bash
+# .env (na raiz do projeto)
+VITE_API_URL=https://salvo-api.onrender.com
+```
+
+- `VITE_API_URL` é opcional; sem ela, o padrão é `https://salvo-api.onrender.com`.
+- Copie `.env.example` para `.env` e ajuste a URL ao ambiente (local, homologação ou produção).
+- O Vite só lê variáveis `VITE_*` no momento do build/dev — reinicie o servidor após alterar o `.env`.
+
+### Login e sessão
+
+- A tela `/login` autentica com `POST /auth/login` (e-mail + senha) e guarda o JWT no `localStorage` (`salvo.session.v1`).
+- Em seguida `GET /auth/me` carrega nome, cargo, oficina e e-mail do usuário.
+- Todas as rotas internas são protegidas por `RequireAuth`; sem sessão válida o usuário volta ao login.
+- Em `401` a sessão é limpa e o usuário é redirecionado ao login. Os dados de sessão e modo ficam em `src/services/api.js`.
+- **Modo demonstração:** o botão "Entrar no modo demonstração" usa os dados de `src/mocks/`, não faz chamadas à API e não altera o servidor. Use-o para navegar pelas telas sem credenciais ou com o back-end fora do ar.
+
+### O que já vem da API
+
+| Recurso | Endpoints usados | Observações |
+| --- | --- | --- |
+| Clientes | `GET/POST/PUT/DELETE /clientes` | Lista paginada; "excluir" desativa o cadastro na API. |
+| Veículos | `GET/POST/PUT/DELETE /clientes/{id}/veiculos`, `/veiculos/{id}` | Lista paginada; campos sem suporte na API ficam em overlay local. |
+| Ordens de Serviço | `GET/POST /ordens-servico`, `GET /ordens-servico/{numero}`, `PATCH /{numero}/status`, `POST/DELETE /{numero}/servicos` e `/pecas` | Resumo paginado + detalhe por número; itens são sincronizados por exclusão/recriação. |
+| Serviços | `GET /servicos` | Catálogo somente leitura na API. |
+| Peças | `GET /pecas` | Catálogo somente leitura na API. |
+| Equipe técnica | `GET /mecanicos` | Alimenta filtros, seleção de responsável e boxes. |
+| Usuário | `POST /auth/login`, `GET /auth/me` | JWT Bearer em todas as chamadas. |
+
+### O que permanece local (overlay)
+
+A API ainda não expõe endpoints para tudo, então estes dados são persistidos no `localStorage` e mesclados com as respostas do servidor:
+
+- Endereço, preferências de comunicação e classificação estendida de clientes.
+- Foto, proprietário, categoria e datas de revisão de veículos.
+- Título, tipo, canal, box, prioridade, vistoria, pagamento, garantia, aprovação e linha do tempo das OS.
+- Cadastro/edição/exclusão de serviços e peças do catálogo.
+- Movimentações de estoque, pedidos de compra e baixa automática de peças.
+- **Orçamentos, Dashboard, Agenda e Financeiro** continuam apenas com dados fictícios (não há endpoints no back-end).
+- Rascunhos de cadastro (cliente/veículo incompletos) ficam somente no navegador.
+
+Chaves usadas: `salvo.*` (veja `src/services/storage.js`). Limpar os dados do navegador remove esses overlays.
+
+### Fluxo de dados e erros
+
+- Os hooks de estado (`src/context/use*State.js`) carregam a API e normalizam os DTOs em `src/services/mappers.js`, mantendo os formatos já usados pelas telas.
+- Enquanto há requisições, uma barra de progresso aparece no topo; falhas mostram um aviso global (dispensável) em `ApiFeedback`.
+- Mutações são assíncronas e retornam `true`/registro criado ou `false`/`null`; as telas só exibem a mensagem de sucesso depois da confirmação da API.
+- As listas paginadas são percorridas por completo (`getAll`) para manter os contadores e filtros atuais.
+
+### Back-end: CORS
+
+O navegador precisa que a API responda ao *preflight* `OPTIONS` com os cabeçalhos `Access-Control-Allow-Origin`, `Access-Control-Allow-Methods` e `Access-Control-Allow-Headers`. O back-end já possui `configs/CorsConfig.java`; confirme que a versão publicada no Render está atualizada e que a origem do front-end (ex.: `http://localhost:5173`) está liberada. Sem isso, o login falha com erro de CORS mesmo com a API no ar.
+
+### Contratos e pontos de atenção
+
+- A API devolve `Page` nas listas (`content`, `last`) e arrays simples em `/servicos`, `/pecas` e `/mecanicos`.
+- Uma OS só pode ser criada para um veículo que pertença ao `clienteId` informado.
+- `CriarOsDTO` aceita `mecanicoLiderId`, mas ignora `boxId`; não há endpoint para editar metadados da OS.
+- Itens de OS não têm endpoint de atualização: alterar quantidade/valor/horas/Responsável exige excluir e recriar o item.
+- A foto do veículo e as fotos da vistoria hoje são URLs temporárias do navegador; para persistir seria necessário upload multipart (não existe na API).
+- "Excluir" cliente/veículo **desativa** o cadastro, preservando histórico e registros fiscais.
+- Regras de etapa (ex.: executar só com orçamento aprovado) continuam validadas no front-end em `canMoveTo` (`pages/OrdensServico/ordemUtils.js`); o back-end deve validar as mesmas regras.
 
 ---
 

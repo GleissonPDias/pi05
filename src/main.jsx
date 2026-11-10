@@ -2,15 +2,15 @@ import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import { BrowserRouter } from "react-router-dom";
 import "./index.css";
-import AppProviders from "./context/AppProviders.jsx";
 import App from "./App.jsx";
+import AuthProvider from "./context/AuthProvider.jsx";
 
 createRoot(document.getElementById("root")).render(
   <StrictMode>
     <BrowserRouter>
-      <AppProviders>
+      <AuthProvider>
         <App />
-      </AppProviders>
+      </AuthProvider>
     </BrowserRouter>
   </StrictMode>,
 );

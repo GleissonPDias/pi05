@@ -14,7 +14,8 @@ const avatarTones = [
 
 /** Avatar com iniciais. A cor é fixa para cada cliente (derivada do código). */
 export function ClienteAvatar({ client }) {
-  const tone = avatarTones[Number(client.id.replace(/\D/g, "")) % avatarTones.length];
+  const key = Number(String(client.id ?? "").replace(/\D/g, "")) || 0;
+  const tone = avatarTones[key % avatarTones.length];
 
   return (
     <span

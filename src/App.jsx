@@ -1,8 +1,13 @@
 import { Route, Routes, useLocation } from "react-router-dom";
+import ApiFeedback from "./components/ApiFeedback";
+import RequireAuth from "./components/RequireAuth";
+import AppProviders from "./context/AppProviders";
 import MainLayout from "./layouts/MainLayout";
 import Clientes from "./pages/Clientes/Clientes";
 import Dashboard from "./pages/Dashboard/Dashboard";
 import Estoque from "./pages/Estoque/Estoque";
+import Login from "./pages/Login/Login";
+import Register from "./pages/Register/Register";
 import Orcamentos from "./pages/Orcamentos/Orcamentos";
 import OrdemDetalhe from "./pages/OrdensServico/OrdemDetalhe";
 import OrdensServico from "./pages/OrdensServico/OrdensServico";
@@ -27,38 +32,53 @@ function App() {
   const busca = new URLSearchParams(location.search).get("busca") ?? "";
 
   return (
-    <Routes>
-      <Route element={<MainLayout />}>
-        {/* Telas prontas */}
-        <Route index element={<Dashboard />} />
-        <Route path="/clientes" element={<Clientes key={busca} />} />
-        <Route path="/veiculos" element={<Veiculos key={busca} />} />
-        <Route path="/ordens-de-servico" element={<OrdensServico key={busca} />} />
-        <Route path="/estoque" element={<Estoque key={busca} />} />
-        <Route path="/orcamentos" element={<Orcamentos key={busca} />} />
-        <Route path="/ordens-de-servico/servicos" element={<ServicosCatalogo />} />
-        <Route path="/ordens-de-servico/:numero" element={<OrdemDetalhe />} />
+    <>
+      <ApiFeedback />
+      <Routes>
+        {/* Login e Cadastro ficam fora do AppProviders: nenhuma chamada autenticada antes da sessão. */}
+        <Route path="/login" element={<Login />} />
+        <Route path="/cadastro" element={<Register />} />
 
-        {/* Telas pendentes */}
-        {pendingRoutes.map((item) => (
+        <Route element={<RequireAuth />}>
           <Route
-            key={item.to}
-            path={item.to}
-            element={<PlaceholderPage title={item.label} />}
-          />
-        ))}
+            element={
+              <AppProviders>
+                <MainLayout />
+              </AppProviders>
+            }
+          >
+            {/* Telas prontas */}
+            <Route index element={<Dashboard />} />
+            <Route path="/clientes" element={<Clientes key={busca} />} />
+            <Route path="/veiculos" element={<Veiculos key={busca} />} />
+            <Route path="/ordens-de-servico" element={<OrdensServico key={busca} />} />
+            <Route path="/estoque" element={<Estoque key={busca} />} />
+            <Route path="/orcamentos" element={<Orcamentos key={busca} />} />
+            <Route path="/ordens-de-servico/servicos" element={<ServicosCatalogo />} />
+            <Route path="/ordens-de-servico/:numero" element={<OrdemDetalhe />} />
 
-        <Route
-          path="*"
-          element={
-            <PlaceholderPage
-              title="Página não encontrada"
-              description="O endereço acessado não existe."
+            {/* Telas pendentes */}
+            {pendingRoutes.map((item) => (
+              <Route
+                key={item.to}
+                path={item.to}
+                element={<PlaceholderPage title={item.label} />}
+              />
+            ))}
+
+            <Route
+              path="*"
+              element={
+                <PlaceholderPage
+                  title="Página não encontrada"
+                  description="O endereço acessado não existe."
+                />
+              }
             />
-          }
-        />
-      </Route>
-    </Routes>
+          </Route>
+        </Route>
+      </Routes>
+    </>
   );
 }
 

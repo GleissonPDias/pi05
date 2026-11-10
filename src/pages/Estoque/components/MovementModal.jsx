@@ -37,6 +37,7 @@ function MovementModal({ part: initialPart, initialType = "entrada", parts, rese
   const [document, setDocument] = useState("");
   const [reason, setReason] = useState("");
   const [error, setError] = useState("");
+  const [submitting, setSubmitting] = useState(false);
 
   const catalog = useMemo(
     () => parts.map((item) => ({ ...item, detail: `${item.brand} • estoque ${item.stock} ${item.unit}` })),
@@ -66,22 +67,32 @@ function MovementModal({ part: initialPart, initialType = "entrada", parts, rese
       ? (Math.max(0, part.stock) * part.cost + qty * unitCost) / (Math.max(0, part.stock) + qty)
       : null;
 
-  const handleSubmit = (event) => {
+  const handleSubmit = async (event) => {
     event.preventDefault();
+    if (submitting) return;
     if (!part) return setError("Escolha a peça.");
     if (type === "saida" && qty > part.stock) return setError(`Só há ${part.stock} ${part.unit} em estoque.`);
     if ((type === "saida" || type === "ajuste") && !reason) return setError("Informe o motivo.");
     if (type === "entrada" && !(unitCost > 0)) return setError("Informe o custo unitário da compra.");
-    onConfirm({
-      code: part.code,
-      type,
-      qty: type === "ajuste" ? Number(count) || 0 : qty,
-      unitCost: type === "entrada" ? unitCost : null,
-      supplierId: type === "entrada" ? supplierId || null : null,
-      document: type === "entrada" ? (document.trim() ? `NF ${document.trim()}` : "Entrada manual") : type === "devolucao" ? document.trim() || "Devolução" : reason,
-      note: type === "entrada" || type === "devolucao" ? reason : document.trim(),
-    });
-    onClose();
+
+    setSubmitting(true);
+    setError("");
+    try {
+      await onConfirm({
+        code: part.code,
+        type,
+        qty: type === "ajuste" ? Number(count) || 0 : qty,
+        unitCost: type === "entrada" ? unitCost : null,
+        supplierId: type === "entrada" ? supplierId || null : null,
+        document: type === "entrada" ? (document.trim() ? `NF ${document.trim()}` : "Entrada manual") : type === "devolucao" ? document.trim() || "Devolução" : reason,
+        note: type === "entrada" || type === "devolucao" ? reason : document.trim(),
+      });
+      onClose();
+    } catch (submitError) {
+      setError(submitError?.message || "Não foi possível registrar a movimentação.");
+    } finally {
+      setSubmitting(false);
+    }
     return undefined;
   };
 
@@ -201,11 +212,11 @@ function MovementModal({ part: initialPart, initialType = "entrada", parts, rese
         </ModalBody>
 
         <ModalFooter>
-          <Button variant="soft" size="lg" onClick={onClose} className="w-full sm:w-auto">
+          <Button variant="soft" size="lg" onClick={onClose} disabled={submitting} className="w-full sm:w-auto">
             Cancelar
           </Button>
-          <Button type="submit" size="lg" icon={CheckIcon} className="w-full sm:w-auto">
-            Registrar {MOVEMENT_TYPES[type].label}
+          <Button type="submit" size="lg" icon={CheckIcon} disabled={submitting} className="w-full sm:w-auto">
+            {submitting ? "Registrando..." : `Registrar ${MOVEMENT_TYPES[type].label}`}
           </Button>
         </ModalFooter>
       </form>

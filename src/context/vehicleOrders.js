@@ -1,17 +1,17 @@
 import { ACTIVE_STATUSES } from "../pages/OrdensServico/constants";
-import { BOXES, MECHANICS } from "../mocks/oficina";
+import { getBoxes, getMechanic } from "../services/mechanics";
 import { toISODate } from "../utils/dates";
-
-const boxes = new Map(BOXES.map((box) => [box.id, box]));
-const mechanics = new Map(MECHANICS.map((mechanic) => [mechanic.id, mechanic]));
 
 /**
  * Completa cada veículo com as informações que vêm das Ordens de Serviço:
  * - openOrder: número da OS em andamento (ou null)
  * - box: { name, mechanic } do box em uso (ou null)
  * - servicesCount / lastService: histórico de OS entregues
+ *
+ * Os boxes e mecânicos vêm do registro dinâmico (mocks ou /mecanicos).
  */
 export function attachOrderInfo(vehicles, orders) {
+  const boxes = new Map(getBoxes().map((box) => [box.id, box]));
   const activeByVehicle = new Map();
   const deliveredByVehicle = new Map();
 
@@ -39,7 +39,7 @@ export function attachOrderInfo(vehicles, orders) {
       box: box
         ? {
             name: `${box.name} — ${box.type}`,
-            mechanic: mechanics.get(active.mechanicId)?.name ?? "A definir",
+            mechanic: getMechanic(active.mechanicId)?.name ?? "A definir",
           }
         : null,
       servicesCount: delivered.length,

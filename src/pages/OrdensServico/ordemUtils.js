@@ -1,4 +1,4 @@
-import { BOXES, MECHANICS } from "../../mocks/oficina";
+import { getBoxes, getMechanic } from "../../services/mechanics";
 import { formatBRL } from "../../utils/format";
 import { maskPlate } from "../../utils/masks";
 import {
@@ -14,21 +14,18 @@ import {
 
 const DAY = 86_400_000;
 
-export const mechanicsById = new Map(MECHANICS.map((m) => [m.id, m]));
-export const boxesById = new Map(BOXES.map((b) => [b.id, b]));
-
 export const formatOrderNumber = (number) => `#${number}`;
 export const isActive = (order) => ACTIVE_STATUSES.includes(order.status);
 export const isClosed = (order) => !isActive(order);
 
 /** "Rafael Sampaio" ou "" */
 export function mechanicName(id) {
-  return mechanicsById.get(id)?.name ?? "";
+  return getMechanic(id)?.name ?? "";
 }
 
 /** "Box 03" ou "" */
 export function boxName(id) {
-  return boxesById.get(id)?.name ?? "";
+  return getBoxes().find((box) => box.id === id)?.name ?? "";
 }
 
 /** Primeiro nome: "Rafael Sampaio" -> "Rafael" */
@@ -296,7 +293,7 @@ export function computeOrderStats(orders) {
     rework,
     reworkLabel: rework <= 2 ? "SLA Excelente" : rework <= 5 ? "Dentro da meta" : "Acima da meta",
     boxesBusy: boxes.size,
-    boxesTotal: BOXES.length,
+    boxesTotal: getBoxes().length,
     waitingParts: orders.filter((order) => order.status === "aguardando_pecas").length,
     overdue: active.filter(isOverdue).length,
   };

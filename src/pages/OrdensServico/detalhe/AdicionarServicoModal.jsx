@@ -9,13 +9,11 @@ import Checkbox from "../../../components/ui/Checkbox";
 import TextField from "../../../components/ui/TextField";
 import { useServicos } from "../../../hooks/useServicos";
 import { useEstoque } from "../../../hooks/useEstoque";
-import { MECHANICS } from "../../../mocks/oficina";
+import { useOficina } from "../../../hooks/useOficina";
 import { formatBRL } from "../../../utils/format";
 import { createId } from "../ordemUtils";
 import CatalogList from "./CatalogList";
 import ModeToggle from "./ModeToggle";
-
-const mechanicOptions = MECHANICS.map((m) => ({ value: m.id, label: `${m.name} — ${m.specialty}` }));
 
 /**
  * Pop-up "Adicionar Serviço": catálogo de serviços (somente ativos) ou serviço avulso.
@@ -30,6 +28,8 @@ function AdicionarServicoModal({ defaultMechanicId, showMechanic = true, existin
   const titleId = useId();
   const { services } = useServicos();
   const { partsByCode } = useEstoque();
+  const { mechanics } = useOficina();
+  const mechanicOptions = mechanics.map((m) => ({ value: m.id, label: `${m.name} — ${m.specialty}` }));
   const catalog = useMemo(() => services.filter((service) => service.status === "ativo"), [services]);
   const [extraParts, setExtraParts] = useState({});
   const [mode, setMode] = useState("catalogo");

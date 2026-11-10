@@ -139,8 +139,9 @@ function OrdensServico() {
     showToast(`Relatório exportado: ${rows.length} OS.`);
   };
 
-  const handleCreate = (data, { startInspection }) => {
-    const created = createOrder(data);
+  const handleCreate = async (data, { startInspection }) => {
+    const created = await createOrder(data);
+    if (!created) return;
     const vehicle = vehiclesById.get(data.vehicleId);
     if (vehicle && data.mileageIn > vehicle.mileage) updateMileage(vehicle.id, data.mileageIn);
 

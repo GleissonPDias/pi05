@@ -96,23 +96,25 @@ function Clientes() {
     showToast(`Lista exportada: ${filtered.length} cliente(s).`);
   };
 
-  const handleCreate = (data) => {
-    createClient(data);
+  const handleCreate = async (data) => {
+    const created = await createClient(data);
+    if (!created) return;
     showToast(`Cliente "${data.name}" cadastrado com sucesso!`);
   };
 
-  const handleUpdate = (data) => {
+  const handleUpdate = async (data) => {
     // Reativar um cadastro remove o motivo de desativação anterior
-    updateClient(
+    const ok = await updateClient(
       selectedClient.id,
       data.status === "ativo" ? { ...data, inactiveReason: undefined } : data,
     );
-    showToast(`Dados de "${data.name}" atualizados.`);
+    if (ok) showToast(`Dados de "${data.name}" atualizados.`);
   };
 
-  const handleDeactivate = (reason) => {
-    deactivateClient(selectedClient.id, reason);
-    unlinkOwner(selectedClient.id); // os veículos ficam sem proprietário
+  const handleDeactivate = async (reason) => {
+    const ok = await deactivateClient(selectedClient.id, reason);
+    if (!ok) return;
+    await unlinkOwner(selectedClient.id); // os veículos ficam sem proprietário
     showToast(`Cadastro de "${selectedClient.name}" desativado.`, "warning");
   };
 

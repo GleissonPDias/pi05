@@ -1,12 +1,12 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { BellIcon, MenuIcon, SearchIcon } from "lucide-react";
-import { currentUser as user } from "../../mocks/user";
+import { BellIcon, LogOutIcon, MenuIcon, SearchIcon } from "lucide-react";
+import { useAuth } from "../../hooks/useAuth";
 
 // TODO: notificações reais virão da API (Spring Boot).
 const unreadNotifications = 3;
 
-function getInitials(name) {
+function getInitials(name = "") {
   return name
     .split(" ")
     .slice(0, 2)
@@ -36,13 +36,22 @@ function searchDestination(query) {
 
 function Header({ isAsideOpen, onMenuClick }) {
   const navigate = useNavigate();
+  const { user, mode, logout } = useAuth();
   const [query, setQuery] = useState("");
+  const name = user?.name ?? "Operador";
+  const role = user?.role ?? "Oficina";
+  const workshop = user?.workshopName ?? "Oficina Matriz";
 
   const handleSubmit = (event) => {
     event.preventDefault();
     if (!query.trim()) return;
     navigate(searchDestination(query));
     setQuery("");
+  };
+
+  const handleLogout = () => {
+    logout();
+    navigate("/login", { replace: true });
   };
 
   return (
@@ -76,8 +85,13 @@ function Header({ isAsideOpen, onMenuClick }) {
         {/* Status da unidade */}
         <span className="hidden items-center gap-2 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-800 md:inline-flex">
           <span className="size-2 rounded-full bg-emerald-500" />
-          Oficina Matriz - Aberta
+          {workshop} - Aberta
         </span>
+        {mode === "demo" && (
+          <span className="hidden rounded-full border border-amber-200 bg-amber-50 px-3 py-1 text-xs font-semibold text-amber-800 sm:inline-flex">
+            Demonstração
+          </span>
+        )}
 
         {/* Notificações */}
         <button
@@ -96,12 +110,21 @@ function Header({ isAsideOpen, onMenuClick }) {
         {/* Usuário */}
         <div className="flex items-center gap-3">
           <div className="grid size-9 place-items-center rounded-full bg-sidebar text-xs font-bold text-white">
-            {getInitials(user.name)}
+            {getInitials(name)}
           </div>
           <div className="hidden text-left leading-tight md:block">
-            <p className="text-sm font-bold text-slate-900">{user.name}</p>
-            <p className="text-xs text-slate-500">{user.role}</p>
+            <p className="text-sm font-bold text-slate-900">{name}</p>
+            <p className="text-xs text-slate-500">{role}</p>
           </div>
+          <button
+            type="button"
+            onClick={handleLogout}
+            aria-label="Sair da conta"
+            title="Sair"
+            className="rounded-lg p-2 text-slate-600 hover:bg-red-50 hover:text-red-600 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+          >
+            <LogOutIcon className="size-5" />
+          </button>
         </div>
       </div>
     </header>

@@ -267,8 +267,9 @@ function QuoteFormModal({ quote, initialVehicleId, vehicles, clients, createVehi
           createClient={createClient}
           onToast={onToast}
           onClose={() => setAdding(null)}
-          onSubmit={(data, { draft }) => {
-            const created = createVehicle(data);
+          onSubmit={async (data, { draft }) => {
+            const created = await createVehicle(data);
+            if (!created) return;
             if (draft) {
               onToast("Rascunho do veículo salvo. Complete o cadastro para orçar.", "warning");
               return;

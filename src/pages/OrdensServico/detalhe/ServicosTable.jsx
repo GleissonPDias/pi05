@@ -1,7 +1,7 @@
 import { PlusIcon, Trash2Icon, UserCogIcon } from "lucide-react";
 import Button from "../../../components/ui/Button";
 import MoneyInput from "../../../components/ui/MoneyInput";
-import { MECHANICS } from "../../../mocks/oficina";
+import { useOficina } from "../../../hooks/useOficina";
 import { cn } from "../../../utils/cn";
 import { formatBRL } from "../../../utils/format";
 import { MechanicAvatar, ProgressBar } from "../components/OrdemBadges";
@@ -13,6 +13,7 @@ const smallField =
 
 /** Tabela de mão de obra / serviços (cards no celular). */
 function ServicosTable({ services, readOnly, onChange, onAdd }) {
+  const { mechanics } = useOficina();
   const progress = servicesProgress({ services });
   const total = services.reduce((sum, line) => sum + Number(line.price || 0), 0);
 
@@ -45,7 +46,7 @@ function ServicosTable({ services, readOnly, onChange, onAdd }) {
         className={cn(smallField, "w-full text-xs")}
       >
         <option value="">A definir</option>
-        {MECHANICS.map((mechanic) => (
+        {mechanics.map((mechanic) => (
           <option key={mechanic.id} value={mechanic.id}>
             {mechanic.name}
           </option>

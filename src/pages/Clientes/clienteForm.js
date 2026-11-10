@@ -98,9 +98,7 @@ export function validateCliente(values, { mode, clients, currentId }) {
     }
   }
 
-  if (!values.email.trim()) {
-    errors.email = "Informe o e-mail.";
-  } else if (!isValidEmail(values.email)) {
+  if (values.email.trim() && !isValidEmail(values.email)) {
     errors.email = "E-mail inválido.";
   }
 
@@ -114,17 +112,10 @@ export function validateCliente(values, { mode, clients, currentId }) {
     errors.phoneSecondary = "Telefone incompleto. Use DDD + número.";
   }
 
-  if (!values.cep) {
-    errors.cep = "Informe o CEP.";
-  } else if (onlyDigits(values.cep).length !== 8) {
+  // Endereço é opcional (clientes da API podem não ter endereço cadastrado).
+  if (values.cep && onlyDigits(values.cep).length !== 8) {
     errors.cep = "CEP incompleto.";
   }
-
-  if (!values.street.trim()) errors.street = "Informe o logradouro.";
-  if (!values.number.trim()) errors.number = "Informe o número.";
-  if (!values.district.trim()) errors.district = "Informe o bairro.";
-  if (!values.city.trim()) errors.city = "Informe a cidade.";
-  if (!values.state) errors.state = "Selecione o estado.";
 
   return errors;
 }

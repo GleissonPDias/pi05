@@ -58,6 +58,8 @@ function PartFormModal({ part, parts, onSubmit, onDelete, onClose }) {
     status: part?.status ?? "ativo",
   }));
   const [errors, setErrors] = useState({});
+  const [submitting, setSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState("");
 
   const set = (patch) => {
     setValues((current) => ({ ...current, ...patch }));
@@ -76,8 +78,9 @@ function PartFormModal({ part, parts, onSubmit, onDelete, onClose }) {
   const markupValue = values.cost > 0 ? ((values.price - values.cost) / values.cost) * 100 : 0;
   const marginValue = values.price > 0 ? ((values.price - values.cost) / values.price) * 100 : 0;
 
-  const handleSubmit = (event) => {
+  const handleSubmit = async (event) => {
     event.preventDefault();
+    if (submitting) return;
     const found = {};
     if (!isEdit) {
       if (values.code.length < 3) found.code = "Informe o código (SKU) da peça.";
@@ -112,8 +115,17 @@ function PartFormModal({ part, parts, onSubmit, onDelete, onClose }) {
       delete data.code;
       delete data.stock;
     }
-    onSubmit(data);
-    onClose();
+
+    setSubmitting(true);
+    setSubmitError("");
+    try {
+      await onSubmit(data);
+      onClose();
+    } catch (error) {
+      setSubmitError(error?.message || "Não foi possível salvar a peça.");
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   const moneyField = (name, label, extra) => (
@@ -230,20 +242,31 @@ function PartFormModal({ part, parts, onSubmit, onDelete, onClose }) {
               </Section>
             </div>
           </div>
+          {submitError && (
+            <p role="alert" className="mt-4 rounded-lg border border-red-200 bg-red-50 p-3 text-sm font-medium text-red-700">
+              {submitError}
+            </p>
+          )}
         </ModalBody>
 
         <ModalFooter className={isEdit ? "sm:justify-between" : undefined}>
           {isEdit && (
-            <Button variant="outline" icon={Trash2Icon} onClick={onDelete} className="w-full border-red-200 text-red-700 hover:bg-red-50 sm:w-auto">
+            <Button
+              variant="outline"
+              icon={Trash2Icon}
+              onClick={onDelete}
+              disabled={submitting}
+              className="w-full border-red-200 text-red-700 hover:bg-red-50 sm:w-auto"
+            >
               Excluir
             </Button>
           )}
           <div className="flex flex-col-reverse gap-3 sm:flex-row">
-            <Button variant="soft" size="lg" onClick={onClose} className="w-full sm:w-auto">
+            <Button variant="soft" size="lg" onClick={onClose} disabled={submitting} className="w-full sm:w-auto">
               Cancelar
             </Button>
-            <Button type="submit" size="lg" icon={SaveIcon} className="w-full sm:w-auto">
-              {isEdit ? "Salvar Alterações" : "Cadastrar Peça"}
+            <Button type="submit" size="lg" icon={SaveIcon} disabled={submitting} className="w-full sm:w-auto">
+              {submitting ? "Salvando..." : isEdit ? "Salvar Alterações" : "Cadastrar Peça"}
             </Button>
           </div>
         </ModalFooter>

@@ -4,7 +4,7 @@ import Button from "../../../components/ui/Button";
 import Modal, { ModalBody, ModalFooter, ModalHeader } from "../../../components/ui/Modal";
 import SelectField from "../../../components/ui/SelectField";
 import TextField from "../../../components/ui/TextField";
-import { MECHANICS } from "../../../mocks/oficina";
+import { useOficina } from "../../../hooks/useOficina";
 import { formatBRL, formatKm } from "../../../utils/format";
 import { maskKm, onlyDigits, parseKm } from "../../../utils/masks";
 import MercosulPlate from "../../Veiculos/components/MercosulPlate";
@@ -14,7 +14,6 @@ import { fromDateTimeLocal } from "../../OrdensServico/ordemUtils";
 import { quoteTitle, quoteTotals } from "../quoteUtils";
 
 const priorityOptions = Object.entries(PRIORITIES).map(([value, item]) => ({ value, label: item.label }));
-const mechanicOptions = MECHANICS.map((m) => ({ value: m.id, label: `${m.name} — ${m.specialty}` }));
 
 /**
  * Converte o orçamento aprovado em OS (já com os itens e a aprovação).
@@ -22,6 +21,8 @@ const mechanicOptions = MECHANICS.map((m) => ({ value: m.id, label: `${m.name} �
  */
 function ConvertQuoteModal({ quote, onConfirm, onClose }) {
   const titleId = useId();
+  const { mechanics } = useOficina();
+  const mechanicOptions = mechanics.map((m) => ({ value: m.id, label: `${m.name} — ${m.specialty}` }));
   const { vehicle } = quote;
   const [km, setKm] = useState(maskKm(String(vehicle?.mileage ?? "")));
   const [expectedAt, setExpectedAt] = useState(defaultForecast());

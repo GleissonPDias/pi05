@@ -1,4 +1,6 @@
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
+import { isDemo } from "../services/api";
+import { KEYS, readList, writeList } from "../services/storage";
 import { orcamentosMock } from "../mocks/orcamentos";
 import { currentOperator } from "../mocks/user";
 
@@ -19,17 +21,31 @@ const CHANNEL_TEXT = { whatsapp: "WhatsApp", presencial: "presencialmente", tele
 /**
  * Orçamentos e suas operações (usado pelo AppProviders).
  *
- * TODO: ao integrar com a API (Spring Boot), troque o corpo das funções por
- * chamadas HTTP mantendo as assinaturas. Sugestão de rotas:
- * POST /orcamentos · PUT /orcamentos/{id} · POST /orcamentos/{id}/enviar ·
- * POST /orcamentos/{id}/aprovar · POST /orcamentos/{id}/rejeitar ·
- * POST /orcamentos/{id}/converter (cria a OS)
+ * Em modo API os orçamentos são persistidos localmente por oficina/usuário.
+ * Em modo demonstração são carregados a partir do mock.
  */
 export function useOrcamentosState() {
-  const [quotes, setQuotes] = useState(orcamentosMock);
+  const [quotes, setQuotes] = useState(() => (isDemo() ? orcamentosMock : readList(KEYS.quotes)));
+
+  useEffect(() => {
+    // Adia a sincronização para não atualizar estado no corpo do efeito.
+    queueMicrotask(() => {
+      setQuotes(isDemo() ? orcamentosMock : readList(KEYS.quotes));
+    });
+  }, []);
+
+  const commit = (updater) => {
+    setQuotes((current) => {
+      const next = typeof updater === "function" ? updater(current) : updater;
+      if (!isDemo()) {
+        writeList(KEYS.quotes, next);
+      }
+      return next;
+    });
+  };
 
   const patch = (id, updater) =>
-    setQuotes((current) =>
+    commit((current) =>
       current.map((quote) =>
         quote.id === id ? { ...quote, ...updater(quote), updatedAt: now(), updatedBy: currentOperator } : quote,
       ),
@@ -64,7 +80,7 @@ export function useOrcamentosState() {
         updatedAt: issuedAt,
         updatedBy: currentOperator,
       };
-      setQuotes((current) => [quote, ...current]);
+      commit((current) => [quote, ...current]);
       return quote;
     },
     [quotes],
@@ -158,7 +174,7 @@ export function useOrcamentosState() {
   );
 
   const deleteQuote = useCallback((id) => {
-    setQuotes((current) => current.filter((quote) => quote.id !== id));
+    commit((current) => current.filter((quote) => quote.id !== id));
   }, []);
 
   return {

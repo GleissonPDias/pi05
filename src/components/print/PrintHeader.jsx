@@ -1,4 +1,5 @@
 import logo from "../../assets/brand/logo-salvo-print.png";
+import { useAuth } from "../../hooks/useAuth";
 import { WORKSHOP } from "../../mocks/oficina";
 
 // Carrega a logo de impressão já na abertura do sistema (evita página sem logo)
@@ -9,12 +10,15 @@ if (typeof Image !== "undefined") new Image().src = logo;
  * pedido de compra): logo + dados da oficina + tipo e número do documento.
  */
 function PrintHeader({ kind, number, children }) {
+  const { user } = useAuth();
+  const workshopName = user?.workshopName || WORKSHOP.name;
+
   return (
     <header className="flex items-center justify-between gap-6 border-b-2 border-black pb-3">
       <div className="flex items-center gap-4">
         <img src={logo} alt="Salvô — Gestão para Oficina" className="h-16 w-auto rounded-md" />
         <div>
-          <p className="text-sm font-extrabold">{WORKSHOP.name}</p>
+          <p className="text-sm font-extrabold">{workshopName}</p>
           <p className="text-[10px]">CNPJ {WORKSHOP.document}</p>
           <p className="text-[10px]">{WORKSHOP.address}</p>
           <p className="text-[10px]">Tel. {WORKSHOP.phone} • WhatsApp {WORKSHOP.whatsapp}</p>

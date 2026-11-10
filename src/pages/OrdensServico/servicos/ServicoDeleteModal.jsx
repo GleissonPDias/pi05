@@ -12,7 +12,23 @@ import { formatBRL } from "../../../utils/format";
 function ServicoDeleteModal({ service, usedCount, onDelete, onDeactivate, onClose }) {
   const titleId = useId();
   const [confirmed, setConfirmed] = useState(false);
+  const [pending, setPending] = useState(false);
+  const [error, setError] = useState("");
   const used = usedCount > 0;
+
+  const run = async (action) => {
+    if (pending) return;
+    setPending(true);
+    setError("");
+    try {
+      await action();
+      onClose();
+    } catch (actionError) {
+      setError(actionError?.message || "Não foi possível concluir a ação.");
+    } finally {
+      setPending(false);
+    }
+  };
 
   return (
     <Modal onClose={onClose} labelledBy={titleId} size="md" closeOnOverlay={false}>
@@ -48,9 +64,14 @@ function ServicoDeleteModal({ service, usedCount, onDelete, onDeactivate, onClos
             </Checkbox>
           </div>
         )}
+        {error && (
+          <p role="alert" className="rounded-lg border border-red-200 bg-red-50 p-3 text-sm font-medium text-red-700">
+            {error}
+          </p>
+        )}
       </ModalBody>
       <ModalFooter>
-        <Button variant="soft" size="lg" onClick={onClose} data-autofocus className="w-full sm:w-auto">
+        <Button variant="soft" size="lg" onClick={onClose} disabled={pending} data-autofocus className="w-full sm:w-auto">
           Voltar
         </Button>
         {used ? (
@@ -59,13 +80,11 @@ function ServicoDeleteModal({ service, usedCount, onDelete, onDeactivate, onClos
               variant="danger"
               size="lg"
               icon={PowerIcon}
-              onClick={() => {
-                onDeactivate();
-                onClose();
-              }}
+              disabled={pending}
+              onClick={() => run(onDeactivate)}
               className="w-full sm:w-auto"
             >
-              Desativar Serviço
+              {pending ? "Desativando..." : "Desativar Serviço"}
             </Button>
           )
         ) : (
@@ -73,14 +92,11 @@ function ServicoDeleteModal({ service, usedCount, onDelete, onDeactivate, onClos
             variant="danger"
             size="lg"
             icon={Trash2Icon}
-            disabled={!confirmed}
-            onClick={() => {
-              onDelete();
-              onClose();
-            }}
+            disabled={!confirmed || pending}
+            onClick={() => run(onDelete)}
             className="w-full sm:w-auto"
           >
-            Excluir Definitivamente
+            {pending ? "Excluindo..." : "Excluir Definitivamente"}
           </Button>
         )}
       </ModalFooter>

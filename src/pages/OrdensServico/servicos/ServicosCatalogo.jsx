@@ -60,13 +60,17 @@ function ServicosCatalogo() {
     setPage(1);
   };
 
-  const toggle = (service) => {
+  const toggle = async (service) => {
     const next = service.status === "ativo" ? "inativo" : "ativo";
-    setServiceStatus(service.code, next);
-    showToast(
-      next === "ativo" ? `"${service.description}" reativado.` : `"${service.description}" desativado para novas OS.`,
-      next === "ativo" ? "success" : "warning",
-    );
+    try {
+      await setServiceStatus(service.code, next);
+      showToast(
+        next === "ativo" ? `"${service.description}" reativado.` : `"${service.description}" desativado para novas OS.`,
+        next === "ativo" ? "success" : "warning",
+      );
+    } catch {
+      // o banner global já mostra o erro da API
+    }
   };
 
   return (
@@ -132,8 +136,8 @@ function ServicosCatalogo() {
         <ServicoFormModal
           services={services}
           onClose={() => setModal(null)}
-          onSubmit={(data) => {
-            const created = createService(data);
+          onSubmit={async (data) => {
+            const created = await createService(data);
             showToast(`Serviço ${created.code} cadastrado.`);
           }}
         />
@@ -143,8 +147,8 @@ function ServicosCatalogo() {
           service={selected}
           services={services}
           onClose={() => setModal(null)}
-          onSubmit={(data) => {
-            updateService(selected.code, data);
+          onSubmit={async (data) => {
+            await updateService(selected.code, data);
             showToast(`Serviço ${selected.code} atualizado.`);
           }}
         />
@@ -154,12 +158,12 @@ function ServicosCatalogo() {
           service={selected}
           usedCount={usage.get(selected.code)?.total ?? 0}
           onClose={() => setModal(null)}
-          onDelete={() => {
-            deleteService(selected.code);
+          onDelete={async () => {
+            await deleteService(selected.code);
             showToast(`Serviço ${selected.code} excluído.`, "warning");
           }}
-          onDeactivate={() => {
-            setServiceStatus(selected.code, "inativo");
+          onDeactivate={async () => {
+            await setServiceStatus(selected.code, "inativo");
             showToast(`"${selected.description}" desativado.`, "warning");
           }}
         />

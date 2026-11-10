@@ -138,8 +138,8 @@ function Estoque() {
     showToast(`Pedido de ${items.length} item(ns) registrado para ${supplierData.name}.`);
   };
 
-  const handleMovement = (data) => {
-    const movement = registerMovement(data);
+  const handleMovement = async (data) => {
+    const movement = await registerMovement(data);
     if (!movement) return;
     const part = partsByCode.get(data.code);
     showToast(`${MOVEMENT_TYPES[data.type].label} de ${part.code} registrada. Saldo: ${movement.balance} ${part.unit}.`);
@@ -297,8 +297,8 @@ function Estoque() {
         <PartFormModal
           parts={parts}
           onClose={close}
-          onSubmit={(data) => {
-            const created = createPart(data);
+          onSubmit={async (data) => {
+            const created = await createPart(data);
             showToast(`Peça ${created.code} cadastrada.`);
           }}
         />
@@ -309,8 +309,8 @@ function Estoque() {
           parts={parts}
           onClose={close}
           onDelete={() => setModal({ type: "delete", code: selected.code })}
-          onSubmit={(data) => {
-            updatePart(selected.code, data);
+          onSubmit={async (data) => {
+            await updatePart(selected.code, data);
             showToast(`Peça ${selected.code} atualizada.`);
           }}
         />
@@ -320,12 +320,12 @@ function Estoque() {
           part={selected}
           usageCount={usageCount(selected.code)}
           onClose={close}
-          onDelete={() => {
-            deletePart(selected.code);
+          onDelete={async () => {
+            await deletePart(selected.code);
             showToast(`Peça ${selected.code} excluída.`, "warning");
           }}
-          onDeactivate={() => {
-            updatePart(selected.code, { status: "inativo" });
+          onDeactivate={async () => {
+            await updatePart(selected.code, { status: "inativo" });
             showToast(`Peça ${selected.code} inativada.`, "warning");
           }}
         />

@@ -130,10 +130,10 @@ function Orcamentos() {
     else showToast(`Rascunho ${created.id} salvo.`);
   };
 
-  const handleConvert = ({ mileageIn, expectedAt, priority, mechanicId }) => {
+  const handleConvert = async ({ mileageIn, expectedAt, priority, mechanicId }) => {
     const quote = selected;
     const copy = (lines) => lines.map((line) => ({ ...line, done: false, mechanicId: line.mechanicId ?? mechanicId }));
-    const order = createOrder({
+    const order = await createOrder({
       vehicleId: quote.vehicleId,
       clientId: quote.clientId,
       type: quote.type,
@@ -158,6 +158,7 @@ function Orcamentos() {
         viewedAt: quote.viewedAt,
       },
     });
+    if (!order) return;
     addEvent(order.number, `Criada a partir do orçamento ${quote.id} (já aprovado pelo cliente)`, "indigo");
     convertQuote(quote.id, order.number);
     if (quote.vehicle && mileageIn > quote.vehicle.mileage) updateMileage(quote.vehicle.id, mileageIn);

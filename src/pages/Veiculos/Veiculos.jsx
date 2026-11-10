@@ -72,8 +72,9 @@ function Veiculos() {
     showToast(`Lista exportada: ${filtered.length} veículo(s).`);
   };
 
-  const handleCreate = (data, { draft }) => {
-    createVehicle(data);
+  const handleCreate = async (data, { draft }) => {
+    const created = await createVehicle(data);
+    if (!created) return;
     showToast(
       draft
         ? `Rascunho do veículo ${data.plate} salvo. Complete o cadastro quando quiser.`
@@ -82,8 +83,9 @@ function Veiculos() {
     );
   };
 
-  const handleUpdate = (data, { draft }) => {
-    updateVehicle(selected.id, data);
+  const handleUpdate = async (data, { draft }) => {
+    const ok = await updateVehicle(selected.id, data);
+    if (!ok) return;
     showToast(
       draft
         ? `Rascunho do veículo ${data.plate} atualizado.`
@@ -91,9 +93,9 @@ function Veiculos() {
     );
   };
 
-  const handleDelete = () => {
-    deleteVehicle(selected.id);
-    showToast(`Veículo ${selected.plate} excluído da frota.`, "warning");
+  const handleDelete = async () => {
+    const ok = await deleteVehicle(selected.id);
+    if (ok) showToast(`Veículo ${selected.plate} excluído da frota.`, "warning");
   };
 
   const rangeStart = filtered.length === 0 ? 0 : firstIndex + 1;
