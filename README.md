@@ -2,7 +2,9 @@
 
 Sistema de gestão para oficinas mecânicas. Reúne em um só lugar o dia a dia da oficina: agenda, clientes, veículos, ordens de serviço (OS), orçamentos, estoque e financeiro.
 
-Este repositório contém o **front-end** (React), integrado à API **salvo-api** (Spring Boot). Clientes, veículos, ordens de serviço, catálogo de serviços/peças e equipe técnica vêm da API; o restante continua com dados fictícios ou overlays locais (veja [Integração com a API](#integração-com-a-api)). Sem back-end disponível, use o **modo demonstração** na tela de login.
+Este repositório contém o **front-end** (React), integrado à API **salvo-api** (Spring Boot). Clientes, veículos, ordens de serviço, catálogo de serviços/peças, estoque e equipe técnica vêm da API; orçamentos, dashboard e parte dos campos complementares continuam em dados fictícios ou overlays locais (veja [Integração com a API](#integração-com-a-api)). Sem back-end disponível, use o **modo demonstração** na tela de login.
+
+> A API já expõe endpoints de **agenda, financeiro, fornecedores, pedidos de compra, notificações e vistoria**, mas as telas correspondentes (ou parte delas) ainda não foram migradas neste front.
 
 > **Status:** em desenvolvimento. O sistema deve ser **100% responsivo** (celular e desktop) e **100% em português**.
 
@@ -17,6 +19,7 @@ Este repositório contém o **front-end** (React), integrado à API **salvo-api*
 - [Padrões do código](#padrões-do-código)
 - [Como criar uma nova tela](#como-criar-uma-nova-tela)
 - [Integração com a API](#integração-com-a-api)
+- [Alterações recentes](#alterações-recentes)
 - [Fluxo de trabalho em equipe](#fluxo-de-trabalho-em-equipe)
 - [Problemas comuns](#problemas-comuns)
 - [Equipe](#equipe)
@@ -28,13 +31,13 @@ Este repositório contém o **front-end** (React), integrado à API **salvo-api*
 | Módulo | Rota | Situação |
 | --- | --- | --- |
 | Dashboard | `/` | Pronto (com dados fictícios) |
-| Agenda | `/agenda` | Pendente |
+| Agenda | `/agenda` | Pendente (API de agendamentos já existe) |
 | Clientes | `/clientes` | Pronto (lista + cadastro, edição e exclusão em pop-ups; dados da API) |
 | Veículos | `/veiculos` | Pronto (lista, ficha técnica, cadastro/edição com rascunho e exclusão em pop-ups; dados da API + overlay local) |
-| OS (Ordens de Serviço) | `/ordens-de-servico`, `/ordens-de-servico/:numero` e `/ordens-de-servico/servicos` (catálogo de serviços) | Pronto (quadro Kanban, lista, detalhes em 4 abas, pop-ups e impressão; dados da API + overlay local) |
-| Orçamentos | `/orcamentos` | Pronto (indicadores, funil comercial, lista, propostas em pop-up, WhatsApp, impressão e conversão em OS; dados fictícios) |
-| Estoque | `/estoque` | Pronto (indicadores, inventário, movimentações, cadastro de peças, entradas/saídas/ajustes, cotação rápida e pedido de compra; catálogo da API + movimentações locais) |
-| Financeiro | `/financeiro` | Pendente |
+| OS (Ordens de Serviço) | `/ordens-de-servico`, `/ordens-de-servico/:numero` e `/ordens-de-servico/servicos` (catálogo de serviços) | Pronto (quadro Kanban, lista, detalhes em 4 abas, pop-ups e impressão; cabeçalho/itens/status persistidos na API + overlay local) |
+| Orçamentos | `/orcamentos` | Pronto (indicadores, funil comercial, lista, propostas em pop-up, WhatsApp, impressão e conversão em OS; dados fictícios + overlay local) |
+| Estoque | `/estoque` | Pronto (indicadores, inventário, movimentações, cadastro de peças, entradas/saídas/ajustes, cotação rápida e pedido de compra; catálogo e movimentações na API, pedido de compra local) |
+| Financeiro | `/financeiro` | Pendente (API de pagamentos/despesas já existe) |
 | Configurações | `/configuracoes` | Pendente |
 | Ajuda / Suporte | `/ajuda` | Pendente |
 
@@ -78,11 +81,22 @@ cd pi05
 # 2. Instalar as dependências
 npm install
 
-# 3. Iniciar o servidor de desenvolvimento
+# 3. Configurar a URL da API (opcional; o padrão é a API publicada)
+cp .env.example .env
+
+# 4. Iniciar o servidor de desenvolvimento
 npm run dev
 ```
 
 O sistema abre em `http://localhost:5173`.
+
+Para usar a API local, rode o back-end `salvo-api` em `http://localhost:8080` e ajuste `.env`:
+
+```bash
+VITE_API_URL=http://localhost:8080
+```
+
+Sem back-end, entre pela opção **"Entrar no modo demonstração"** na tela de login.
 
 ### Scripts disponíveis
 
@@ -102,6 +116,8 @@ O sistema abre em `http://localhost:5173`.
 ```
 pi05/
 ├── public/                     # Arquivos estáticos (favicon, logo)
+├── docs/
+│   └── ALTERACOES.md           # Changelog da integração com a API
 ├── index.html                  # HTML base (idioma pt-BR, fonte Inter)
 ├── vite.config.js              # Configuração do Vite + plugin do Tailwind
 ├── eslint.config.js            # Regras do ESLint
@@ -119,23 +135,32 @@ pi05/
     ├── assets/brand/           # Logo do sistema (menu lateral e documentos impressos)
     │
     ├── components/             # Componentes compartilhados entre telas
+    │   ├── ApiFeedback.jsx     # Barra de progresso e aviso global de erros da API
+    │   ├── RequireAuth.jsx     # Protege as rotas internas (redireciona para /login)
     │   ├── Aside/              # Menu lateral (gaveta no celular)
     │   ├── Header/             # Cabeçalho (busca, status, notificações, usuário)
     │   ├── print/              # PrintHeader: cabeçalho com logo dos documentos impressos
     │   └── ui/                 # Peças reutilizáveis: Button, Card, Modal, TextField...
     │
-    ├── context/                # Dados compartilhados (clientes, veículos, OS, serviços, orçamentos e estoque) + AppProviders
+    ├── context/                # Dados compartilhados + sessão e providers
+    │   ├── AuthProvider.jsx    # Login, cadastro, modo demonstração e sessão
+    │   ├── AppProviders.jsx    # Monta os contextos de dados após o login
+    │   └── use*State.js        # Carregam a API e normalizam os DTOs
     │
-    ├── hooks/                  # Hooks compartilhados: useToast, useClientes, useVeiculos, useOrdens, useServicos, useOrcamentos, useEstoque
+    ├── hooks/                  # Hooks de acesso: useAuth, useToast, useClientes, useVeiculos, useOrdens, useServicos, useOrcamentos, useEstoque
     │
     ├── pages/                  # Uma pasta por tela
+    │   ├── Login/
+    │   │   └── Login.jsx       # Login na API + entrada no modo demonstração
+    │   ├── Register/
+    │   │   └── Register.jsx    # Cadastro de oficina (POST /auth/registrar)
     │   ├── Dashboard/
     │   │   ├── Dashboard.jsx   # Monta a página
     │   │   └── components/     # Componentes usados apenas no Dashboard
     │   ├── Clientes/
     │   │   ├── Clientes.jsx    # Monta a página (busca, filtros, paginação, pop-ups)
     │   │   ├── components/     # Tabela, cards, toolbar e pop-ups de criar/editar/excluir
-    │   │   ├── hooks/          # useClientes: operações do CRUD (hoje em memória)
+    │   │   ├── hooks/          # useClientes: operações do CRUD (API + overlay local)
     │   │   ├── clienteForm.js  # Valores iniciais, conversão e validação do formulário
     │   │   └── constants.js    # Filtros, classificações, estados, motivos...
     │   ├── Veiculos/
@@ -177,8 +202,13 @@ pi05/
     │   ├── estoque.js          # Movimentações de estoque (histórico)
     │   └── user.js             # Usuário logado fictício
     │
-    ├── services/               # Chamadas a serviços externos (ex.: busca de CEP)
-    │   └── cep.js
+    ├── services/               # Integração com a API e serviços externos
+    │   ├── api.js              # Cliente HTTP, sessão JWT, modo demo e erros globais
+    │   ├── mappers.js          # Conversão DTO da API <-> formato das telas
+    │   ├── storage.js          # Overlays no localStorage (salvo.overlay.v1:*)
+    │   ├── catalogs.js         # Cache de serviços/peças e resolução id <-> código
+    │   ├── mechanics.js        # Registro mutável da equipe técnica (/mecanicos)
+    │   └── cep.js              # Busca de CEP
     │
     └── utils/                  # Funções auxiliares
         ├── cn.js               # Junta classes CSS condicionais
@@ -194,7 +224,9 @@ pi05/
 - **Componente usado em várias telas** → `src/components/`.
 - **Componente usado em uma tela só** → `src/pages/<Tela>/components/`.
 - **Peça visual genérica** (botão, card, badge) → `src/components/ui/`.
-- **Dado fictício** → `src/mocks/`.
+- **Chamada à API** → `src/services/api.js` (cliente) e `src/services/mappers.js` (DTO ↔ tela).
+- **Estado compartilhado carregado da API** → `src/context/use<Tela>State.js`.
+- **Dado fictício** (telas ainda sem API) → `src/mocks/`.
 - **Função auxiliar sem JSX** → `src/utils/`.
 
 ---
@@ -271,7 +303,7 @@ Antes de criar algo novo, veja se já existe em `src/components/ui/`:
 
 1. **Menu e rota:** o item já existe em `src/config/navigation.js`. Se for um item novo, adicione-o lá.
 2. **Página:** crie `src/pages/<Tela>/<Tela>.jsx` e, se necessário, `src/pages/<Tela>/components/`.
-3. **Dados fictícios:** crie `src/mocks/<tela>.js` com o formato que a API deverá devolver.
+3. **Dados:** se a API já tiver endpoint, use `src/services/api.js` + `src/services/mappers.js` e um `use<Tela>State.js`. Caso contrário, crie `src/mocks/<tela>.js` com o formato que a API deverá devolver.
 4. **Registrar a rota:** em `src/App.jsx`, adicione a `<Route>` da nova tela junto das "Telas prontas" e inclua o caminho na lista `implementedPaths`, para que a página provisória deixe de ser usada nessa rota. Exemplo para a tela de clientes:
 
    ```jsx
@@ -290,7 +322,7 @@ Antes de criar algo novo, veja se já existe em `src/components/ui/`:
 
 ## Integração com a API
 
-O front-end está integrado ao back-end **salvo-api** (Spring Boot), por meio da camada `src/services/`. A interface continua funcionando sem o servidor graças ao **modo demonstração**.
+O front-end está integrado ao back-end **salvo-api** (Spring Boot) pela camada `src/services/`. A interface continua funcionando sem o servidor graças ao **modo demonstração**.
 
 ### Configuração
 
@@ -302,10 +334,14 @@ VITE_API_URL=https://salvo-api.onrender.com
 - `VITE_API_URL` é opcional; sem ela, o padrão é `https://salvo-api.onrender.com`.
 - Copie `.env.example` para `.env` e ajuste a URL ao ambiente (local, homologação ou produção).
 - O Vite só lê variáveis `VITE_*` no momento do build/dev — reinicie o servidor após alterar o `.env`.
+- A API publicada e o Swagger estão em `https://salvo-api.onrender.com` e `/swagger-ui/index.html`.
 
-### Login e sessão
+### Login, cadastro e sessão
 
 - A tela `/login` autentica com `POST /auth/login` (e-mail + senha) e guarda o JWT no `localStorage` (`salvo.session.v1`).
+- A tela `/cadastro` cria a oficina com `POST /auth/registrar` (nome da oficina, responsável, e-mail, senha, telefone e CNPJ).
+  - Se o Supabase devolver sessão, o usuário entra automaticamente.
+  - Se a confirmação de e-mail estiver ativa, o front exibe a mensagem para confirmar o e-mail antes de entrar.
 - Em seguida `GET /auth/me` carrega nome, cargo, oficina e e-mail do usuário.
 - Todas as rotas internas são protegidas por `RequireAuth`; sem sessão válida o usuário volta ao login.
 - Em `401` a sessão é limpa e o usuário é redirecionado ao login. Os dados de sessão e modo ficam em `src/services/api.js`.
@@ -315,31 +351,37 @@ VITE_API_URL=https://salvo-api.onrender.com
 
 | Recurso | Endpoints usados | Observações |
 | --- | --- | --- |
-| Clientes | `GET/POST/PUT/DELETE /clientes` | Lista paginada; "excluir" desativa o cadastro na API. |
-| Veículos | `GET/POST/PUT/DELETE /clientes/{id}/veiculos`, `/veiculos/{id}` | Lista paginada; campos sem suporte na API ficam em overlay local. |
-| Ordens de Serviço | `GET/POST /ordens-servico`, `GET /ordens-servico/{numero}`, `PATCH /{numero}/status`, `POST/DELETE /{numero}/servicos` e `/pecas` | Resumo paginado + detalhe por número; itens são sincronizados por exclusão/recriação. |
-| Serviços | `GET /servicos` | Catálogo somente leitura na API. |
-| Peças | `GET /pecas` | Catálogo somente leitura na API. |
-| Equipe técnica | `GET /mecanicos` | Alimenta filtros, seleção de responsável e boxes. |
-| Usuário | `POST /auth/login`, `GET /auth/me` | JWT Bearer em todas as chamadas. |
+| Clientes | `GET/POST/PUT/DELETE /clientes` | Lista paginada e busca; "excluir" desativa o cadastro. |
+| Veículos | `GET/POST/PUT/DELETE /veiculos`, `/clientes/{id}/veiculos` | Lista paginada; placa/chassi únicos por oficina. |
+| Ordens de Serviço | `GET/POST /ordens-servico`, `GET/PUT /ordens-servico/{numero}`, `PATCH /{numero}/status`, `GET /{numero}/historico`, `POST/PUT/DELETE /{numero}/servicos` e `/pecas` | Cabeçalho, itens e status persistidos; número sequencial por oficina. |
+| Serviços | `GET/POST/PUT/DELETE /servicos`, `GET/PUT /servicos/{id}/pecas-sugeridas` | CRUD com código automático; exclusão lógica; peças sugeridas persistidas. |
+| Peças | `GET/POST/PUT/DELETE /pecas` | CRUD com código automático e exclusão lógica. |
+| Estoque | `POST/GET /pecas/{id}/movimentacoes`, `GET /estoque/movimentacoes` | Entradas, saídas, ajustes, devoluções e histórico. |
+| Equipe técnica | `GET /mecanicos` | Alimenta filtros, seleção de responsável e impressão. Os boxes continuam estáticos em `src/mocks/oficina.js` (não há endpoint de boxes). |
+| Usuário | `POST /auth/login`, `POST /auth/registrar`, `GET /auth/me` | JWT Bearer em todas as chamadas autenticadas. |
+
+**Ainda sem uso no front, mas disponíveis na API:** `/fornecedores`, `/pedidos-compra`, `/pagamentos`, `/despesas`, `/agendamentos`, `/notificacoes` e `/ordens-servico/{numero}/vistoria`.
 
 ### O que permanece local (overlay)
 
-A API ainda não expõe endpoints para tudo, então estes dados são persistidos no `localStorage` e mesclados com as respostas do servidor:
+A API cobre o núcleo operacional, mas parte dos campos complementares e telas ainda não migradas ficam no `localStorage`, mesclados com as respostas do servidor:
 
-- Endereço, preferências de comunicação e classificação estendida de clientes.
+- Endereço e preferências de comunicação de clientes.
 - Foto, proprietário, categoria e datas de revisão de veículos.
-- Título, tipo, canal, box, prioridade, vistoria, pagamento, garantia, aprovação e linha do tempo das OS.
-- Cadastro/edição/exclusão de serviços e peças do catálogo.
-- Movimentações de estoque, pedidos de compra e baixa automática de peças.
-- **Orçamentos, Dashboard, Agenda e Financeiro** continuam apenas com dados fictícios (não há endpoints no back-end).
+- Campos de apresentação da OS (título, tipo, canal, box, prioridade, linha do tempo) e a **vistoria** continuam com overlay de compatibilidade; o cabeçalho também é enviado à API via `PUT`.
+- Peças sugeridas: persistidas na API, com overlay local como fallback.
+- Serviços/peças excluídos: a API faz soft-delete (`ativo=false`) e o front mantém um overlay de exclusão para esconder itens antigos.
+- Pedidos de compra e cotações rápidas do estoque continuam locais.
+- **Dashboard, Orçamentos, Agenda e Financeiro** ainda usam dados fictícios (Agenda e Financeiro já têm API, mas não têm tela).
 - Rascunhos de cadastro (cliente/veículo incompletos) ficam somente no navegador.
 
-Chaves usadas: `salvo.*` (veja `src/services/storage.js`). Limpar os dados do navegador remove esses overlays.
+Chaves usadas: `salvo.session.v1`, `salvo.mode.v1` e `salvo.overlay.v1:*` (veja `src/services/storage.js`). Limpar os dados do navegador remove esses overlays.
 
 ### Fluxo de dados e erros
 
 - Os hooks de estado (`src/context/use*State.js`) carregam a API e normalizam os DTOs em `src/services/mappers.js`, mantendo os formatos já usados pelas telas.
+- `src/services/catalogs.js` mantém um cache de serviços/peças e resolve `id` da API ↔ código exibido (`SV-001`, `PC-001`).
+- `src/services/mechanics.js` mantém a equipe técnica atualizada para leituras síncronas de nome.
 - Enquanto há requisições, uma barra de progresso aparece no topo; falhas mostram um aviso global (dispensável) em `ApiFeedback`.
 - Mutações são assíncronas e retornam `true`/registro criado ou `false`/`null`; as telas só exibem a mensagem de sucesso depois da confirmação da API.
 - As listas paginadas são percorridas por completo (`getAll`) para manter os contadores e filtros atuais.
@@ -350,13 +392,25 @@ O navegador precisa que a API responda ao *preflight* `OPTIONS` com os cabeçalh
 
 ### Contratos e pontos de atenção
 
-- A API devolve `Page` nas listas (`content`, `last`) e arrays simples em `/servicos`, `/pecas` e `/mecanicos`.
+- A API devolve `Page` nas listas paginadas (`content`, `last`) e arrays simples em `/servicos`, `/pecas`, `/mecanicos`, `/fornecedores`, `/pedidos-compra`, `/pagamentos`, `/despesas`, `/agendamentos` e `/notificacoes`.
 - Uma OS só pode ser criada para um veículo que pertença ao `clienteId` informado.
-- `CriarOsDTO` aceita `mecanicoLiderId`, mas ignora `boxId`; não há endpoint para editar metadados da OS.
-- Itens de OS não têm endpoint de atualização: alterar quantidade/valor/horas/Responsável exige excluir e recriar o item.
-- A foto do veículo e as fotos da vistoria hoje são URLs temporárias do navegador; para persistir seria necessário upload multipart (não existe na API).
-- "Excluir" cliente/veículo **desativa** o cadastro, preservando histórico e registros fiscais.
-- Regras de etapa (ex.: executar só com orçamento aprovado) continuam validadas no front-end em `canMoveTo` (`pages/OrdensServico/ordemUtils.js`); o back-end deve validar as mesmas regras.
+- A edição do cabeçalho da OS é um `PUT`: campos de texto/data enviados substituem os atuais e `null` limpa; campos com default (prioridade, parcelas, desconto, aprovação) só mudam quando enviados.
+- Itens de OS agora têm `PUT` próprio; não é mais necessário excluir/recriar para mudar quantidade, valor, horas ou responsável.
+- A foto do veículo e as fotos da vistoria hoje são URLs temporárias do navegador; para persistir seria necessário upload multipart (não existe na API). O `fotoUrl` do veículo só é enviado quando não é `blob:`.
+- "Excluir" cliente/veículo/serviço/peça **desativa** o cadastro, preservando histórico e registros fiscais.
+- Regras de etapa (ex.: executar só com orçamento aprovado) continuam validadas no front-end em `canMoveTo` (`pages/OrdensServico/ordemUtils.js`); a API valida o status, mas não repete todo o fluxo de negócio.
+- Token inválido/expirado pode fazer a API responder `401` sem cabeçalhos CORS; o navegador mostra erro de CORS. Faça login novamente antes de investigar o `CorsConfig`.
+- **Ordem de deploy:** publique o back-end com a V4 antes do front que usa os campos novos.
+
+### Alterações recentes
+
+Esta integração está detalhada em [docs/ALTERACOES.md](docs/ALTERACOES.md). Resumo:
+
+- Camada `api.js`, `mappers.js`, `storage.js`, `catalogs.js` e `mechanics.js`.
+- Login real, cadastro de oficina, sessão JWT, `RequireAuth` e `ApiFeedback`.
+- Clientes, veículos, OS, catálogo e estoque migrados para a API.
+- Overlays locais para campos sem suporte e telas ainda não migradas.
+- Correções de compatibilidade com a V4 (status `PRONTA`/`ENTREGUE`, itens de OS, custo médio e soft-delete).
 
 ---
 
@@ -376,7 +430,7 @@ Sugestões para manter o repositório organizado:
 - **Pull Requests:** descreva o que foi feito, anexe um print da tela (celular e desktop) e peça revisão de pelo menos uma pessoa da equipe.
 - **Antes de subir:** `npm run lint` e `npm run build` sem erros.
 - **Dependências:** ao instalar um pacote novo (`npm install <pacote>`), faça commit do `package.json` **e** do `package-lock.json`, e avise a equipe para rodar `npm install`.
-- **Não versionar:** `node_modules/` e `dist/` (já estão no `.gitignore`). Se o projeto passar a usar arquivos `.env` (por exemplo, com a URL da API), adicione `.env` ao `.gitignore` antes de criá-lo.
+- **Não versionar:** `node_modules/`, `dist/` e `.env` (já estão no `.gitignore`). Versione apenas `.env.example`.
 
 ---
 
@@ -390,6 +444,18 @@ Confirme que `src/index.css` começa com `@import "tailwindcss";` e que `src/mai
 
 **Erro de versão do Node**
 O Vite 8 exige Node.js 20.19+ ou 22.12+. Verifique com `node -v`.
+
+**Login falha com erro de CORS**
+Confirme que a API está no ar (`/actuator/health`), que `VITE_API_URL` aponta para a URL correta e que a versão publicada do back-end está atualizada. Token inválido/expirado também pode gerar `401` sem cabeçalhos CORS; tente entrar novamente.
+
+**"Não foi possível conectar à API"**
+O back-end pode estar dormindo (Render free) ou fora do ar. Aguarde alguns segundos e tente novamente, ou use o **modo demonstração** na tela de login.
+
+**Sessão expira e volta ao login**
+É o comportamento esperado: ao receber `401`, o front limpa a sessão. Faça login novamente.
+
+**Dados antigos aparecem após trocar de conta**
+Os overlays ficam no `localStorage` do navegador (`salvo.overlay.v1:*`) e não são separados por oficina. Em um computador compartilhado, limpe os dados do site ao trocar de usuário.
 
 ---
 
