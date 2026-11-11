@@ -238,7 +238,7 @@ function Financeiro() {
         </div>
         {!isDemo && (
           <Button icon={PlusIcon} size="lg" onClick={() => setModalOpen(true)} className="w-full sm:w-auto">
-            Novo {config.singular.toLowerCase()}
+            {config.newLabel}
           </Button>
         )}
       </div>

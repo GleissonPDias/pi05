@@ -9,6 +9,7 @@ export const KIND_CONFIG = {
   [KIND.RECEBER]: {
     label: "A receber",
     singular: "Recebimento",
+    newLabel: "Novo recebimento",
     paidLabel: "Recebido",
     paidAction: "Marcar como recebido",
     emptyText: "Nenhum recebimento neste filtro.",
@@ -16,6 +17,7 @@ export const KIND_CONFIG = {
   [KIND.PAGAR]: {
     label: "A pagar",
     singular: "Despesa",
+    newLabel: "Nova despesa",
     paidLabel: "Pago",
     paidAction: "Marcar como pago",
     emptyText: "Nenhuma despesa neste filtro.",

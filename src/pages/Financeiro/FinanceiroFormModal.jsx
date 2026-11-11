@@ -66,7 +66,7 @@ function FinanceiroFormModal({ kind, onSubmit, onClose }) {
           icon={isReceber ? TrendingUpIcon : TrendingDownIcon}
           iconClassName={isReceber ? "bg-emerald-100 text-emerald-700" : "bg-red-100 text-red-600"}
           titleId={titleId}
-          title={`Novo ${config.singular.toLowerCase()}`}
+          title={config.newLabel}
           subtitle={isReceber ? "Valor que a oficina tem a receber de um cliente." : "Valor que a oficina tem a pagar."}
           onClose={onClose}
         />
