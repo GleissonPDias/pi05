@@ -12,6 +12,7 @@ import { api } from "../../services/api";
 import { formatBRL } from "../../utils/format";
 import { formatDate } from "../../utils/dates";
 import { cn } from "../../utils/cn";
+import FinanceiroDeleteModal from "./FinanceiroDeleteModal";
 import FinanceiroFormModal from "./FinanceiroFormModal";
 import {
   KIND,
@@ -142,6 +143,7 @@ function Financeiro() {
   const [loading, setLoading] = useState(() => !isDemo);
   const [busyId, setBusyId] = useState(null);
   const [modalOpen, setModalOpen] = useState(false);
+  const [deleteTarget, setDeleteTarget] = useState(null);
 
   const load = useCallback(async () => {
     if (isDemo) {
@@ -197,14 +199,11 @@ function Financeiro() {
   };
 
   const remove = async (item) => {
-    if (!window.confirm(`Excluir "${item.descricao}"? Essa ação não pode ser desfeita.`)) return;
     setBusyId(item.id);
     try {
       await apiFor(tab).remove(item.id);
       showToast("Lançamento excluído.", "warning");
       await load();
-    } catch {
-      // Erro exibido pelo banner global da API.
     } finally {
       setBusyId(null);
     }
@@ -319,7 +318,7 @@ function Financeiro() {
                 busyId={busyId}
                 onPaid={(item) => changeStatus(item, "PAGO", `${KIND_CONFIG[tab].paidLabel} registrado.`)}
                 onCancel={(item) => changeStatus(item, "CANCELADO", "Lançamento cancelado.")}
-                onDelete={remove}
+                onDelete={setDeleteTarget}
               />
             )}
 
@@ -335,6 +334,15 @@ function Financeiro() {
 
       {modalOpen && (
         <FinanceiroFormModal kind={tab} onClose={() => setModalOpen(false)} onSubmit={createLancamento} />
+      )}
+
+      {deleteTarget && (
+        <FinanceiroDeleteModal
+          item={deleteTarget}
+          kind={tab}
+          onClose={() => setDeleteTarget(null)}
+          onConfirm={remove}
+        />
       )}
 
       <Toast toast={toast} onClose={dismissToast} />

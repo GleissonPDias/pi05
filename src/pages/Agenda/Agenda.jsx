@@ -10,6 +10,7 @@ import { useToast } from "../../hooks/useToast";
 import { api } from "../../services/api";
 import { getBox, getMechanic } from "../../services/mechanics";
 import { cn } from "../../utils/cn";
+import AgendaDeleteModal from "./AgendaDeleteModal";
 import AgendaFormModal from "./AgendaFormModal";
 import {
   AGENDA_STATUS,
@@ -99,6 +100,7 @@ function Agenda() {
   const [loading, setLoading] = useState(() => !isDemo);
   const [busyId, setBusyId] = useState(null);
   const [modal, setModal] = useState({ open: false, item: null });
+  const [deleteTarget, setDeleteTarget] = useState(null);
 
   const load = useCallback(async () => {
     if (isDemo) {
@@ -138,9 +140,15 @@ function Agenda() {
 
   const cancel = (item) => runAction(item, () => api.agendamentos.changeStatus(item.id, "CANCELADO"), "Agendamento cancelado.");
 
-  const remove = (item) => {
-    if (!window.confirm(`Excluir o agendamento "${item.titulo}"?`)) return;
-    runAction(item, () => api.agendamentos.remove(item.id), "Agendamento excluído.");
+  const remove = async (item) => {
+    setBusyId(item.id);
+    try {
+      await api.agendamentos.remove(item.id);
+      showToast("Agendamento excluído.", "warning");
+      await load();
+    } finally {
+      setBusyId(null);
+    }
   };
 
   const save = async (payload) => {
@@ -232,7 +240,7 @@ function Agenda() {
                       onNext={changeStatus}
                       onCancel={cancel}
                       onEdit={(target) => setModal({ open: true, item: target })}
-                      onDelete={remove}
+                      onDelete={setDeleteTarget}
                     />
                   ))}
                 </ul>
@@ -249,6 +257,10 @@ function Agenda() {
           onClose={() => setModal({ open: false, item: null })}
           onSubmit={save}
         />
+      )}
+
+      {deleteTarget && (
+        <AgendaDeleteModal item={deleteTarget} onClose={() => setDeleteTarget(null)} onConfirm={remove} />
       )}
 
       <Toast toast={toast} onClose={dismissToast} />

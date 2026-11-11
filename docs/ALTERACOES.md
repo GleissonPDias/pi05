@@ -14,6 +14,7 @@ Escopo: remover as pendências de mock ligadas ao back-end. Telas e integraçõe
 - `src/components/Header/NotificationsMenu.jsx`: sino com contador real (`/notificacoes/nao-lidas/contador`), lista das últimas notificações, marcar como lida e marcar todas.
 - `src/pages/Dashboard/useWeeklyFinance.js`: fluxo financeiro dos últimos 7 dias (e variação sobre os 7 anteriores) a partir de pagamentos e despesas pagos.
 - `src/services/workshop.js` e `mapWorkshop` / `mapBox` em `mappers.js`.
+- `AgendaDeleteModal` e `FinanceiroDeleteModal`: confirmação de exclusão no padrão do projeto.
 - `api.js`: `boxes`, `oficina`, `agendamentos`, `pagamentos`, `despesas` e `notificacoes`.
 
 ### Alterado
@@ -30,7 +31,7 @@ Escopo: remover as pendências de mock ligadas ao back-end. Telas e integraçõe
 
 - Em modo API, Agenda e Financeiro são carregados sob demanda; no modo demonstração exibem aviso (a API não é consultada).
 - Agenda não cria cliente/veículo/serviço ainda: o agendamento usa título, horário, mecânico e box.
-- Exclusões em Financeiro e Agenda pedem confirmação com `window.confirm`, e não com o modal padrão do projeto.
+- Exclusões em Financeiro e Agenda usam o modal de confirmação padrão do projeto (`FinanceiroDeleteModal` e `AgendaDeleteModal`), com checkbox de confirmação, estado de envio e erro exibido no modal.
 - A vistoria da OS (checklist, danos e fotos) continua local: a API não tem checklist nem upload de fotos.
 - Orçamentos continuam com dados fictícios e overlay local.
 
