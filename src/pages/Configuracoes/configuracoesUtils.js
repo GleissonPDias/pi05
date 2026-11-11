@@ -2,10 +2,7 @@ import { STATES } from "../Clientes/constants";
 import { maskCep, maskCnpj, maskPhone, onlyDigits } from "../../utils/masks";
 import { isValidEmail } from "../../utils/validators";
 
-export const UF_OPTIONS = [
-  { value: "", label: "Selecione" },
-  ...STATES.map(([value, label]) => ({ value, label: `${value} — ${label}` })),
-];
+export const UF_OPTIONS = [{ value: "", label: "Selecione" }, ...STATES];
 
 export function emptyOficina() {
   return {
