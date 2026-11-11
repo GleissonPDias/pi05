@@ -877,3 +877,28 @@ export function orderOverlayFrom(order) {
 
   return overlay;
 }
+
+/** Box de atendimento (API) -> formato usado pelas telas. */
+export function mapBox(dto) {
+  return {
+    id: String(dto.id),
+    name: dto.nome ?? "Box",
+    type: dto.descricao ?? "",
+    active: dto.ativo !== false,
+    apiId: dto.id ?? null,
+  };
+}
+
+/** Dados da oficina (API) -> formato de WORKSHOP usado na impressão. */
+export function mapWorkshop(dto) {
+  const cityLine = [dto.cidade, dto.uf].filter(Boolean).join("/");
+  const street = [dto.logradouro, dto.numero, dto.complemento].filter(Boolean).join(", ");
+  const district = [dto.bairro, cityLine, dto.cep ? `CEP ${dto.cep}` : ""].filter(Boolean).join(" — ");
+  return {
+    name: dto.nomeFantasia || dto.nome || "Oficina",
+    document: dto.cnpj ?? "",
+    address: [street, district].filter(Boolean).join(" — "),
+    phone: dto.telefone ?? "",
+    whatsapp: dto.whatsapp ?? "",
+  };
+}

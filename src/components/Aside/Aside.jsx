@@ -3,6 +3,7 @@ import { NavLink } from "react-router-dom";
 import { XIcon } from "lucide-react";
 import logo from "../../assets/brand/logo-salvo.png";
 import { footerNav, mainNav } from "../../config/navigation";
+import { useAuth } from "../../hooks/useAuth";
 import { cn } from "../../utils/cn";
 import AsideButtons from "./ButtonAside";
 import AsideSubmenu from "./AsideSubmenu";
@@ -13,6 +14,10 @@ import AsideSubmenu from "./AsideSubmenu";
  * - Abaixo de lg: gaveta deslizante (controlada por isOpen/onClose) com overlay.
  */
 function Aside({ isOpen, onClose }) {
+  const { isAdmin } = useAuth();
+  const visibleMainNav = mainNav.filter((item) => !item.adminOnly || isAdmin);
+  const visibleFooterNav = footerNav.filter((item) => !item.adminOnly || isAdmin);
+
   // Fecha a gaveta com a tecla Esc
   useEffect(() => {
     if (!isOpen) return;
@@ -61,7 +66,7 @@ function Aside({ isOpen, onClose }) {
         </div>
 
         <nav aria-label="Menu principal" className="flex flex-col gap-2">
-          {mainNav.map((item) => (
+          {visibleMainNav.map((item) => (
             <div key={item.to} className="flex flex-col gap-2">
               <AsideButtons {...item} onClick={onClose} />
               {item.children && <AsideSubmenu item={item} onClick={onClose} />}
@@ -70,7 +75,7 @@ function Aside({ isOpen, onClose }) {
         </nav>
 
         <div className="mt-auto flex flex-col gap-2 border-t border-slate-700 pt-4">
-          {footerNav.map((item) => (
+          {visibleFooterNav.map((item) => (
             <AsideButtons key={item.to} {...item} onClick={onClose} />
           ))}
         </div>

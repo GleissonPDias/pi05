@@ -1,6 +1,6 @@
 import { daysSince, formatDate } from "../../utils/dates";
 import { maskPlate } from "../../utils/masks";
-import { BOXES_TOTAL } from "./constants";
+import { getBoxes } from "../../services/mechanics";
 
 /** Texto e cor de cada situação de manutenção. */
 export const MAINTENANCE = {
@@ -121,7 +121,10 @@ export function computeStats(vehicles) {
     registered: registered.length,
     open: inService,
     newThisMonth: registered.filter((vehicle) => daysSince(vehicle.createdAt) <= 30).length,
-    occupancy: Math.min(100, Math.round((registered.filter((vehicle) => vehicle.box).length / BOXES_TOTAL) * 100)),
+    occupancy: Math.min(
+      100,
+      Math.round((registered.filter((vehicle) => vehicle.box).length / Math.max(1, getBoxes().length)) * 100),
+    ),
     compliance:
       registered.length === 0
         ? 100

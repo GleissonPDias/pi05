@@ -1,10 +1,8 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { BellIcon, LogOutIcon, MenuIcon, SearchIcon } from "lucide-react";
+import { LogOutIcon, MenuIcon, SearchIcon } from "lucide-react";
 import { useAuth } from "../../hooks/useAuth";
-
-// TODO: notificações reais virão da API (Spring Boot).
-const unreadNotifications = 3;
+import NotificationsMenu from "./NotificationsMenu";
 
 function getInitials(name = "") {
   return name
@@ -94,18 +92,7 @@ function Header({ isAsideOpen, onMenuClick }) {
         )}
 
         {/* Notificações */}
-        <button
-          type="button"
-          aria-label={`Notificações (${unreadNotifications} não lidas)`}
-          className="relative rounded-lg p-2 text-slate-600 hover:bg-slate-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
-        >
-          <BellIcon className="size-5" />
-          {unreadNotifications > 0 && (
-            <span className="absolute right-1 top-1 grid size-4 place-items-center rounded-full bg-red-600 text-[10px] font-bold text-white">
-              {unreadNotifications}
-            </span>
-          )}
-        </button>
+        <NotificationsMenu />
 
         {/* Usuário */}
         <div className="flex items-center gap-3">

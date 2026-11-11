@@ -2,9 +2,9 @@
 
 Sistema de gestão para oficinas mecânicas. Reúne em um só lugar o dia a dia da oficina: agenda, clientes, veículos, ordens de serviço (OS), orçamentos, estoque e financeiro.
 
-Este repositório contém o **front-end** (React), integrado à API **salvo-api** (Spring Boot). Clientes, veículos, ordens de serviço, catálogo de serviços/peças, estoque e equipe técnica vêm da API; orçamentos, dashboard e parte dos campos complementares continuam em dados fictícios ou overlays locais (veja [Integração com a API](#integração-com-a-api)). Sem back-end disponível, use o **modo demonstração** na tela de login.
+Este repositório contém o **front-end** (React), integrado à API **salvo-api** (Spring Boot). Clientes, veículos, ordens de serviço, catálogo de serviços/peças, estoque, agenda, financeiro, notificações, equipe, boxes e dados da oficina vêm da API; orçamentos e parte dos campos complementares continuam em dados fictícios ou overlays locais (veja [Integração com a API](#integração-com-a-api)). Sem back-end disponível, use o **modo demonstração** na tela de login.
 
-> A API já expõe endpoints de **agenda, financeiro, fornecedores, pedidos de compra, notificações e vistoria**, mas as telas correspondentes (ou parte delas) ainda não foram migradas neste front.
+> A API já expõe endpoints de **fornecedores, pedidos de compra e vistoria**, mas as telas correspondentes (ou parte delas) ainda não foram migradas neste front.
 
 > **Status:** em desenvolvimento. O sistema deve ser **100% responsivo** (celular e desktop) e **100% em português**.
 
@@ -30,15 +30,16 @@ Este repositório contém o **front-end** (React), integrado à API **salvo-api*
 
 | Módulo | Rota | Situação |
 | --- | --- | --- |
-| Dashboard | `/` | Pronto (com dados fictícios) |
-| Agenda | `/agenda` | Pendente (API de agendamentos já existe) |
+| Dashboard | `/` | Pronto (indicadores e fluxo financeiro semanal via API; orçamentos locais) |
+| Agenda | `/agenda` | Pronto (lista por dia com filtro de período, criação, edição, status e exclusão; dados da API; exige conexão com a API) |
 | Clientes | `/clientes` | Pronto (lista + cadastro, edição e exclusão em pop-ups; dados da API) |
 | Veículos | `/veiculos` | Pronto (lista, ficha técnica, cadastro/edição com rascunho e exclusão em pop-ups; dados da API + overlay local) |
 | OS (Ordens de Serviço) | `/ordens-de-servico`, `/ordens-de-servico/:numero` e `/ordens-de-servico/servicos` (catálogo de serviços) | Pronto (quadro Kanban, lista, detalhes em 4 abas, pop-ups e impressão; cabeçalho/itens/status persistidos na API + overlay local) |
 | Orçamentos | `/orcamentos` | Pronto (indicadores, funil comercial, lista, propostas em pop-up, WhatsApp, impressão e conversão em OS; dados fictícios + overlay local) |
 | Estoque | `/estoque` | Pronto (indicadores, inventário, movimentações, cadastro de peças, entradas/saídas/ajustes, cotação rápida e pedido de compra; catálogo e movimentações na API, pedido de compra local) |
-| Financeiro | `/financeiro` | Pendente (API de pagamentos/despesas já existe) |
-| Configurações | `/configuracoes` | Pendente |
+| Financeiro | `/financeiro` | Pronto (contas a receber e a pagar, indicadores, criação, status e exclusão; dados da API; exige conexão com a API); exclusivo do administrador |
+| Equipe | `/equipe` | Pronto (lista, filtros, cadastro/edição, ativação/desativação e senha temporária; dados da API); exclusivo do administrador |
+| Configurações | `/configuracoes` | Pronto (dados cadastrais da oficina e gestão de boxes; dados da API); exclusivo do administrador |
 | Ajuda / Suporte | `/ajuda` | Pendente |
 
 Telas pendentes exibem uma página provisória ("Esta tela ainda será desenvolvida"). Ao concluir uma tela, atualize esta tabela.
@@ -137,8 +138,9 @@ pi05/
     ├── components/             # Componentes compartilhados entre telas
     │   ├── ApiFeedback.jsx     # Barra de progresso e aviso global de erros da API
     │   ├── RequireAuth.jsx     # Protege as rotas internas (redireciona para /login)
+    │   ├── RequireAdmin.jsx    # Restringe /equipe, /financeiro e /configuracoes ao ADMIN
     │   ├── Aside/              # Menu lateral (gaveta no celular)
-    │   ├── Header/             # Cabeçalho (busca, status, notificações, usuário)
+    │   ├── Header/             # Cabeçalho (busca, status, usuário); NotificationsMenu com o sino de notificações
     │   ├── print/              # PrintHeader: cabeçalho com logo dos documentos impressos
     │   └── ui/                 # Peças reutilizáveis: Button, Card, Modal, TextField...
     │
@@ -189,6 +191,26 @@ pi05/
     │   │   ├── components/        # Tabela, pop-ups (proposta, formulário, rejeição, conversão) e impressão
     │   │   ├── quoteUtils.js      # Situação comercial, validade, filtros, indicadores, WhatsApp e CSV
     │   │   └── constants.js       # Situações, períodos, validades e motivos de rejeição
+    │   ├── Equipe/
+    │   │   ├── Equipe.jsx         # Lista, filtros, indicadores e mutações da equipe (somente ADMIN)
+    │   │   ├── EquipeFormModal.jsx # Cadastro/edição de funcionário
+    │   │   ├── EquipeTable.jsx    # Tabela de integrantes e ações
+    │   │   ├── EquipeStatusModal.jsx # Ativação/desativação
+    │   │   ├── EquipeSenhaModal.jsx  # Senha temporária exibida uma única vez
+    │   │   ├── EquipeToolbar.jsx  # Busca e filtros
+    │   │   └── equipeUtils.js     # Mapeamento, payloads, validação e dados do modo demo
+    │   ├── Agenda/
+    │   │   ├── Agenda.jsx         # Lista por dia, período e ações de status (somente com API)
+    │   │   ├── AgendaFormModal.jsx # Criação/edição de agendamento
+    │   │   └── agendaUtils.js     # Períodos, agrupamento por dia, status e payloads
+    │   ├── Financeiro/
+    │   │   ├── Financeiro.jsx     # Abas a receber/a pagar, indicadores e ações (somente ADMIN)
+    │   │   ├── FinanceiroFormModal.jsx # Cadastro de recebimento ou despesa
+    │   │   └── financeiroUtils.js # Status, formas de pagamento, totais e validação
+    │   ├── Configuracoes/
+    │   │   ├── Configuracoes.jsx  # Dados da oficina e boxes (somente ADMIN)
+    │   │   ├── OficinaDadosCard.jsx, BoxesCard.jsx, BoxFormModal.jsx
+    │   │   └── configuracoesUtils.js # Formulário, máscaras, payload e validação
     │   └── PlaceholderPage.jsx # Página provisória das telas pendentes
     │
     ├── mocks/                  # Dados fictícios (serão trocados pela API)
@@ -207,7 +229,8 @@ pi05/
     │   ├── mappers.js          # Conversão DTO da API <-> formato das telas
     │   ├── storage.js          # Overlays no localStorage (salvo.overlay.v1:*)
     │   ├── catalogs.js         # Cache de serviços/peças e resolução id <-> código
-    │   ├── mechanics.js        # Registro mutável da equipe técnica (/mecanicos)
+    │   ├── mechanics.js        # Registro mutável da equipe técnica (/mecanicos) e dos boxes (/boxes)
+    │   ├── workshop.js         # Dados da oficina usados em impressos (/oficina)
     │   └── cep.js              # Busca de CEP
     │
     └── utils/                  # Funções auxiliares
@@ -342,8 +365,9 @@ VITE_API_URL=https://salvo-api.onrender.com
 - A tela `/cadastro` cria a oficina com `POST /auth/registrar` (nome da oficina, responsável, e-mail, senha, telefone e CNPJ).
   - Se o Supabase devolver sessão, o usuário entra automaticamente.
   - Se a confirmação de e-mail estiver ativa, o front exibe a mensagem para confirmar o e-mail antes de entrar.
-- Em seguida `GET /auth/me` carrega nome, cargo, oficina e e-mail do usuário.
+- Em seguida `GET /auth/me` carrega nome, cargo, perfil (`ADMIN`/`FUNCIONARIO`), situação, oficina e e-mail do usuário.
 - Todas as rotas internas são protegidas por `RequireAuth`; sem sessão válida o usuário volta ao login.
+- As rotas `/equipe`, `/financeiro` e `/configuracoes` ficam sob `RequireAdmin`; funcionários não as acessam. O menu lateral esconde esses itens para quem não é administrador.
 - Em `401` a sessão é limpa e o usuário é redirecionado ao login. Os dados de sessão e modo ficam em `src/services/api.js`.
 - **Modo demonstração:** o botão "Entrar no modo demonstração" usa os dados de `src/mocks/`, não faz chamadas à API e não altera o servidor. Use-o para navegar pelas telas sem credenciais ou com o back-end fora do ar.
 
@@ -357,10 +381,18 @@ VITE_API_URL=https://salvo-api.onrender.com
 | Serviços | `GET/POST/PUT/DELETE /servicos`, `GET/PUT /servicos/{id}/pecas-sugeridas` | CRUD com código automático; exclusão lógica; peças sugeridas persistidas. |
 | Peças | `GET/POST/PUT/DELETE /pecas` | CRUD com código automático e exclusão lógica. |
 | Estoque | `POST/GET /pecas/{id}/movimentacoes`, `GET /estoque/movimentacoes` | Entradas, saídas, ajustes, devoluções e histórico. |
-| Equipe técnica | `GET /mecanicos` | Alimenta filtros, seleção de responsável e impressão. Os boxes continuam estáticos em `src/mocks/oficina.js` (não há endpoint de boxes). |
+| Equipe técnica | `GET /mecanicos` | Alimenta filtros, seleção de responsável e impressão. Só devolve ativos com `executaOs = true`. |
+| Boxes | `GET /boxes`, `POST /boxes`, `PUT /boxes/{id}`, `DELETE /boxes/{id}` | Lista usada nas OS, agenda e Configurações. Escrita só para ADMIN; desativação em vez de exclusão. |
+| Dados da oficina | `GET /oficina`, `PUT /oficina` | Cabeçalho dos documentos impressos e configurações (validade de orçamento, desconto máximo). Escrita só para ADMIN. |
+| Agenda | `GET/POST /agendamentos`, `PUT /agendamentos/{id}`, `PATCH /agendamentos/{id}/status`, `DELETE /agendamentos/{id}` | Tela `/agenda`. Horários exibidos no fuso local. |
+| Financeiro | `GET/POST /pagamentos`, `GET/POST /despesas`, `PATCH .../status`, `DELETE .../{id}` | Tela `/financeiro` (ADMIN). Dashboard usa os lançamentos pagos dos últimos 7 dias. |
+| Notificações | `GET /notificacoes`, `GET /notificacoes/nao-lidas/contador`, `PATCH /notificacoes/{id}/lida`, `PATCH /notificacoes/lidas` | Sino do cabeçalho: contador real e lista das mais recentes. |
+| Equipe | `GET/POST /usuarios`, `GET/PUT /usuarios/{id}`, `PATCH /usuarios/{id}/status` e `POST /usuarios/{id}/reset-senha` | Cadastro e gestão de funcionários, exclusivo do `ADMIN`. Cria a identidade no Supabase Auth e devolve uma senha temporária uma única vez. |
 | Usuário | `POST /auth/login`, `POST /auth/registrar`, `GET /auth/me` | JWT Bearer em todas as chamadas autenticadas. |
 
-**Ainda sem uso no front, mas disponíveis na API:** `/fornecedores`, `/pedidos-compra`, `/pagamentos`, `/despesas`, `/agendamentos`, `/notificacoes` e `/ordens-servico/{numero}/vistoria`.
+> **Perfis:** o dono da oficina é `ADMIN`; funcionários cadastrados nascem `FUNCIONARIO`. A permissão real é aplicada no back-end (`@PreAuthorize`); esconder o menu é apenas usabilidade. O dashboard financeiro só aparece para o `ADMIN`.
+
+**Ainda sem uso no front, mas disponíveis na API:** `/fornecedores`, `/pedidos-compra` e `/ordens-servico/{numero}/vistoria` (a vistoria segue como overlay local, veja abaixo).
 
 ### O que permanece local (overlay)
 
@@ -372,7 +404,10 @@ A API cobre o núcleo operacional, mas parte dos campos complementares e telas a
 - Peças sugeridas: persistidas na API, com overlay local como fallback.
 - Serviços/peças excluídos: a API faz soft-delete (`ativo=false`) e o front mantém um overlay de exclusão para esconder itens antigos.
 - Pedidos de compra e cotações rápidas do estoque continuam locais.
-- **Dashboard, Orçamentos, Agenda e Financeiro** ainda usam dados fictícios (Agenda e Financeiro já têm API, mas não têm tela).
+- No **modo demonstração**, a tela `/equipe` simula criação, edição, status e senha sem persistir nada; no modo API, todas as operações usam `/usuarios`.
+- **Orçamentos** ainda usam dados fictícios com overlay local.
+- **Vistoria da OS** (checklist, danos e fotos) continua local. A API guarda danos, pertences e observações, mas não tem checklist nem upload de fotos; as fotos são URLs temporárias do navegador.
+- **Modo demonstração:** Agenda e Financeiro exibem aviso e não listam dados (dependem da API); Configurações mostra os dados fictícios em somente leitura; as notificações ficam vazias.
 - Rascunhos de cadastro (cliente/veículo incompletos) ficam somente no navegador.
 
 Chaves usadas: `salvo.session.v1`, `salvo.mode.v1` e `salvo.overlay.v1:*` (veja `src/services/storage.js`). Limpar os dados do navegador remove esses overlays.
@@ -381,7 +416,9 @@ Chaves usadas: `salvo.session.v1`, `salvo.mode.v1` e `salvo.overlay.v1:*` (veja 
 
 - Os hooks de estado (`src/context/use*State.js`) carregam a API e normalizam os DTOs em `src/services/mappers.js`, mantendo os formatos já usados pelas telas.
 - `src/services/catalogs.js` mantém um cache de serviços/peças e resolve `id` da API ↔ código exibido (`SV-001`, `PC-001`).
-- `src/services/mechanics.js` mantém a equipe técnica atualizada para leituras síncronas de nome.
+- `src/services/mechanics.js` mantém a equipe técnica e os boxes atualizados para leituras síncronas de nome.
+- `src/services/workshop.js` mantém os dados da oficina usados na impressão e nas mensagens.
+- `useOficinaState` (OficinaContext) carrega `/mecanicos`, `/boxes` e `/oficina` em paralelo; uma falha em um recurso não derruba os outros.
 - Enquanto há requisições, uma barra de progresso aparece no topo; falhas mostram um aviso global (dispensável) em `ApiFeedback`.
 - Mutações são assíncronas e retornam `true`/registro criado ou `false`/`null`; as telas só exibem a mensagem de sucesso depois da confirmação da API.
 - As listas paginadas são percorridas por completo (`getAll`) para manter os contadores e filtros atuais.
@@ -392,7 +429,7 @@ O navegador precisa que a API responda ao *preflight* `OPTIONS` com os cabeçalh
 
 ### Contratos e pontos de atenção
 
-- A API devolve `Page` nas listas paginadas (`content`, `last`) e arrays simples em `/servicos`, `/pecas`, `/mecanicos`, `/fornecedores`, `/pedidos-compra`, `/pagamentos`, `/despesas`, `/agendamentos` e `/notificacoes`.
+- A API devolve `Page` nas listas paginadas (`content`, `last`) e arrays simples em `/servicos`, `/pecas`, `/mecanicos`, `/usuarios`, `/fornecedores`, `/pedidos-compra`, `/pagamentos`, `/despesas`, `/agendamentos` e `/notificacoes`.
 - Uma OS só pode ser criada para um veículo que pertença ao `clienteId` informado.
 - A edição do cabeçalho da OS é um `PUT`: campos de texto/data enviados substituem os atuais e `null` limpa; campos com default (prioridade, parcelas, desconto, aprovação) só mudam quando enviados.
 - Itens de OS agora têm `PUT` próprio; não é mais necessário excluir/recriar para mudar quantidade, valor, horas ou responsável.
@@ -400,7 +437,7 @@ O navegador precisa que a API responda ao *preflight* `OPTIONS` com os cabeçalh
 - "Excluir" cliente/veículo/serviço/peça **desativa** o cadastro, preservando histórico e registros fiscais.
 - Regras de etapa (ex.: executar só com orçamento aprovado) continuam validadas no front-end em `canMoveTo` (`pages/OrdensServico/ordemUtils.js`); a API valida o status, mas não repete todo o fluxo de negócio.
 - Token inválido/expirado pode fazer a API responder `401` sem cabeçalhos CORS; o navegador mostra erro de CORS. Faça login novamente antes de investigar o `CorsConfig`.
-- **Ordem de deploy:** publique o back-end com a V4 antes do front que usa os campos novos.
+- **Ordem de deploy:** publique o back-end com a V5 e com `/boxes` e `/oficina` antes do front, que depende deles para a equipe, os boxes e as configurações. A criação de funcionário exige `SUPABASE_SERVICE_ROLE_KEY` no back-end; sem ela, somente equipe/senha retornam `503` e o restante do sistema continua funcionando.
 
 ### Alterações recentes
 
@@ -409,6 +446,13 @@ Esta integração está detalhada em [docs/ALTERACOES.md](docs/ALTERACOES.md). R
 - Camada `api.js`, `mappers.js`, `storage.js`, `catalogs.js` e `mechanics.js`.
 - Login real, cadastro de oficina, sessão JWT, `RequireAuth` e `ApiFeedback`.
 - Clientes, veículos, OS, catálogo e estoque migrados para a API.
+- Tela `/equipe` com cadastro, edição, ativação/desativação e senha temporária via `/usuarios`.
+- Telas de **Agenda**, **Financeiro** e **Configurações** (dados da oficina e boxes) integradas à API.
+- Sino de **notificações** com contador real e lista das mais recentes.
+- Dashboard com fluxo financeiro semanal calculado a partir de pagamentos e despesas reais (ADMIN).
+- Boxes e dados da oficina carregados da API; impressos usam os dados reais da oficina.
+- Perfis `ADMIN`/`FUNCIONARIO`: `RequireAdmin`, menu filtrado e dashboard financeiro oculto para funcionários.
+- `/mecanicos` passou a refletir apenas funcionários ativos que executam OS.
 - Overlays locais para campos sem suporte e telas ainda não migradas.
 - Correções de compatibilidade com a V4 (status `PRONTA`/`ENTREGUE`, itens de OS, custo médio e soft-delete).
 

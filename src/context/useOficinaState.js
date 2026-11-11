@@ -1,21 +1,27 @@
 import { useCallback, useEffect, useState } from "react";
 import { api, isDemo } from "../services/api";
-import { mapMecanico } from "../services/mappers";
+import { mapBox, mapMecanico, mapWorkshop } from "../services/mappers";
 import {
   getBoxes,
   getMechanics,
+  resetBoxes,
   resetMechanics,
+  setBoxes,
   setMechanics,
 } from "../services/mechanics";
+import { getWorkshop, resetWorkshop, setWorkshop } from "../services/workshop";
 
 /**
- * Carrega a equipe técnica (`GET /mecanicos`) e mantém o registro usado pelas
- * leituras síncronas (`mechanicName`, filtros, impressão...).
+ * Carrega a configuração compartilhada da oficina: equipe técnica
+ * (`GET /mecanicos`), boxes (`GET /boxes`) e dados cadastrais (`GET /oficina`).
  *
- * Os boxes continuam estáticos (ainda não há endpoint de boxes).
+ * Cada recurso é independente: se um falhar, os demais continuam válidos e o
+ * registro correspondente volta ao último valor conhecido (mock em demo).
  */
 export function useOficinaState() {
   const [mechanics, setMechanicsList] = useState(() => getMechanics());
+  const [boxes, setBoxesList] = useState(() => getBoxes());
+  const [workshop, setWorkshopState] = useState(() => getWorkshop());
   const [loading, setLoading] = useState(() => !isDemo());
   const [error, setError] = useState(null);
   const [source, setSource] = useState(() => (isDemo() ? "demo" : "api"));
@@ -23,7 +29,11 @@ export function useOficinaState() {
   const load = useCallback(async () => {
     if (isDemo()) {
       resetMechanics();
+      resetBoxes();
+      resetWorkshop();
       setMechanicsList(getMechanics());
+      setBoxesList(getBoxes());
+      setWorkshopState(getWorkshop());
       setSource("demo");
       setError(null);
       setLoading(false);
@@ -31,26 +41,34 @@ export function useOficinaState() {
     }
 
     setLoading(true);
-    setError(null);
-    try {
-      const dtos = await api.mecanicos.list();
-      const list = (Array.isArray(dtos) ? dtos : []).map((dto, index) =>
-        mapMecanico(dto, index),
-      );
-      if (list.length) {
-        setMechanics(list);
-        setMechanicsList(list);
-      } else {
-        resetMechanics();
-        setMechanicsList(getMechanics());
-      }
-      setSource("api");
-    } catch (loadError) {
-      setError(loadError);
-      setMechanicsList(getMechanics());
-    } finally {
-      setLoading(false);
+    const [mechanicsResult, boxesResult, workshopResult] = await Promise.allSettled([
+      api.mecanicos.list(),
+      api.boxes.list(),
+      api.oficina.get(),
+    ]);
+
+    // A API é a fonte da verdade: listas vazias são estados válidos.
+    if (mechanicsResult.status === "fulfilled") {
+      const list = (Array.isArray(mechanicsResult.value) ? mechanicsResult.value : []).map(mapMecanico);
+      setMechanics(list);
+      setMechanicsList(list);
     }
+    if (boxesResult.status === "fulfilled") {
+      const list = (Array.isArray(boxesResult.value) ? boxesResult.value : []).map(mapBox);
+      setBoxes(list);
+      setBoxesList(list);
+    }
+    if (workshopResult.status === "fulfilled") {
+      setWorkshop(mapWorkshop(workshopResult.value));
+      setWorkshopState(getWorkshop());
+    }
+
+    const failed = [mechanicsResult, boxesResult, workshopResult].find(
+      (result) => result.status === "rejected",
+    );
+    setError(failed ? failed.reason : null);
+    setSource("api");
+    setLoading(false);
   }, []);
 
   useEffect(() => {
@@ -60,7 +78,8 @@ export function useOficinaState() {
 
   return {
     mechanics,
-    boxes: getBoxes(),
+    boxes,
+    workshop,
     loading,
     error,
     source,

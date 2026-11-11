@@ -418,6 +418,117 @@ export const api = {
       return request("/mecanicos");
     },
   },
+
+  usuarios: {
+    list({ busca, ativo, executaOs } = {}) {
+      return request(`/usuarios${query({ busca, ativo, executaOs })}`);
+    },
+    get(id) {
+      return request(`/usuarios/${id}`);
+    },
+    create(payload) {
+      return request("/usuarios", { method: "POST", body: payload });
+    },
+    update(id, payload) {
+      return request(`/usuarios/${id}`, { method: "PUT", body: payload });
+    },
+    changeStatus(id, ativo) {
+      return request(`/usuarios/${id}/status`, {
+        method: "PATCH",
+        body: { ativo },
+      });
+    },
+    resetPassword(id) {
+      return request(`/usuarios/${id}/reset-senha`, { method: "POST" });
+    },
+  },
+
+  boxes: {
+    list({ incluirInativos = false } = {}) {
+      return request(`/boxes${query({ incluirInativos: incluirInativos || undefined })}`);
+    },
+    create(payload) {
+      return request("/boxes", { method: "POST", body: payload });
+    },
+    update(id, payload) {
+      return request(`/boxes/${id}`, { method: "PUT", body: payload });
+    },
+    remove(id) {
+      return request(`/boxes/${id}`, { method: "DELETE" });
+    },
+  },
+
+  oficina: {
+    get() {
+      return request("/oficina");
+    },
+    update(payload) {
+      return request("/oficina", { method: "PUT", body: payload });
+    },
+  },
+
+  agendamentos: {
+    list({ inicio, fim, status } = {}) {
+      return request(`/agendamentos${query({ inicio, fim, status })}`);
+    },
+    create(payload) {
+      return request("/agendamentos", { method: "POST", body: payload });
+    },
+    update(id, payload) {
+      return request(`/agendamentos/${id}`, { method: "PUT", body: payload });
+    },
+    changeStatus(id, status) {
+      return request(`/agendamentos/${id}/status`, { method: "PATCH", body: { status } });
+    },
+    remove(id) {
+      return request(`/agendamentos/${id}`, { method: "DELETE" });
+    },
+  },
+
+  pagamentos: {
+    list() {
+      return request("/pagamentos");
+    },
+    create(payload) {
+      return request("/pagamentos", { method: "POST", body: payload });
+    },
+    changeStatus(id, status) {
+      return request(`/pagamentos/${id}/status`, { method: "PATCH", body: { status } });
+    },
+    remove(id) {
+      return request(`/pagamentos/${id}`, { method: "DELETE" });
+    },
+  },
+
+  despesas: {
+    list() {
+      return request("/despesas");
+    },
+    create(payload) {
+      return request("/despesas", { method: "POST", body: payload });
+    },
+    changeStatus(id, status) {
+      return request(`/despesas/${id}/status`, { method: "PATCH", body: { status } });
+    },
+    remove(id) {
+      return request(`/despesas/${id}`, { method: "DELETE" });
+    },
+  },
+
+  notificacoes: {
+    list({ somenteNaoLidas = false, limite = 20 } = {}) {
+      return request(`/notificacoes${query({ somenteNaoLidas: somenteNaoLidas || undefined, limite })}`);
+    },
+    contador() {
+      return request("/notificacoes/nao-lidas/contador");
+    },
+    markRead(id) {
+      return request(`/notificacoes/${id}/lida`, { method: "PATCH" });
+    },
+    markAllRead() {
+      return request("/notificacoes/lidas", { method: "PATCH" });
+    },
+  },
 };
 
 export default api;

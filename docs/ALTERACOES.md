@@ -1,5 +1,75 @@
 # Changelog — Front-end (integração com a API)
 
+## Entrega atual — agenda, financeiro, configurações, boxes e notificações
+
+Escopo: remover as pendências de mock ligadas ao back-end. Telas e integrações que dependiam de dados fictícios passam a usar a API.
+
+**Dependência:** back-end com `/boxes`, `/oficina`, `/agendamentos`, `/pagamentos`, `/despesas` e `/notificacoes` publicados (commit `617e308` do `salvo-api` em diante).
+
+### Adicionado
+
+- `src/pages/Agenda/`: lista por dia com período (hoje, 7 e 30 dias), criação, edição, avanço de status (confirmar, iniciar, concluir), cancelamento e exclusão.
+- `src/pages/Financeiro/` (ADMIN): abas "A receber" (`/pagamentos`) e "A pagar" (`/despesas`), indicadores, filtro por situação, marcar como pago ou cancelado, criação e exclusão.
+- `src/pages/Configuracoes/` (ADMIN): dados da oficina (`GET/PUT /oficina`) e gestão de boxes (criar, editar, ativar/desativar).
+- `src/components/Header/NotificationsMenu.jsx`: sino com contador real (`/notificacoes/nao-lidas/contador`), lista das últimas notificações, marcar como lida e marcar todas.
+- `src/pages/Dashboard/useWeeklyFinance.js`: fluxo financeiro dos últimos 7 dias (e variação sobre os 7 anteriores) a partir de pagamentos e despesas pagos.
+- `src/services/workshop.js` e `mapWorkshop` / `mapBox` em `mappers.js`.
+- `api.js`: `boxes`, `oficina`, `agendamentos`, `pagamentos`, `despesas` e `notificacoes`.
+
+### Alterado
+
+- `useOficinaState` carrega `/mecanicos`, `/boxes` e `/oficina` em paralelo e expõe `boxes` e `workshop`. Falha em um recurso não afeta os demais.
+- `mechanics.js`: registro mutável de boxes (`setBoxes`, `getBox`, `resetBoxes`).
+- Cabeçalho de impressão (`PrintHeader`) e mensagens do estoque usam os dados reais da oficina.
+- Veículos calculam a taxa de ocupação com a quantidade real de boxes (antes, constante vinda do mock).
+- Dashboard: o card financeiro usa lançamentos reais; deixou de estimar receita pelas OS.
+- Rotas `/agenda` (todos) e `/financeiro`, `/configuracoes` (ADMIN) saem da página provisória.
+- `README.md` atualizado: módulos, estrutura, integrações e pontos de atenção.
+
+### Decisões e limites
+
+- Em modo API, Agenda e Financeiro são carregados sob demanda; no modo demonstração exibem aviso (a API não é consultada).
+- Agenda não cria cliente/veículo/serviço ainda: o agendamento usa título, horário, mecânico e box.
+- Exclusões em Financeiro e Agenda pedem confirmação com `window.confirm`, e não com o modal padrão do projeto.
+- A vistoria da OS (checklist, danos e fotos) continua local: a API não tem checklist nem upload de fotos.
+- Orçamentos continuam com dados fictícios e overlay local.
+
+---
+
+## Entrega anterior — cadastro de equipe e permissões (V5)
+
+Escopo: funcionários cadastrados pelo administrador da oficina, com acesso operacional sem Financeiro, Equipe e Configurações.
+
+**Dependência:** back-end com a migração `V5` e `SUPABASE_SERVICE_ROLE_KEY` configurada para criar funcionário/redefinir senha.
+
+### Adicionado
+
+- `src/pages/Equipe/`: lista com busca/filtros, indicadores, cadastro, edição, ativação/desativação e redefinição de senha.
+- `EquipeFormModal`: cadastro/edição com cargo, especialidades, líder, comissão, cor de agenda e `executaOs`.
+- `EquipeSenhaModal`: exibe a senha temporária uma única vez, com botão de copiar.
+- `src/components/RequireAdmin.jsx`: restringe `/equipe`, `/financeiro` e `/configuracoes` ao perfil `ADMIN`.
+- `api.usuarios` em `src/services/api.js`: listar, buscar, criar, atualizar, alterar status e redefinir senha.
+- `isAdmin` no `AuthProvider`, lendo `perfil` de `GET /auth/me`.
+- Filtro `adminOnly` no menu lateral e no rodapé do `Aside`.
+
+### Alterado
+
+- `AuthProvider` mapeia `perfil`, `ativo` e `executaOs`; o usuário demo é `ADMIN`.
+- `Dashboard` oculta o card financeiro para funcionários.
+- `useOficinaState` e `setMechanics` aceitam lista vazia: `GET /mecanicos` é a fonte da verdade e não cai mais nos mocks em modo API.
+- `/equipe` recarrega `/mecanicos` após criar, editar ou ativar/desativar alguém que executa OS.
+- No modo demonstração, a equipe é simulada localmente (sem persistir).
+
+### Observações
+
+- Funcionários não acessam Financeiro, Equipe nem Configurações; a proteção real continua no back-end (`@PreAuthorize`).
+- Quem não é `ADMIN` vê apenas os módulos operacionais (clientes, veículos, OS, orçamentos, estoque e agenda).
+- `docs/ALTERACOES.md` e o `README.md` foram atualizados com as rotas, permissões e variáveis de ambiente.
+
+---
+
+## Entrega anterior — integração com a V4
+
 Registro das alterações feitas nesta entrega para integrar o front-end React à API **salvo-api** e compatibilizar com a V4 multi-oficina.
 
 **Commit:** `8f7ba7e feat(api): integra frontend ao backend Spring`

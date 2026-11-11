@@ -5,6 +5,7 @@ import { useOrcamentos } from "../../hooks/useOrcamentos";
 import { useOrdens } from "../../hooks/useOrdens";
 import { useVeiculos } from "../../hooks/useVeiculos";
 import { dashboardMock } from "../../mocks/dashboard";
+import { useWeeklyFinance } from "./useWeeklyFinance";
 import DashboardHeader from "./components/DashboardHeader";
 import OrderStatusCard from "./components/OrderStatusCard";
 import PendingQuotesCard from "./components/PendingQuotesCard";
@@ -14,7 +15,8 @@ import StockAlertCard from "./components/StockAlertCard";
 import WeeklyFinanceCard from "./components/WeeklyFinanceCard";
 
 function useDynamicDashboard() {
-  const { isDemo } = useAuth();
+  const { isDemo, isAdmin } = useAuth();
+  const weeklyFinance = useWeeklyFinance(!isDemo && isAdmin);
   const { orders } = useOrdens();
   const { quotes } = useOrcamentos();
   const { vehicles } = useVeiculos();
@@ -67,54 +69,7 @@ function useDynamicDashboard() {
       },
     ];
 
-    // 2. Fluxo Financeiro (Últimos 7 dias)
-    const dayNames = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"];
     const now = new Date();
-    const days = [];
-    for (let i = 6; i >= 0; i--) {
-      const d = new Date(now);
-      d.setDate(d.getDate() - i);
-      const dayKey = d.toISOString().slice(0, 10);
-      const dayName = dayNames[d.getDay()];
-
-      let dayRevenue = 0;
-      let dayExpenses = 0;
-
-      orders.forEach((order) => {
-        const orderDate = (order.updatedAt || order.createdAt || "").slice(0, 10);
-        if (orderDate === dayKey) {
-          const partsTotal = (order.parts || []).reduce(
-            (sum, p) => sum + (Number(p.price) || 0) * (Number(p.quantity) || 1),
-            0,
-          );
-          const servicesTotal = (order.services || []).reduce(
-            (sum, s) => sum + (Number(s.price) || 0) * (Number(s.quantity) || 1),
-            0,
-          );
-          dayRevenue += partsTotal + servicesTotal;
-          dayExpenses += partsTotal * 0.6;
-        }
-      });
-
-      days.push({
-        day: dayName,
-        revenue: Math.round(dayRevenue),
-        expenses: Math.round(dayExpenses),
-      });
-    }
-
-    const totalRevenue = days.reduce((sum, d) => sum + d.revenue, 0);
-    const totalExpenses = days.reduce((sum, d) => sum + d.expenses, 0);
-
-    const weeklyFinance = {
-      summary: {
-        revenue: totalRevenue,
-        revenueGrowth: 0,
-        expenses: totalExpenses,
-        balance: totalRevenue - totalExpenses,
-      },
-      days,
-    };
 
     // 3. Oportunidades de Retorno
     const returnItems = [];
@@ -183,11 +138,12 @@ function useDynamicDashboard() {
       returnOpportunities,
       pendingQuotes,
     };
-  }, [isDemo, orders, quotes, vehicles, clients]);
+  }, [isDemo, orders, quotes, vehicles, clients, weeklyFinance]);
 }
 
 function Dashboard() {
   const [period, setPeriod] = useState("today");
+  const { isAdmin } = useAuth();
   const data = useDynamicDashboard();
 
   return (
@@ -200,11 +156,13 @@ function Dashboard() {
 
       <QuickActions />
 
-      <div className="grid gap-6 xl:grid-cols-3">
-        <WeeklyFinanceCard
-          summary={data.weeklyFinance.summary}
-          days={data.weeklyFinance.days}
-        />
+      <div className={isAdmin ? "grid gap-6 xl:grid-cols-3" : "grid gap-6"}>
+        {isAdmin && (
+          <WeeklyFinanceCard
+            summary={data.weeklyFinance.summary}
+            days={data.weeklyFinance.days}
+          />
+        )}
         <OrderStatusCard items={data.orderStatus} />
       </div>
 

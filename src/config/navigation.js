@@ -8,6 +8,7 @@ import {
   ScrollTextIcon,
   SettingsIcon,
   TrendingUpIcon,
+  UserCogIcon,
   UsersIcon,
 } from "lucide-react";
 
@@ -44,10 +45,11 @@ export const mainNav = [
       { label: "Movimentações", to: "/estoque?visao=movimentacoes", view: "movimentacoes" },
     ],
   },
-  { label: "Financeiro", to: "/financeiro", icon: TrendingUpIcon },
+  { label: "Financeiro", to: "/financeiro", icon: TrendingUpIcon, adminOnly: true },
+  { label: "Equipe", to: "/equipe", icon: UserCogIcon, adminOnly: true },
 ];
 
 export const footerNav = [
-  { label: "Configurações", to: "/configuracoes", icon: SettingsIcon },
+  { label: "Configurações", to: "/configuracoes", icon: SettingsIcon, adminOnly: true },
   { label: "Ajuda / Suporte", to: "/ajuda", icon: CircleQuestionMarkIcon },
 ];
