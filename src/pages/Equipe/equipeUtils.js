@@ -36,6 +36,7 @@ export function mapUsuario(dto) {
     email: dto.email ?? "",
     role: dto.cargo ?? "",
     profile: dto.perfil ?? "FUNCIONARIO",
+    permissions: Array.isArray(dto.permissoes) ? dto.permissoes : [],
     phone: dto.telefone ?? "",
     specialties: dto.especialidades ?? "",
     lead: Boolean(dto.lider),
@@ -60,6 +61,8 @@ export function emptyMember() {
     color: "#2563eb",
     executesOrders: true,
     password: "",
+    profile: "FUNCIONARIO",
+    permissions: [],
   };
 }
 
@@ -76,10 +79,13 @@ export function memberToValues(member) {
     color: member.color || "#2563eb",
     executesOrders: member.executesOrders,
     password: "",
+    profile: member.profile ?? "FUNCIONARIO",
+    permissions: Array.isArray(member.permissions) ? member.permissions : [],
   };
 }
 
 export function createUsuarioPayload(values) {
+  const isAdmin = values.profile === "ADMIN";
   const payload = {
     nome: values.name.trim(),
     email: values.email.trim(),
@@ -90,12 +96,15 @@ export function createUsuarioPayload(values) {
     comissaoPercentual: Number(values.commission || 0),
     corAgenda: values.color.trim() || null,
     executaOs: Boolean(values.executesOrders),
+    perfil: isAdmin ? "ADMIN" : "FUNCIONARIO",
+    permissoes: isAdmin ? [] : (Array.isArray(values.permissions) ? values.permissions : []),
   };
   if (values.password.trim()) payload.senhaInicial = values.password.trim();
   return payload;
 }
 
 export function updateUsuarioPayload(values) {
+  const isAdmin = values.profile === "ADMIN";
   return {
     nome: values.name.trim(),
     cargo: values.role.trim(),
@@ -105,6 +114,8 @@ export function updateUsuarioPayload(values) {
     comissaoPercentual: Number(values.commission || 0),
     corAgenda: values.color.trim() || null,
     executaOs: Boolean(values.executesOrders),
+    perfil: isAdmin ? "ADMIN" : "FUNCIONARIO",
+    permissoes: isAdmin ? [] : (Array.isArray(values.permissions) ? values.permissions : []),
   };
 }
 

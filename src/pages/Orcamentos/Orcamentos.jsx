@@ -108,8 +108,8 @@ function Orcamentos() {
   };
 
   /** Envia (abre o WhatsApp) e registra o envio. */
-  const send = (quote, channel = "whatsapp", { silent = false } = {}) => {
-    sendQuote(quote.id, channel);
+  const send = async (quote, channel = "whatsapp", { silent = false } = {}) => {
+    await sendQuote(quote.id, channel);
     // Rascunhos e propostas vencidas recebem nova validade a partir do envio
     const renew = quote.status === "rascunho" || new Date(quote.validUntil) < Date.now();
     const validUntil = renew ? new Date(Date.now() + (quote.validityDays ?? 7) * 86_400_000).toISOString() : quote.validUntil;
@@ -117,15 +117,15 @@ function Orcamentos() {
     showToast(`Proposta ${quote.id} enviada via ${RESPONSE_CHANNELS[channel]}.`);
   };
 
-  const handleSubmit = (data, { send: shouldSend }) => {
+  const handleSubmit = async (data, { send: shouldSend }) => {
     const enrich = (quote) => ({ ...quote, vehicle: vehiclesById.get(quote.vehicleId), client: clientsById.get(quote.clientId) });
     if (modal.type === "edit") {
-      updateQuote(selected.id, data, "Proposta editada");
+      await updateQuote(selected.id, data, "Proposta editada");
       if (shouldSend) send(enrich({ ...selected, ...data }));
       else showToast(`Orçamento ${selected.id} atualizado.`);
       return;
     }
-    const created = createQuote(data);
+    const created = await createQuote(data);
     if (shouldSend) send(enrich(created));
     else showToast(`Rascunho ${created.id} salvo.`);
   };
@@ -160,7 +160,7 @@ function Orcamentos() {
     });
     if (!order) return;
     addEvent(order.number, `Criada a partir do orçamento ${quote.id} (já aprovado pelo cliente)`, "indigo");
-    convertQuote(quote.id, order.number);
+    await convertQuote(quote.id, order.number);
     if (quote.vehicle && mileageIn > quote.vehicle.mileage) updateMileage(quote.vehicle.id, mileageIn);
     navigate(`/ordens-de-servico/${order.number}?aba=vistoria`, {
       state: { toast: `OS #${order.number} aberta a partir do ${quote.id}. Faça a vistoria de entrada.` },
@@ -178,8 +178,8 @@ function Orcamentos() {
     }
   };
 
-  const duplicate = (quote) => {
-    const copy = duplicateQuote(quote.id);
+  const duplicate = async (quote) => {
+    const copy = await duplicateQuote(quote.id);
     setModal({ type: "edit", id: copy.id });
     showToast(`${copy.id} criado a partir do ${quote.id}. Revise e envie.`);
   };
@@ -189,8 +189,8 @@ function Orcamentos() {
     onDuplicate: () => duplicate(selected),
     onDelete: () => open("delete", selected),
     onSend: (channel, options) => send(selected, channel, options),
-    onApprove: (channel) => {
-      approveQuote(selected.id, channel);
+    onApprove: async (channel) => {
+      await approveQuote(selected.id, channel);
       showToast(`${selected.id} aprovado! Converta em OS quando o veículo chegar.`);
     },
     onReject: () => open("reject", selected),
@@ -314,8 +314,8 @@ function Orcamentos() {
         <QuoteRejectModal
           quote={selected}
           onClose={() => open("detail", selected)}
-          onConfirm={({ reason, channel }) => {
-            rejectQuote(selected.id, reason, channel);
+          onConfirm={async ({ reason, channel }) => {
+            await rejectQuote(selected.id, reason, channel);
             showToast(`Rejeição de ${selected.id} registrada.`, "warning");
           }}
         />
@@ -324,8 +324,8 @@ function Orcamentos() {
         <QuoteDeleteModal
           quote={selected}
           onClose={close}
-          onConfirm={() => {
-            deleteQuote(selected.id);
+          onConfirm={async () => {
+            await deleteQuote(selected.id);
             showToast(`Orçamento ${selected.id} excluído.`, "warning");
           }}
         />

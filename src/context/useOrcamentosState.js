@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { isDemo } from "../services/api";
-import { KEYS, readList, writeList } from "../services/storage";
+import { api } from "../services/api";
 import { orcamentosMock } from "../mocks/orcamentos";
 import { currentOperator } from "../mocks/user";
 
@@ -16,169 +16,293 @@ const formatId = (number) => `ORC-${String(number).padStart(4, "0")}`;
 const now = () => new Date().toISOString();
 const validUntilFrom = (start, days) => new Date(new Date(start).getTime() + days * DAY).toISOString();
 
-const CHANNEL_TEXT = { whatsapp: "WhatsApp", presencial: "presencialmente", telefone: "telefone", email: "e-mail" };
+function mapItem(item) {
+  return {
+    id: String(item.id),
+    code: item.codigo ?? "",
+    description: item.descricao ?? "",
+    quantity: Number(item.quantidade ?? 1),
+    unitPrice: Number(item.valorUnitario ?? 0),
+    pecaId: item.pecaId ? String(item.pecaId) : null,
+    servicoId: item.servicoId ? String(item.servicoId) : null,
+    type: item.tipo,
+    done: false,
+    mechanicId: null,
+  };
+}
 
-/**
- * Orçamentos e suas operações (usado pelo AppProviders).
- *
- * Em modo API os orçamentos são persistidos localmente por oficina/usuário.
- * Em modo demonstração são carregados a partir do mock.
- */
+function mapOrcamento(dto) {
+  const number = dto.numero;
+  const issuedAt = dto.emitidoEm ?? dto.criadoEm ?? now();
+  const validityDays = dto.validadeDias ?? 7;
+  const validUntil = dto.validade
+    ? new Date(dto.validade).toISOString()
+    : validUntilFrom(issuedAt, validityDays);
+  return {
+    id: formatId(number),
+    number,
+    clientId: String(dto.clienteId),
+    vehicleId: String(dto.veiculoId),
+    sellerId: dto.criadoPor ? String(dto.criadoPor) : "",
+    type: dto.tipo ?? "",
+    title: dto.titulo ?? "",
+    notes: dto.observacoes ?? "",
+    validityDays,
+    parts: (dto.itens ?? []).filter((i) => i.tipo === "PECA").map(mapItem),
+    services: (dto.itens ?? []).filter((i) => i.tipo === "SERVICO").map(mapItem),
+    discount: { type: (dto.descontoTipo ?? "VALOR").toLowerCase(), value: Number(dto.desconto ?? 0) },
+    status: (dto.status ?? "RASCUNHO").toLowerCase(),
+    issuedAt,
+    validUntil,
+    sentAt: dto.emitidoEm ?? null,
+    sentChannel: dto.canalEnvio ?? null,
+    viewedAt: null,
+    decidedAt: dto.aprovadoEm ?? dto.rejeitadoEm ?? null,
+    decisionChannel: null,
+    rejectReason: dto.motivoRejeicao ?? "",
+    orderNumber: dto.ordemServicoId ?? null,
+    convertedAt: dto.status === "CONVERTIDO" ? (dto.atualizadoEm ?? null) : null,
+    timeline: [],
+    updatedAt: dto.atualizadoEm ?? issuedAt,
+    updatedBy: dto.criadoPorNome ?? "",
+  };
+}
+
+function toItens(quote) {
+  const parts = (quote.parts ?? []).map((line) => ({
+    tipo: "PECA",
+    pecaId: line.pecaId ? Number(line.pecaId) : null,
+    codigo: line.code ?? null,
+    descricao: line.description ?? "",
+    quantidade: Number(line.quantity ?? 1),
+    valorUnitario: Number(line.unitPrice ?? 0),
+  }));
+  const services = (quote.services ?? []).map((line) => ({
+    tipo: "SERVICO",
+    servicoId: line.servicoId ? Number(line.servicoId) : null,
+    codigo: line.code ?? null,
+    descricao: line.description ?? "",
+    quantidade: Number(line.quantity ?? 1),
+    valorUnitario: Number(line.unitPrice ?? 0),
+  }));
+  return [...parts, ...services];
+}
+
+function toPayload(data) {
+  return {
+    clienteId: Number(data.clientId),
+    veiculoId: Number(data.vehicleId),
+    titulo: data.title?.trim() || null,
+    tipo: data.type?.trim() || null,
+    observacoes: data.notes?.trim() || null,
+    validade: data.validUntil ? data.validUntil.slice(0, 10) : null,
+    validadeDias: data.validityDays ?? 7,
+    desconto: Number(data.discount?.value ?? 0),
+    descontoTipo: (data.discount?.type ?? "valor").toUpperCase(),
+    canalEnvio: null,
+    itens: toItens(data),
+  };
+}
+
 export function useOrcamentosState() {
-  const [quotes, setQuotes] = useState(() => (isDemo() ? orcamentosMock : readList(KEYS.quotes)));
+  const demo = isDemo();
+  const [quotes, setQuotes] = useState(() => (demo ? orcamentosMock : []));
+  const [loaded, setLoaded] = useState(demo);
 
   useEffect(() => {
-    // Adia a sincronização para não atualizar estado no corpo do efeito.
-    queueMicrotask(() => {
-      setQuotes(isDemo() ? orcamentosMock : readList(KEYS.quotes));
-    });
-  }, []);
-
-  const commit = (updater) => {
-    setQuotes((current) => {
-      const next = typeof updater === "function" ? updater(current) : updater;
-      if (!isDemo()) {
-        writeList(KEYS.quotes, next);
-      }
-      return next;
-    });
-  };
+    if (demo) {
+      queueMicrotask(() => {
+        setQuotes(orcamentosMock);
+        setLoaded(true);
+      });
+      return;
+    }
+    let ativo = true;
+    api.orcamentos
+      .list()
+      .then((lista) => {
+        if (!ativo) return;
+        setQuotes((Array.isArray(lista) ? lista : []).map(mapOrcamento));
+        setLoaded(true);
+      })
+      .catch(() => {
+        if (ativo) setLoaded(true);
+      });
+    return () => {
+      ativo = false;
+    };
+  }, [demo]);
 
   const patch = (id, updater) =>
-    commit((current) =>
+    setQuotes((current) =>
       current.map((quote) =>
-        quote.id === id ? { ...quote, ...updater(quote), updatedAt: now(), updatedBy: currentOperator } : quote,
+        quote.id === id ? { ...quote, ...updater(quote), updatedAt: now() } : quote,
       ),
     );
 
-  /** Cria um orçamento (rascunho) e devolve o registro. */
+  const reload = useCallback(async () => {
+    if (demo) return;
+    try {
+      const lista = await api.orcamentos.list();
+      setQuotes((Array.isArray(lista) ? lista : []).map(mapOrcamento));
+    } catch {
+      // banner global
+    }
+  }, [demo]);
+
   const createQuote = useCallback(
-    (data) => {
-      const number = quotes.reduce((max, quote) => Math.max(max, quote.number), 0) + 1;
-      const issuedAt = now();
-      const quote = {
-        parts: [],
-        services: [],
-        discount: { type: "valor", value: 0 },
-        notes: "",
-        validityDays: 7,
-        sentAt: null,
-        sentChannel: null,
-        viewedAt: null,
-        decidedAt: null,
-        decisionChannel: null,
-        rejectReason: "",
-        orderNumber: null,
-        convertedAt: null,
-        ...data,
-        id: formatId(number),
-        number,
-        status: "rascunho",
-        issuedAt,
-        validUntil: validUntilFrom(issuedAt, data.validityDays ?? 7),
-        timeline: [makeEvent(`Orçamento criado por ${currentOperator}`, "slate")],
-        updatedAt: issuedAt,
-        updatedBy: currentOperator,
-      };
-      commit((current) => [quote, ...current]);
+    async (data) => {
+      if (demo) {
+        const number = quotes.reduce((max, quote) => Math.max(max, quote.number), 0) + 1;
+        const issuedAt = now();
+        const quote = {
+          parts: [],
+          services: [],
+          discount: { type: "valor", value: 0 },
+          notes: "",
+          validityDays: 7,
+          sentAt: null,
+          sentChannel: null,
+          viewedAt: null,
+          decidedAt: null,
+          decisionChannel: null,
+          rejectReason: "",
+          orderNumber: null,
+          convertedAt: null,
+          ...data,
+          id: formatId(number),
+          number,
+          status: "rascunho",
+          issuedAt,
+          validUntil: validUntilFrom(issuedAt, data.validityDays ?? 7),
+          timeline: [makeEvent(`Orçamento criado por ${currentOperator}`, "slate")],
+          updatedAt: issuedAt,
+          updatedBy: currentOperator,
+        };
+        setQuotes((current) => [quote, ...current]);
+        return quote;
+      }
+      const created = await api.orcamentos.create(toPayload(data));
+      const quote = mapOrcamento(created);
+      setQuotes((current) => [quote, ...current]);
       return quote;
     },
-    [quotes],
+    [demo, quotes],
   );
 
-  /** Altera dados (itens, validade...). A validade é recalculada a partir da emissão. */
-  const updateQuote = useCallback((id, data, logText) => {
-    patch(id, (quote) => ({
-      ...data,
-      validUntil: validUntilFrom(quote.issuedAt, data.validityDays ?? quote.validityDays),
-      timeline: logText ? [...quote.timeline, makeEvent(logText)] : quote.timeline,
-    }));
-  }, []);
+  const updateQuote = useCallback(async (id, data) => {
+    if (demo) {
+      patch(id, (quote) => ({
+        ...data,
+        validUntil: validUntilFrom(quote.issuedAt, data.validityDays ?? quote.validityDays),
+      }));
+      return;
+    }
+    const number = Number(String(id).replace(/\D/g, ""));
+    await api.orcamentos.update(number, toPayload({ ...data, clientId: data.clientId ?? quotes.find((q) => q.id === id)?.clientId, vehicleId: data.vehicleId ?? quotes.find((q) => q.id === id)?.vehicleId }));
+    await reload();
+  }, [demo, quotes, reload]);
 
-  /**
-   * Envia (ou reenvia) a proposta. Se já tinha vencido, a validade recomeça
-   * a contar a partir de agora.
-   */
-  const sendQuote = useCallback((id, channel = "whatsapp") => {
-    patch(id, (quote) => {
-      const expired = new Date(quote.validUntil) < Date.now();
-      const restart = expired || quote.status === "rascunho";
-      return {
+  const sendQuote = useCallback(async (id, channel = "whatsapp") => {
+    if (demo) {
+      patch(id, () => ({
         status: "enviado",
         sentAt: now(),
         sentChannel: channel,
-        issuedAt: restart ? now() : quote.issuedAt,
-        validUntil: restart ? validUntilFrom(now(), quote.validityDays) : quote.validUntil,
-        timeline: [
-          ...quote.timeline,
-          makeEvent(
-            `${quote.sentAt ? "Proposta reenviada" : "Proposta enviada"} ao cliente via ${CHANNEL_TEXT[channel]}${expired ? " (validade renovada)" : ""}`,
-            "indigo",
-          ),
-        ],
-      };
-    });
-  }, []);
+      }));
+      return;
+    }
+    const number = Number(String(id).replace(/\D/g, ""));
+    await api.orcamentos.changeStatus(number, "ENVIADO");
+    await reload();
+  }, [demo, reload]);
 
-  const approveQuote = useCallback((id, channel) => {
-    patch(id, (quote) => ({
-      status: "aprovado",
-      decidedAt: now(),
-      decisionChannel: channel,
-      timeline: [...quote.timeline, makeEvent(`Proposta aprovada pelo cliente (${CHANNEL_TEXT[channel]})`, "green")],
-    }));
-  }, []);
+  const approveQuote = useCallback(async (id) => {
+    if (demo) {
+      patch(id, () => ({ status: "aprovado", decidedAt: now() }));
+      return;
+    }
+    const number = Number(String(id).replace(/\D/g, ""));
+    await api.orcamentos.changeStatus(number, "APROVADO");
+    await reload();
+  }, [demo, reload]);
 
-  const rejectQuote = useCallback((id, reason, channel) => {
-    patch(id, (quote) => ({
-      status: "rejeitado",
-      decidedAt: now(),
-      decisionChannel: channel,
-      rejectReason: reason,
-      timeline: [...quote.timeline, makeEvent(`Proposta rejeitada: ${reason}`, "red")],
-    }));
-  }, []);
+  const rejectQuote = useCallback(async (id, reason) => {
+    if (demo) {
+      patch(id, () => ({ status: "rejeitado", decidedAt: now(), rejectReason: reason }));
+      return;
+    }
+    const number = Number(String(id).replace(/\D/g, ""));
+    await api.orcamentos.changeStatus(number, "REJEITADO");
+    await reload();
+  }, [demo, reload]);
 
-  /** Registra a OS criada a partir do orçamento. */
-  const convertQuote = useCallback((id, orderNumber) => {
-    patch(id, (quote) => ({
-      orderNumber,
-      convertedAt: now(),
-      timeline: [...quote.timeline, makeEvent(`Convertido na OS #${orderNumber}`, "blue")],
-    }));
-  }, []);
+  const convertQuote = useCallback(async (id, orderNumber) => {
+    if (demo) {
+      patch(id, () => ({ orderNumber, convertedAt: now(), status: "convertido" }));
+      return;
+    }
+    const number = Number(String(id).replace(/\D/g, ""));
+    await api.orcamentos.convert(number, Number(String(orderNumber).replace(/\D/g, "")));
+    await reload();
+  }, [demo, reload]);
 
-  const addQuoteEvent = useCallback((id, text, tone) => {
-    patch(id, (quote) => ({ timeline: [...quote.timeline, makeEvent(text, tone)] }));
-  }, []);
-
-  /** Cria um rascunho copiando cliente, veículo e itens. */
   const duplicateQuote = useCallback(
-    (id) => {
+    async (id) => {
       const source = quotes.find((quote) => quote.id === id);
-      const copy = (lines, prefix) => lines.map((line, index) => ({ ...line, id: `${prefix}${Date.now()}${index}`, done: false }));
-      return createQuote({
+      if (demo) {
+        const copy = (lines, prefix) => lines.map((line, index) => ({ ...line, id: `${prefix}${Date.now()}${index}`, done: false }));
+        const created = await createQuote({
+          clientId: source.clientId,
+          vehicleId: source.vehicleId,
+          sellerId: source.sellerId,
+          type: source.type,
+          title: source.title,
+          notes: source.notes,
+          validityDays: source.validityDays,
+          discount: { ...source.discount },
+          parts: copy(source.parts, "QP"),
+          services: copy(source.services, "QS"),
+        });
+        return created;
+      }
+      const created = await createQuote({
         clientId: source.clientId,
         vehicleId: source.vehicleId,
-        sellerId: source.sellerId,
         type: source.type,
         title: source.title,
         notes: source.notes,
         validityDays: source.validityDays,
         discount: { ...source.discount },
-        parts: copy(source.parts, "QP"),
-        services: copy(source.services, "QS"),
+        parts: source.parts,
+        services: source.services,
       });
+      return created;
     },
-    [quotes, createQuote],
+    [demo, quotes, createQuote],
   );
 
-  const deleteQuote = useCallback((id) => {
-    commit((current) => current.filter((quote) => quote.id !== id));
+  const deleteQuote = useCallback(async (id) => {
+    if (demo) {
+      setQuotes((current) => current.filter((quote) => quote.id !== id));
+      return;
+    }
+    const number = Number(String(id).replace(/\D/g, ""));
+    await api.orcamentos.remove(number);
+    setQuotes((current) => current.filter((quote) => quote.id !== id));
+  }, [demo]);
+
+  const addQuoteEvent = useCallback((id, text, tone) => {
+    if (demo) {
+      patch(id, (quote) => ({ timeline: [...quote.timeline, makeEvent(text, tone)] }));
+      return;
+    }
+    patch(id, (quote) => ({ timeline: [...quote.timeline, makeEvent(text, tone)] }));
   }, []);
 
   return {
     quotes,
+    loaded,
     createQuote,
     updateQuote,
     sendQuote,
@@ -188,5 +312,6 @@ export function useOrcamentosState() {
     duplicateQuote,
     deleteQuote,
     addQuoteEvent,
+    reload,
   };
 }

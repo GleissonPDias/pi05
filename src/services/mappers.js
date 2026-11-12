@@ -598,6 +598,11 @@ export function mapOrdem(dto, overlay = {}) {
       dto.clienteId !== null && dto.clienteId !== undefined
         ? String(dto.clienteId)
         : overlay.clientId ?? null,
+    createdById:
+      dto.criadoPorId !== null && dto.criadoPorId !== undefined
+        ? String(dto.criadoPorId)
+        : null,
+    createdByName: dto.criadoPorNome ?? null,
     type: overlay.type ?? dto.tipo ?? "corretiva",
     channel: overlay.channel ?? dto.canal ?? "balcao",
     title: overlay.title ?? dto.titulo ?? "",
@@ -638,7 +643,7 @@ export function mapOrdem(dto, overlay = {}) {
     customerNotes: overlay.customerNotes ?? dto.observacoesCliente ?? "",
     approval: overlay.approval ?? approvalFromApi(dto, advanced),
     openedAt,
-    openedBy: overlay.openedBy ?? currentOperator,
+    openedBy: overlay.openedBy ?? dto.criadoPorNome ?? currentOperator,
     readyAt:
       overlay.readyAt ??
       dto.prontaEm ??

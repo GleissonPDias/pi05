@@ -98,6 +98,20 @@ export function saveSession(loginResponse) {
   notify({ type: "session", session });
 }
 
+export function restoreSession(stored) {
+  session = stored ?? null;
+  if (stored) {
+    mode = "api";
+    try { localStorage.setItem(MODE_KEY, "api"); } catch (error) { void error; }
+    writeJson(SESSION_KEY, stored);
+  } else {
+    clearSession();
+    clearMode();
+  }
+  notify({ type: "session", session });
+  notify({ type: "mode", mode });
+}
+
 export function setSessionUser(user) {
   if (!session) return;
   session = { ...session, user };
@@ -265,6 +279,27 @@ export const api = {
     return request("/auth/me");
   },
 
+  trocarUsuario(usuarioId, senha) {
+    return request("/auth/trocar-usuario", {
+      method: "POST",
+      body: { usuarioId, senha },
+    });
+  },
+
+  validarSenha(usuarioId, senha) {
+    return request("/auth/validar-senha", {
+      method: "POST",
+      body: { usuarioId, senha },
+    });
+  },
+
+  alterarSenha(novaSenha) {
+    return request("/auth/alterar-senha", {
+      method: "POST",
+      body: { novaSenha },
+    });
+  },
+
   clientes: {
     list(q) {
       return getAll("/clientes", { q, sort: "nome" });
@@ -416,6 +451,36 @@ export const api = {
   mecanicos: {
     list() {
       return request("/mecanicos");
+    },
+  },
+
+  orcamentos: {
+    list() {
+      return request("/orcamentos");
+    },
+    get(id) {
+      return request(`/orcamentos/${id}`);
+    },
+    create(payload) {
+      return request("/orcamentos", { method: "POST", body: payload });
+    },
+    update(id, payload) {
+      return request(`/orcamentos/${id}`, { method: "PUT", body: payload });
+    },
+    remove(id) {
+      return request(`/orcamentos/${id}`, { method: "DELETE" });
+    },
+    changeStatus(id, status) {
+      return request(`/orcamentos/${id}/status${query({ status })}`, { method: "PATCH" });
+    },
+    convert(id, ordemServicoId) {
+      return request(`/orcamentos/${id}/converter${query({ ordemServicoId })}`, { method: "POST" });
+    },
+  },
+
+  auditoria: {
+    list({ usuarioId, modulo, de, ate, page = 0, size = 50 } = {}) {
+      return request(`/auditoria${query({ usuarioId, modulo, de, ate, page, size })}`);
     },
   },
 

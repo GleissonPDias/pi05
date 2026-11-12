@@ -182,6 +182,51 @@ function EquipeFormModal({ member, isDemo, onSubmit, onClose }) {
             <div className="space-y-8">
               <Section icon={UserCogIcon} title="2. Acesso e atuação">
                 <div className="space-y-4 rounded-xl border border-slate-200 bg-slate-50 p-4">
+                  <div>
+                    <label className="block text-sm font-semibold text-slate-700">Tipo de usuário</label>
+                    <select
+                      className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm"
+                      value={values.profile}
+                      onChange={(event) => setField("profile", event.target.value)}
+                    >
+                      <option value="FUNCIONARIO">Funcionário</option>
+                      <option value="ADMIN">Administrador</option>
+                    </select>
+                    <p className="mt-1 text-xs text-slate-500">
+                      Administradores têm acesso total. Funcionários recebem apenas os módulos marcados abaixo.
+                    </p>
+                  </div>
+
+                  {values.profile === "FUNCIONARIO" && (
+                    <div className="grid gap-2 sm:grid-cols-2">
+                      {[
+                        ["CLIENTES", "Clientes"],
+                        ["VEICULOS", "Veículos"],
+                        ["OS", "Ordens de serviço"],
+                        ["ORCAMENTOS", "Orçamentos"],
+                        ["ESTOQUE", "Estoque"],
+                        ["AGENDA", "Agenda"],
+                        ["FINANCEIRO", "Financeiro"],
+                      ].map(([value, label]) => (
+                        <Checkbox
+                          key={value}
+                          checked={values.permissions.includes(value)}
+                          onChange={(event) => {
+                            setValues((current) => ({
+                              ...current,
+                              permissions: event.target.checked
+                                ? [...current.permissions, value]
+                                : current.permissions.filter((item) => item !== value),
+                            }));
+                          }}
+                          className="text-sm"
+                        >
+                          {label}
+                        </Checkbox>
+                      ))}
+                    </div>
+                  )}
+
                   <Checkbox
                     checked={values.executesOrders}
                     onChange={(event) => setField("executesOrders", event.target.checked)}

@@ -14,9 +14,17 @@ import AsideSubmenu from "./AsideSubmenu";
  * - Abaixo de lg: gaveta deslizante (controlada por isOpen/onClose) com overlay.
  */
 function Aside({ isOpen, onClose }) {
-  const { isAdmin } = useAuth();
-  const visibleMainNav = mainNav.filter((item) => !item.adminOnly || isAdmin);
-  const visibleFooterNav = footerNav.filter((item) => !item.adminOnly || isAdmin);
+  const { isAdmin, hasPermission } = useAuth();
+  const visibleMainNav = mainNav.filter((item) => {
+    if (item.adminOnly && !isAdmin && !item.permission) return false;
+    if (item.permission && !isAdmin && !hasPermission?.(item.permission)) return false;
+    return true;
+  });
+  const visibleFooterNav = footerNav.filter((item) => {
+    if (item.adminOnly && !isAdmin && !item.permission) return false;
+    if (item.permission && !isAdmin && !hasPermission?.(item.permission)) return false;
+    return true;
+  });
 
   // Fecha a gaveta com a tecla Esc
   useEffect(() => {

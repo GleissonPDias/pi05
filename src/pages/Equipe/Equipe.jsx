@@ -16,6 +16,7 @@ import { useAuth } from "../../hooks/useAuth";
 import { useOficina } from "../../hooks/useOficina";
 import { useToast } from "../../hooks/useToast";
 import { api } from "../../services/api";
+import EquipeAuditoria from "./EquipeAuditoria";
 import EquipeFormModal from "./EquipeFormModal";
 import EquipeSenhaModal from "./EquipeSenhaModal";
 import EquipeStatusModal from "./EquipeStatusModal";
@@ -47,6 +48,7 @@ function Equipe() {
   const [loading, setLoading] = useState(() => !isDemo);
   const [search, setSearch] = useState("");
   const [status, setStatus] = useState("todos");
+  const [aba, setAba] = useState("equipe");
   const [role, setRole] = useState("todos");
   const [formState, setFormState] = useState({ open: false, member: null });
   const [statusMember, setStatusMember] = useState(null);
@@ -260,6 +262,14 @@ function Equipe() {
         />
       </div>
 
+      <div className="flex gap-2">
+        <button type="button" onClick={() => setAba("equipe")} className={`rounded-lg px-3 py-2 text-sm font-semibold ${aba === "equipe" ? "bg-blue-600 text-white" : "bg-slate-100 text-slate-700"}`}>Equipe</button>
+        <button type="button" onClick={() => setAba("auditoria")} className={`rounded-lg px-3 py-2 text-sm font-semibold ${aba === "auditoria" ? "bg-blue-600 text-white" : "bg-slate-100 text-slate-700"}`}>Relatório de ações</button>
+      </div>
+
+      {aba === "auditoria" && <EquipeAuditoria members={members} />}
+
+      {aba === "equipe" && (
       <Card className="overflow-hidden p-0!">
         <EquipeToolbar
           search={search}
@@ -285,6 +295,7 @@ function Equipe() {
           </p>
         </div>
       </Card>
+      )}
 
       {formState.open && (
         <EquipeFormModal

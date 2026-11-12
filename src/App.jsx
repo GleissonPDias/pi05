@@ -2,6 +2,7 @@ import { Route, Routes, useLocation } from "react-router-dom";
 import ApiFeedback from "./components/ApiFeedback";
 import RequireAdmin from "./components/RequireAdmin";
 import RequireAuth from "./components/RequireAuth";
+import RequirePermission from "./components/RequirePermission";
 import AppProviders from "./context/AppProviders";
 import MainLayout from "./layouts/MainLayout";
 import Agenda from "./pages/Agenda/Agenda";
@@ -77,8 +78,10 @@ function App() {
             {/* Telas exclusivas do administrador */}
             <Route element={<RequireAdmin />}>
               <Route path="/equipe" element={<Equipe />} />
-              <Route path="/financeiro" element={<Financeiro />} />
               <Route path="/configuracoes" element={<Configuracoes />} />
+            </Route>
+            <Route element={<RequirePermission modulo="FINANCEIRO" />}>
+              <Route path="/financeiro" element={<Financeiro />} />
             </Route>
 
             {/* Telas pendentes */}
