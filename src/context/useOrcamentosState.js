@@ -23,6 +23,7 @@ function mapItem(item) {
     description: item.descricao ?? "",
     quantity: Number(item.quantidade ?? 1),
     unitPrice: Number(item.valorUnitario ?? 0),
+    hours: item.tempoEstimadoHoras != null ? Number(item.tempoEstimadoHoras) : null,
     pecaId: item.pecaId ? String(item.pecaId) : null,
     servicoId: item.servicoId ? String(item.servicoId) : null,
     type: item.tipo,
@@ -84,6 +85,7 @@ function toItens(quote) {
     descricao: line.description ?? "",
     quantidade: Number(line.quantity ?? 1),
     valorUnitario: Number(line.unitPrice ?? 0),
+    tempoEstimadoHoras: line.hours != null ? Number(line.hours) : null,
   }));
   return [...parts, ...services];
 }
