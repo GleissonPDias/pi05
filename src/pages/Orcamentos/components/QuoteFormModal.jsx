@@ -50,6 +50,7 @@ function QuoteFormModal({ quote, initialVehicleId, vehicles, clients, createVehi
   const titleId = useId();
   const formRef = useRef(null);
   const clientsById = useMemo(() => new Map(clients.map((c) => [c.id, c])), [clients]);
+  const [submitting, setSubmitting] = useState(false);
   const [values, setValues] = useState(() => ({
     vehicleId: quote?.vehicleId ?? initialVehicleId ?? "",
     sellerId: quote?.sellerId ?? defaultSeller,
@@ -77,7 +78,7 @@ function QuoteFormModal({ quote, initialVehicleId, vehicles, clients, createVehi
     });
   };
 
-  const submit = (send) => {
+  const submit = async (send) => {
     const found = {};
     if (!vehicle) found.vehicleId = "Selecione o veículo do orçamento.";
     else if (!vehicle.ownerId) found.vehicleId = "Vincule um proprietário ao veículo antes de orçar.";
@@ -88,22 +89,30 @@ function QuoteFormModal({ quote, initialVehicleId, vehicles, clients, createVehi
       if (found.vehicleId) formRef.current?.elements.namedItem("vehicleId")?.focus();
       return;
     }
-    onSubmit(
-      {
-        vehicleId: vehicle.id,
-        clientId: vehicle.ownerId,
-        sellerId: values.sellerId,
-        type: values.type,
-        title: values.title.trim(),
-        validityDays: Number(values.validityDays),
-        notes: values.notes.trim(),
-        services: values.services,
-        parts: values.parts,
-        discount: values.discount,
-      },
-      { send },
-    );
-    onClose();
+
+    setSubmitting(true);
+    try {
+      await onSubmit(
+        {
+          vehicleId: vehicle.id,
+          clientId: vehicle.ownerId,
+          sellerId: values.sellerId,
+          type: values.type,
+          title: values.title.trim(),
+          validityDays: Number(values.validityDays),
+          notes: values.notes.trim(),
+          services: values.services,
+          parts: values.parts,
+          discount: values.discount,
+        },
+        { send },
+      );
+      onClose();
+    } catch {
+      // erro mostrado pelo banner global
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   const canSend = !quote || quote.status !== "aprovado";
@@ -239,11 +248,11 @@ function QuoteFormModal({ quote, initialVehicleId, vehicles, clients, createVehi
             <Button variant="soft" size="lg" onClick={onClose} className="w-full sm:w-auto">
               Cancelar
             </Button>
-            <Button variant="outline" size="lg" icon={SaveIcon} onClick={() => submit(false)} className="w-full sm:w-auto">
+            <Button variant="outline" size="lg" icon={SaveIcon} onClick={() => submit(false)} className="w-full sm:w-auto" disabled={submitting}>
               {isEdit ? "Salvar Alterações" : "Salvar como Rascunho"}
             </Button>
             {canSend && (
-              <Button type="submit" variant="success" size="lg" icon={MessageCircleIcon} className="w-full sm:w-auto">
+              <Button type="submit" variant="success" size="lg" icon={MessageCircleIcon} className="w-full sm:w-auto" disabled={submitting}>
                 {isEdit && quote.status !== "rascunho" ? "Salvar e Reenviar" : "Salvar e Enviar por WhatsApp"}
               </Button>
             )}
