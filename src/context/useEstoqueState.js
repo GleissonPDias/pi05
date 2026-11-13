@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { api, isDemo } from "../services/api";
 import { registerParts } from "../services/catalogs";
 import {
+  mapFornecedor,
   mapMovimentacao,
   mapPeca,
   movimentacaoPayload,
@@ -15,7 +16,7 @@ import {
   writeList,
   writeMap,
 } from "../services/storage";
-import { PARTS_CATALOG } from "../mocks/catalogo";
+import { PARTS_CATALOG, SUPPLIERS } from "../mocks/catalogo";
 import { movimentacoesMock } from "../mocks/estoque";
 import { currentOperator } from "../mocks/user";
 
@@ -46,6 +47,7 @@ function persistPartOverlay(part) {
  */
 export function useEstoqueState() {
   const [parts, setParts] = useState(() => (isDemo() ? PARTS_CATALOG : []));
+  const [suppliers, setSuppliers] = useState(() => (isDemo() ? SUPPLIERS : []));
   const [movements, setMovements] = useState(() => (isDemo() ? movimentacoesMock : []));
   const [loading, setLoading] = useState(() => !isDemo());
   const [error, setError] = useState(null);
@@ -57,6 +59,7 @@ export function useEstoqueState() {
     if (isDemo()) {
       registerParts(PARTS_CATALOG);
       setParts(PARTS_CATALOG);
+      setSuppliers(SUPPLIERS);
       setMovements(movimentacoesMock);
       setSource("demo");
       setError(null);
@@ -67,13 +70,14 @@ export function useEstoqueState() {
     setLoading(true);
     setError(null);
     try {
-      const [dtos, overlays, locals, deleted, apiMovements, storedMovements] = await Promise.all([
+      const [dtos, overlays, locals, deleted, apiMovements, storedMovements, apiSuppliers] = await Promise.all([
         api.pecas.list(),
         Promise.resolve(readMap(KEYS.parts)),
         Promise.resolve(readList(KEYS.localParts)),
         Promise.resolve(readList(KEYS.deletedParts)),
         api.estoque.movimentacoes(200).catch(() => []),
         Promise.resolve(readList(KEYS.movements)),
+        api.fornecedores.list().catch(() => []),
       ]);
 
       const deletedSet = new Set(deleted.map(String));
@@ -93,6 +97,7 @@ export function useEstoqueState() {
 
       const list = [...merged.values()];
       registerParts(list);
+      setSuppliers((Array.isArray(apiSuppliers) ? apiSuppliers : []).map(mapFornecedor));
       setParts(list);
 
       const localMovements = Array.isArray(storedMovements) ? storedMovements : [];
@@ -419,6 +424,7 @@ export function useEstoqueState() {
 
   return {
     parts,
+    suppliers,
     partsByCode,
     movements,
     createPart,

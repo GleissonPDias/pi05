@@ -894,6 +894,22 @@ export function mapBox(dto) {
 }
 
 /** Dados da oficina (API) -> formato de WORKSHOP usado na impressão. */
+export function mapFornecedor(dto) {
+  return {
+    id: String(dto.id),
+    name: dto.nome ?? "",
+    legalName: dto.razaoSocial ?? "",
+    document: dto.cnpj ?? "",
+    email: dto.email ?? "",
+    phone: dto.telefone ?? "",
+    contact: dto.contato ?? "",
+    leadTimeDays: Number(dto.leadTimeDias ?? 0),
+    address: dto.endereco ?? "",
+    notes: dto.observacoes ?? "",
+    active: dto.ativo !== false,
+  };
+}
+
 export function mapWorkshop(dto) {
   const cityLine = [dto.cidade, dto.uf].filter(Boolean).join("/");
   const street = [dto.logradouro, dto.numero, dto.complemento].filter(Boolean).join(", ");

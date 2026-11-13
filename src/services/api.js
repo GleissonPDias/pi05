@@ -454,6 +454,21 @@ export const api = {
     },
   },
 
+  fornecedores: {
+    list() {
+      return request("/fornecedores");
+    },
+    create(payload) {
+      return request("/fornecedores", { method: "POST", body: payload });
+    },
+    update(id, payload) {
+      return request(`/fornecedores/${id}`, { method: "PUT", body: payload });
+    },
+    remove(id) {
+      return request(`/fornecedores/${id}`, { method: "DELETE" });
+    },
+  },
+
   orcamentos: {
     list() {
       return request("/orcamentos");

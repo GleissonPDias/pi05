@@ -6,14 +6,12 @@ import MoneyInput from "../../../components/ui/MoneyInput";
 import QuantityStepper from "../../../components/ui/QuantityStepper";
 import SelectField from "../../../components/ui/SelectField";
 import TextField from "../../../components/ui/TextField";
-import { SUPPLIERS } from "../../../mocks/catalogo";
 import { cn } from "../../../utils/cn";
 import { formatBRL } from "../../../utils/format";
 import CatalogList from "../../OrdensServico/detalhe/CatalogList";
 import ModeToggle from "../../OrdensServico/detalhe/ModeToggle";
 import { ADJUST_REASONS, EXIT_REASONS, MOVEMENT_TYPES } from "../constants";
 
-const supplierOptions = SUPPLIERS.map((supplier) => ({ value: supplier.id, label: supplier.name }));
 const typeOptions = Object.entries(MOVEMENT_TYPES).map(([value, item]) => ({
   value,
   label: value === "ajuste" ? "Ajuste" : item.label,
@@ -26,7 +24,8 @@ const typeOptions = Object.entries(MOVEMENT_TYPES).map(([value, item]) => ({
  * - parts: peças ativas · reserved: Map de reservas em OS
  * - onConfirm({ code, type, qty, unitCost, supplierId, document, note })
  */
-function MovementModal({ part: initialPart, initialType = "entrada", parts, reserved, onConfirm, onClose }) {
+function MovementModal({ part: initialPart, initialType = "entrada", parts, reserved, suppliers = [], onConfirm, onClose }) {
+  const supplierOptions = (suppliers ?? []).map((supplier) => ({ value: supplier.id, label: supplier.name }));
   const titleId = useId();
   const [part, setPart] = useState(initialPart ?? null);
   const [type, setType] = useState(initialType);

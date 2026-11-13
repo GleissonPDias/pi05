@@ -37,7 +37,7 @@ import {
 const movementFilters = [{ key: "todos", label: "Todas" }, ...Object.entries(MOVEMENT_TYPES).map(([key, item]) => ({ key, label: item.label }))];
 
 function Estoque() {
-  const { parts, partsByCode, movements, createPart, updatePart, deletePart, registerMovement, placeOrder } = useEstoque();
+  const { parts, partsByCode, movements, suppliers, createPart, updatePart, deletePart, registerMovement, placeOrder } = useEstoque();
   const { orders } = useOrdens();
   const { quotes } = useOrcamentos();
   const { toast, showToast, dismissToast } = useToast();
@@ -217,6 +217,7 @@ function Estoque() {
             onCategoryChange={withReset(setCategory)}
             supplier={supplier}
             onSupplierChange={withReset(setSupplier)}
+            suppliers={suppliers}
             counts={counts}
             canExport={filtered.length > 0}
             onExport={() => {
@@ -296,6 +297,7 @@ function Estoque() {
       {modal?.type === "create" && (
         <PartFormModal
           parts={parts}
+          suppliers={suppliers}
           onClose={close}
           onSubmit={async (data) => {
             const created = await createPart(data);
@@ -307,6 +309,7 @@ function Estoque() {
         <PartFormModal
           part={selected}
           parts={parts}
+          suppliers={suppliers}
           onClose={close}
           onDelete={() => setModal({ type: "delete", code: selected.code })}
           onSubmit={async (data) => {
@@ -335,6 +338,7 @@ function Estoque() {
           part={selected}
           initialType={modal.movementType}
           parts={parts.filter((part) => part.status === "ativo")}
+          suppliers={suppliers}
           reserved={reserved}
           onClose={close}
           onConfirm={handleMovement}
@@ -351,7 +355,7 @@ function Estoque() {
         />
       )}
       {modal?.type === "purchase" && (
-        <PurchaseOrderModal parts={parts} reserved={reserved} preselected={modal.code} onClose={close} onSend={handlePurchase} />
+        <PurchaseOrderModal parts={parts} suppliers={suppliers} reserved={reserved} preselected={modal.code} onClose={close} onSend={handlePurchase} />
       )}
 
       {printing && <PurchaseOrderPrint supplier={printing.supplier} items={printing.items} />}

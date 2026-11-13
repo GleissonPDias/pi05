@@ -5,12 +5,11 @@ import Modal, { ModalBody, ModalFooter, ModalHeader } from "../../../components/
 import MoneyInput from "../../../components/ui/MoneyInput";
 import SelectField from "../../../components/ui/SelectField";
 import TextField from "../../../components/ui/TextField";
-import { PART_CATEGORIES, SUPPLIERS } from "../../../mocks/catalogo";
+import { PART_CATEGORIES } from "../../../mocks/catalogo";
 import { formatBRL } from "../../../utils/format";
 import { DEFAULT_MARKUP, UNITS } from "../constants";
 
 const categoryOptions = PART_CATEGORIES.map((category) => ({ value: category, label: category }));
-const supplierOptions = SUPPLIERS.map((supplier) => ({ value: supplier.id, label: supplier.name }));
 const round = (value) => Math.round(value * 100) / 100;
 
 function Section({ icon: Icon, title, aside, children }) {
@@ -35,7 +34,8 @@ const cleanCode = (value) => value.toUpperCase().replace(/[^A-Z0-9-]/g, "").slic
  * - part: peça editada (ausente = nova) · parts: catálogo (evita códigos repetidos)
  * - onSubmit(data) · onDelete() (só na edição) · onClose()
  */
-function PartFormModal({ part, parts, onSubmit, onDelete, onClose }) {
+function PartFormModal({ part, parts, suppliers = [], onSubmit, onDelete, onClose }) {
+  const supplierOptions = (suppliers ?? []).map((supplier) => ({ value: supplier.id, label: supplier.name }));
   const isEdit = Boolean(part);
   const titleId = useId();
   const formRef = useRef(null);

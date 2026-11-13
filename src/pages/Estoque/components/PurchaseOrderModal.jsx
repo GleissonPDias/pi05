@@ -3,7 +3,6 @@ import { MessageCircleIcon, PrinterIcon, SendIcon, ShoppingCartIcon } from "luci
 import Button from "../../../components/ui/Button";
 import Modal, { ModalBody, ModalFooter, ModalHeader } from "../../../components/ui/Modal";
 import QuantityStepper from "../../../components/ui/QuantityStepper";
-import { SUPPLIERS } from "../../../mocks/catalogo";
 import { cn } from "../../../utils/cn";
 import { formatBRL } from "../../../utils/format";
 import { STOCK_STATUS } from "../constants";
@@ -15,7 +14,7 @@ import { stockStatus, suggestedQty } from "../estoqueUtils";
  * - parts / reserved: estoque atual · preselected: código já marcado
  * - onSend(supplier, items, { channel }) — channel: "whatsapp" | "print" | "registrar"
  */
-function PurchaseOrderModal({ parts, reserved, preselected, onSend, onClose }) {
+function PurchaseOrderModal({ parts, suppliers = [], reserved, preselected, onSend, onClose }) {
   const titleId = useId();
   const candidates = useMemo(
     () =>
@@ -39,7 +38,7 @@ function PurchaseOrderModal({ parts, reserved, preselected, onSend, onClose }) {
     ),
   );
 
-  const groups = SUPPLIERS.map((supplier) => ({
+  const groups = (suppliers ?? []).map((supplier) => ({
     supplier,
     rows: candidates.filter(({ part }) => part.supplierId === supplier.id),
   })).filter((group) => group.rows.length);
