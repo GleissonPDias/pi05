@@ -148,7 +148,6 @@ export const emptyInspection = () => ({
   belongings: "",
   notes: "",
   damages: [],
-  photos: [],
   checklist: {},
 });
 

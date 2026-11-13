@@ -215,7 +215,6 @@ export function useOrdensState() {
             belongings: "",
             notes: "",
             damages: [],
-            photos: [],
             checklist: {},
           },
           diagnosis: { text: "", validated: false },
