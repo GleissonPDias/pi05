@@ -14,8 +14,9 @@ import { downloadCsv } from "../../utils/csv";
 import { printDocument } from "../../utils/print";
 import { whatsappLink } from "../OrdensServico/ordemUtils";
 import EstoqueStats from "./components/EstoqueStats";
-import EstoqueTable from "./components/EstoqueTable";
 import EstoqueToolbar from "./components/EstoqueToolbar";
+import EstoqueTable from "./components/EstoqueTable";
+import FornecedoresManager from "./components/FornecedoresManager";
 import MovementModal from "./components/MovementModal";
 import MovementsTable from "./components/MovementsTable";
 import PartDeleteModal from "./components/PartDeleteModal";
@@ -45,7 +46,12 @@ function Estoque() {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
 
-  const view = searchParams.get("visao") === "movimentacoes" ? "movimentacoes" : "inventario";
+  const view =
+    searchParams.get("visao") === "movimentacoes"
+      ? "movimentacoes"
+      : searchParams.get("visao") === "fornecedores"
+        ? "fornecedores"
+        : "inventario";
   const [search, setSearch] = useState(searchParams.get("busca") ?? "");
   const [status, setStatus] = useState("todos");
   const [category, setCategory] = useState("");
@@ -106,6 +112,7 @@ function Estoque() {
       (params) => {
         const updated = new URLSearchParams(params);
         if (next === "movimentacoes") updated.set("visao", "movimentacoes");
+        else if (next === "fornecedores") updated.set("visao", "fornecedores");
         else updated.delete("visao");
         return updated;
       },
@@ -148,6 +155,7 @@ function Estoque() {
   const tabs = [
     { key: "inventario", label: "Inventário" },
     { key: "movimentacoes", label: `Movimentações (${movements.length})` },
+    { key: "fornecedores", label: "Fornecedores" },
   ];
 
   return (
@@ -206,7 +214,9 @@ function Estoque() {
         ))}
       </div>
 
-      {view === "inventario" ? (
+      {view === "fornecedores" ? (
+        <FornecedoresManager />
+      ) : view === "inventario" ? (
         <Card className="overflow-hidden p-0!">
           <EstoqueToolbar
             search={search}

@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { LogOutIcon, MenuIcon, SearchIcon, UserIcon } from "lucide-react";
 import { useAuth } from "../../hooks/useAuth";
-import { api } from "../../services/api";
+import { api, getAdminSession } from "../../services/api";
 import NotificationsMenu from "./NotificationsMenu";
 
 function getInitials(name = "") {
@@ -63,10 +63,13 @@ export default function Header({ isAsideOpen, onMenuClick }) {
   const trocaObrigatoria = Boolean(user?.mustChangePassword);
 
   useEffect(() => {
-    if (!menuAberto || !user?.isAdmin) return;
+    if (!menuAberto) return;
+    if (!(user?.isAdmin || hasAdminSession)) return;
     let ativo = true;
+    const adminToken = hasAdminSession ? getAdminSession()?.accessToken : null;
+    const opts = adminToken ? { token: adminToken } : {};
     api.usuarios
-      .list({ ativo: true })
+      .list({ ativo: true, ...opts })
       .then((lista) => {
         if (ativo) setFuncionarios(Array.isArray(lista) ? lista : lista?.content ?? []);
       })
@@ -76,7 +79,7 @@ export default function Header({ isAsideOpen, onMenuClick }) {
     return () => {
       ativo = false;
     };
-  }, [menuAberto, user?.isAdmin]);
+  }, [menuAberto, user?.isAdmin, hasAdminSession]);
 
   const handleSubmit = (event) => {
     event.preventDefault();
@@ -193,7 +196,7 @@ export default function Header({ isAsideOpen, onMenuClick }) {
               </p>
             </div>
 
-            {user?.isAdmin && !mode !== "demo" && (
+            { (user?.isAdmin || hasAdminSession) && mode !== "demo" && (
               <div className="relative">
                 <button
                   type="button"

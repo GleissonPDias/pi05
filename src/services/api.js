@@ -85,6 +85,15 @@ export function getSession() {
   return session;
 }
 
+export function getAdminSession() {
+  try {
+    const raw = localStorage.getItem("salvo.admin.session.v1");
+    return raw ? JSON.parse(raw) : null;
+  } catch {
+    return null;
+  }
+}
+
 export function saveSession(loginResponse) {
   const expiresIn = Number(loginResponse?.expires_in) || 0;
   session = {
@@ -156,7 +165,7 @@ function describeError(data, status) {
 
 async function request(
   path,
-  { method = "GET", body, auth = true, notifyError = true } = {},
+  { method = "GET", body, auth = true, notifyError = true, token } = {},
 ) {
   if (mode === "demo") {
     throw new ApiError("Modo demonstração: os dados são locais.", {
@@ -171,8 +180,8 @@ async function request(
     headers["Content-Type"] = "application/json";
     options.body = JSON.stringify(body);
   }
-  if (auth && session?.accessToken) {
-    headers.Authorization = `Bearer ${session.accessToken}`;
+  if (auth && (token || session?.accessToken)) {
+    headers.Authorization = `Bearer ${token || session.accessToken}`;
   }
 
   begin();
@@ -500,8 +509,8 @@ export const api = {
   },
 
   usuarios: {
-    list({ busca, ativo, executaOs } = {}) {
-      return request(`/usuarios${query({ busca, ativo, executaOs })}`);
+    list({ busca, ativo, executaOs, token } = {}) {
+      return request(`/usuarios${query({ busca, ativo, executaOs })}`, token ? { token } : {});
     },
     get(id) {
       return request(`/usuarios/${id}`);
