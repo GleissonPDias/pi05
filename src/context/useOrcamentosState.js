@@ -22,7 +22,9 @@ function mapItem(item) {
     code: item.codigo ?? "",
     description: item.descricao ?? "",
     quantity: Number(item.quantidade ?? 1),
+    qty: Number(item.quantidade ?? 1),
     unitPrice: Number(item.valorUnitario ?? 0),
+    price: Number(item.valorUnitario ?? 0),
     hours: item.tempoEstimadoHoras != null ? Number(item.tempoEstimadoHoras) : null,
     pecaId: item.pecaId ? String(item.pecaId) : null,
     servicoId: item.servicoId ? String(item.servicoId) : null,
@@ -76,16 +78,16 @@ function toItens(quote) {
     pecaId: line.pecaId ? Number(line.pecaId) : null,
     codigo: line.code ?? null,
     descricao: line.description ?? "",
-    quantidade: Number(line.quantity ?? 1),
-    valorUnitario: Number(line.unitPrice ?? 0),
+    quantidade: Number(line.qty ?? line.quantity ?? 1),
+    valorUnitario: Number(line.unitPrice ?? line.price ?? 0),
   }));
   const services = (quote.services ?? []).map((line) => ({
     tipo: "SERVICO",
     servicoId: line.servicoId ? Number(line.servicoId) : null,
     codigo: line.code ?? null,
     descricao: line.description ?? "",
-    quantidade: Number(line.quantity ?? 1),
-    valorUnitario: Number(line.unitPrice ?? 0),
+    quantidade: Number(line.qty ?? line.quantity ?? 1),
+    valorUnitario: Number(line.unitPrice ?? line.price ?? 0),
     tempoEstimadoHoras: line.hours != null ? Number(line.hours) : null,
   }));
   return [...parts, ...services];
