@@ -586,6 +586,7 @@ export function mapOrdem(dto, overlay = {}) {
   const closedAt = dto.fechadaEm ?? null;
 
   const order = {
+    id: dto.id != null ? String(dto.id) : null,
     number: Number(dto.numero),
     status,
     priority: overlay.priority ?? priorityFromApi(dto.prioridade),

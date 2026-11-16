@@ -160,7 +160,7 @@ function Orcamentos() {
     });
     if (!order) return;
     addEvent(order.number, `Criada a partir do orçamento ${quote.id} (já aprovado pelo cliente)`, "indigo");
-    await convertQuote(quote.id, order.number);
+    await convertQuote(quote.id, order.id ?? order.number);
     if (quote.vehicle && mileageIn > quote.vehicle.mileage) updateMileage(quote.vehicle.id, mileageIn);
     navigate(`/ordens-de-servico/${order.number}?aba=vistoria`, {
       state: { toast: `OS #${order.number} aberta a partir do ${quote.id}. Faça a vistoria de entrada.` },
