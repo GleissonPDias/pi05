@@ -2,7 +2,7 @@
 
 Sistema de gestão para oficinas mecânicas. Reúne em um só lugar o dia a dia da oficina: agenda, clientes, veículos, ordens de serviço (OS), orçamentos, estoque e financeiro.
 
-Este repositório contém o **front-end** (React), integrado à API **salvo-api** (Spring Boot). Clientes, veículos, ordens de serviço, catálogo de serviços/peças, estoque, agenda, financeiro, notificações, equipe, boxes e dados da oficina vêm da API; orçamentos e parte dos campos complementares continuam em dados fictícios ou overlays locais (veja [Integração com a API](#integração-com-a-api)). Sem back-end disponível, use o **modo demonstração** na tela de login.
+Este repositório contém o **front-end** (React), integrado à API **salvo-api** (Spring Boot). Clientes, veículos, ordens de serviço, catálogo de serviços/peças, estoque, agenda, financeiro, notificações, equipe, boxes, fornecedores e orçamentos vêm da API; parte dos campos complementares continua em overlays locais (veja [Integração com a API](#integração-com-a-api)). Sem back-end disponível, use o **modo demonstração** na tela de login.
 
 > A API já expõe endpoints de **fornecedores, pedidos de compra e vistoria**, mas as telas correspondentes (ou parte delas) ainda não foram migradas neste front.
 
@@ -30,7 +30,7 @@ Este repositório contém o **front-end** (React), integrado à API **salvo-api*
 
 | Módulo | Rota | Situação |
 | --- | --- | --- |
-| Dashboard | `/` | Pronto (indicadores e fluxo financeiro semanal via API; orçamentos locais) |
+| Dashboard | `/` | Pronto (indicadores e fluxo financeiro semanal via API) |
 | Agenda | `/agenda` | Pronto (lista por dia com filtro de período, criação, edição, status e exclusão; dados da API; exige conexão com a API) |
 | Clientes | `/clientes` | Pronto (lista + cadastro, edição e exclusão em pop-ups; dados da API) |
 | Veículos | `/veiculos` | Pronto (lista, ficha técnica, cadastro/edição com rascunho e exclusão em pop-ups; dados da API + overlay local) |
