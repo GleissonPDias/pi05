@@ -41,6 +41,7 @@ function mapOrcamento(dto) {
     : validUntilFrom(issuedAt, validityDays);
   return {
     id: formatId(number),
+    backendId: dto.id,
     number,
     clientId: String(dto.clienteId),
     vehicleId: String(dto.veiculoId),
@@ -104,6 +105,12 @@ function toPayload(data) {
     canalEnvio: null,
     itens: toItens(data),
   };
+}
+
+function backendIdOf(quote, quotes) {
+  if (quote?.backendId) return quote.backendId;
+  const found = quotes?.find((q) => q.id === quote?.id);
+  return found?.backendId ?? Number(String(quote?.id ?? "").replace(/\D/g, ""));
 }
 
 export function useOrcamentosState() {
@@ -200,8 +207,9 @@ export function useOrcamentosState() {
       }));
       return;
     }
-    const number = Number(String(id).replace(/\D/g, ""));
-    await api.orcamentos.update(number, toPayload({ ...data, clientId: data.clientId ?? quotes.find((q) => q.id === id)?.clientId, vehicleId: data.vehicleId ?? quotes.find((q) => q.id === id)?.vehicleId }));
+    const quote = quotes.find((q) => q.id === id);
+    const bid = backendIdOf(quote, quotes);
+    await api.orcamentos.update(bid, toPayload({ ...data, clientId: data.clientId ?? quote?.clientId, vehicleId: data.vehicleId ?? quote?.vehicleId }));
     await reload();
   }, [demo, quotes, reload]);
 
@@ -214,40 +222,44 @@ export function useOrcamentosState() {
       }));
       return;
     }
-    const number = Number(String(id).replace(/\D/g, ""));
-    await api.orcamentos.changeStatus(number, "ENVIADO");
+    const quote = quotes.find((q) => q.id === id);
+    const bid = backendIdOf(quote, quotes);
+    await api.orcamentos.changeStatus(bid, "ENVIADO");
     await reload();
-  }, [demo, reload]);
+  }, [demo, quotes, reload]);
 
   const approveQuote = useCallback(async (id) => {
     if (demo) {
       patch(id, () => ({ status: "aprovado", decidedAt: now() }));
       return;
     }
-    const number = Number(String(id).replace(/\D/g, ""));
-    await api.orcamentos.changeStatus(number, "APROVADO");
+    const quote = quotes.find((q) => q.id === id);
+    const bid = backendIdOf(quote, quotes);
+    await api.orcamentos.changeStatus(bid, "APROVADO");
     await reload();
-  }, [demo, reload]);
+  }, [demo, quotes, reload]);
 
   const rejectQuote = useCallback(async (id, reason) => {
     if (demo) {
       patch(id, () => ({ status: "rejeitado", decidedAt: now(), rejectReason: reason }));
       return;
     }
-    const number = Number(String(id).replace(/\D/g, ""));
-    await api.orcamentos.changeStatus(number, "REJEITADO");
+    const quote = quotes.find((q) => q.id === id);
+    const bid = backendIdOf(quote, quotes);
+    await api.orcamentos.changeStatus(bid, "REJEITADO");
     await reload();
-  }, [demo, reload]);
+  }, [demo, quotes, reload]);
 
   const convertQuote = useCallback(async (id, orderNumber) => {
     if (demo) {
       patch(id, () => ({ orderNumber, convertedAt: now(), status: "convertido" }));
       return;
     }
-    const number = Number(String(id).replace(/\D/g, ""));
-    await api.orcamentos.convert(number, Number(String(orderNumber).replace(/\D/g, "")));
+    const quote = quotes.find((q) => q.id === id);
+    const bid = backendIdOf(quote, quotes);
+    await api.orcamentos.convert(bid, Number(String(orderNumber).replace(/\D/g, "")));
     await reload();
-  }, [demo, reload]);
+  }, [demo, quotes, reload]);
 
   const duplicateQuote = useCallback(
     async (id) => {
@@ -289,10 +301,11 @@ export function useOrcamentosState() {
       setQuotes((current) => current.filter((quote) => quote.id !== id));
       return;
     }
-    const number = Number(String(id).replace(/\D/g, ""));
-    await api.orcamentos.remove(number);
+    const quote = quotes.find((q) => q.id === id);
+    const bid = backendIdOf(quote, quotes);
+    await api.orcamentos.remove(bid);
     setQuotes((current) => current.filter((quote) => quote.id !== id));
-  }, [demo]);
+  }, [demo, quotes]);
 
   const addQuoteEvent = useCallback((id, text, tone) => {
     if (demo) {
