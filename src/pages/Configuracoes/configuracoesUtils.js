@@ -24,6 +24,7 @@ export function emptyOficina() {
     validadeOrcamentoDias: 7,
     descontoMaximoPercentual: 0,
     corPrimaria: "#2563eb",
+    logoUrl: "",
   };
 }
 
@@ -48,6 +49,7 @@ export function oficinaToForm(dto) {
     validadeOrcamentoDias: dto.validadeOrcamentoDias ?? 7,
     descontoMaximoPercentual: Number(dto.descontoMaximoPercentual ?? 0),
     corPrimaria: dto.corPrimaria ?? "",
+    logoUrl: dto.logoUrl ?? "",
   };
 }
 
@@ -76,6 +78,7 @@ export function oficinaToPayload(values) {
     validadeOrcamentoDias: Number(values.validadeOrcamentoDias),
     descontoMaximoPercentual: Number(values.descontoMaximoPercentual || 0),
     corPrimaria: text(values.corPrimaria),
+    logoUrl: text(values.logoUrl),
   };
 }
 
