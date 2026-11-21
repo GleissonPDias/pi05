@@ -226,7 +226,7 @@ export function useOrcamentosState() {
     }
     const quote = quotes.find((q) => q.id === id);
     const bid = backendIdOf(quote, quotes);
-    await api.orcamentos.changeStatus(bid, "ENVIADO");
+    await api.orcamentos.changeStatus(bid, "ENVIADO", { canal: channel });
     await reload();
   }, [demo, quotes, reload]);
 
@@ -248,7 +248,7 @@ export function useOrcamentosState() {
     }
     const quote = quotes.find((q) => q.id === id);
     const bid = backendIdOf(quote, quotes);
-    await api.orcamentos.changeStatus(bid, "REJEITADO");
+    await api.orcamentos.changeStatus(bid, "REJEITADO", { motivo: reason });
     await reload();
   }, [demo, quotes, reload]);
 

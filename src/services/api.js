@@ -494,8 +494,8 @@ export const api = {
     remove(id) {
       return request(`/orcamentos/${id}`, { method: "DELETE" });
     },
-    changeStatus(id, status) {
-      return request(`/orcamentos/${id}/status${query({ status })}`, { method: "PATCH" });
+    changeStatus(id, status, { motivo, canal } = {}) {
+      return request(`/orcamentos/${id}/status${query({ status, motivo, canal })}`, { method: "PATCH" });
     },
     convert(id, ordemServicoId) {
       return request(`/orcamentos/${id}/converter${query({ ordemServicoId })}`, { method: "POST" });
