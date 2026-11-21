@@ -3,6 +3,7 @@ import { CalendarDaysIcon, ChevronRightIcon, PencilIcon, PlusIcon, Trash2Icon } 
 import Badge from "../../components/ui/Badge";
 import Button from "../../components/ui/Button";
 import Card from "../../components/ui/Card";
+import Pagination from "../../components/ui/Pagination";
 import SelectField from "../../components/ui/SelectField";
 import Toast from "../../components/ui/Toast";
 import { useAuth } from "../../hooks/useAuth";
@@ -97,6 +98,8 @@ function Agenda() {
 
   const [period, setPeriod] = useState("7dias");
   const [items, setItems] = useState([]);
+  const [page, setPage] = useState(0);
+  const [totalPages, setTotalPages] = useState(1);
   const [loading, setLoading] = useState(() => !isDemo);
   const [busyId, setBusyId] = useState(null);
   const [modal, setModal] = useState({ open: false, item: null });
@@ -109,14 +112,15 @@ function Agenda() {
     }
     setLoading(true);
     try {
-      const data = await api.agendamentos.list(periodRange(period));
-      setItems(Array.isArray(data) ? data : []);
+      const data = await api.agendamentos.list({ ...periodRange(period), page, size: 20 });
+      setItems(Array.isArray(data) ? data : data?.content ?? []);
+      setTotalPages(data?.page?.totalPages ?? 1);
     } catch {
       // O banner global já mostra o erro da API.
     } finally {
       setLoading(false);
     }
-  }, [isDemo, period]);
+  }, [isDemo, period, page]);
 
   useEffect(() => {
     queueMicrotask(load);
@@ -211,6 +215,9 @@ function Agenda() {
             <p className="text-xs text-slate-600" aria-live="polite">
               <strong className="text-slate-900">{items.length}</strong> agendamento(s) em {periodLabel.toLowerCase()}
             </p>
+            <div className="mt-3">
+              <Pagination page={page + 1} totalPages={totalPages} onChange={(p) => setPage(p - 1)} />
+            </div>
           </div>
 
           <div className="px-4">

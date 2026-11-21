@@ -557,8 +557,8 @@ export const api = {
   },
 
   agendamentos: {
-    list({ inicio, fim, status } = {}) {
-      return request(`/agendamentos${query({ inicio, fim, status })}`);
+    list({ inicio, fim, status, page = 0, size = 20 } = {}) {
+      return request(`/agendamentos${query({ inicio, fim, status, page, size })}`);
     },
     create(payload) {
       return request("/agendamentos", { method: "POST", body: payload });
@@ -575,8 +575,8 @@ export const api = {
   },
 
   pagamentos: {
-    list() {
-      return request("/pagamentos");
+    list({ status, page = 0, size = 20 } = {}) {
+      return request(`/pagamentos${query({ status, page, size })}`);
     },
     create(payload) {
       return request("/pagamentos", { method: "POST", body: payload });
@@ -590,8 +590,8 @@ export const api = {
   },
 
   despesas: {
-    list() {
-      return request("/despesas");
+    list({ status, page = 0, size = 20 } = {}) {
+      return request(`/despesas${query({ status, page, size })}`);
     },
     create(payload) {
       return request("/despesas", { method: "POST", body: payload });

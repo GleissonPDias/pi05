@@ -3,6 +3,7 @@ import { CheckIcon, ChevronRightIcon, PlusIcon, Trash2Icon, WalletIcon, XIcon } 
 import Badge from "../../components/ui/Badge";
 import Button from "../../components/ui/Button";
 import Card from "../../components/ui/Card";
+import Pagination from "../../components/ui/Pagination";
 import SelectField from "../../components/ui/SelectField";
 import StatCard from "../../components/ui/StatCard";
 import Toast from "../../components/ui/Toast";
@@ -140,6 +141,8 @@ function Financeiro() {
   const [tab, setTab] = useState(KIND.RECEBER);
   const [status, setStatus] = useState("todos");
   const [data, setData] = useState({ [KIND.RECEBER]: [], [KIND.PAGAR]: [] });
+  const [page, setPage] = useState(0);
+  const [totalPages, setTotalPages] = useState(1);
   const [loading, setLoading] = useState(() => !isDemo);
   const [busyId, setBusyId] = useState(null);
   const [modalOpen, setModalOpen] = useState(false);
@@ -152,17 +155,19 @@ function Financeiro() {
     }
     setLoading(true);
     try {
-      const [receber, pagar] = await Promise.all([api.pagamentos.list(), api.despesas.list()]);
+      const [receber, pagar] = await Promise.all([api.pagamentos.list({ page, size: 20 }), api.despesas.list({ page, size: 20 })]);
       setData({
-        [KIND.RECEBER]: Array.isArray(receber) ? receber : [],
-        [KIND.PAGAR]: Array.isArray(pagar) ? pagar : [],
+        [KIND.RECEBER]: Array.isArray(receber) ? receber : receber?.content ?? [],
+        [KIND.PAGAR]: Array.isArray(pagar) ? pagar : pagar?.content ?? [],
       });
+      const tp = Math.max(receber?.page?.totalPages ?? 1, pagar?.page?.totalPages ?? 1);
+      setTotalPages(tp);
     } catch {
       // O banner global já mostra o erro da API.
     } finally {
       setLoading(false);
     }
-  }, [isDemo]);
+  }, [isDemo, page]);
 
   useEffect(() => {
     queueMicrotask(load);
@@ -327,6 +332,9 @@ function Financeiro() {
                 Mostrando <strong className="text-slate-900">{visible.length}</strong> de{" "}
                 <strong className="text-slate-900">{items.length}</strong> lançamento(s).
               </p>
+              <div className="mt-2">
+                <Pagination page={page + 1} totalPages={totalPages} onChange={(p) => setPage(p - 1)} />
+              </div>
             </div>
           </Card>
         </>
