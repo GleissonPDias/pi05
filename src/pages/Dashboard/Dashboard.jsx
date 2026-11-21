@@ -14,7 +14,7 @@ import ReturnOpportunitiesCard from "./components/ReturnOpportunitiesCard";
 import StockAlertCard from "./components/StockAlertCard";
 import WeeklyFinanceCard from "./components/WeeklyFinanceCard";
 
-function useDynamicDashboard() {
+function useDynamicDashboard(period = "today") {
   const { isDemo, isAdmin } = useAuth();
   const weeklyFinance = useWeeklyFinance(!isDemo && isAdmin);
   const { orders } = useOrdens();
@@ -70,6 +70,30 @@ function useDynamicDashboard() {
     ];
 
     const now = new Date();
+    const periodStart = (() => {
+      const d = new Date(now);
+      if (period === "today") {
+        d.setHours(0, 0, 0, 0);
+        return d;
+      }
+      if (period === "7days") {
+        d.setDate(d.getDate() - 6);
+        d.setHours(0, 0, 0, 0);
+        return d;
+      }
+      if (period === "month") {
+        d.setDate(1);
+        d.setHours(0, 0, 0, 0);
+        return d;
+      }
+      return new Date(0);
+    })();
+    const inPeriod = (dateValue) => {
+      if (!dateValue) return true;
+      const d = new Date(dateValue);
+      return !Number.isNaN(d.getTime()) && d >= periodStart && d <= now;
+    };
+
 
     // 3. Oportunidades de Retorno
     const returnItems = [];
@@ -99,7 +123,8 @@ function useDynamicDashboard() {
     };
 
     // 4. Orçamentos Pendentes
-    const pendingList = quotes
+    const periodQuotes = quotes.filter((q) => inPeriod(q.issuedAt ?? q.criadoEm));
+    const pendingList = periodQuotes
       .filter((q) => q.status === "enviado" || q.status === "rascunho")
       .map((q) => {
         const client = clientMap.get(String(q.clientId));
@@ -138,13 +163,13 @@ function useDynamicDashboard() {
       returnOpportunities,
       pendingQuotes,
     };
-  }, [isDemo, orders, quotes, vehicles, clients, weeklyFinance]);
+  }, [isDemo, orders, quotes, vehicles, clients, weeklyFinance, period]);
 }
 
 function Dashboard() {
   const [period, setPeriod] = useState("today");
   const { isAdmin } = useAuth();
-  const data = useDynamicDashboard();
+  const data = useDynamicDashboard(period);
 
   return (
     <div className="flex flex-col gap-6">
