@@ -3,7 +3,6 @@ import { useNavigate } from "react-router-dom";
 import { LogOutIcon, MenuIcon, SearchIcon, UserIcon } from "lucide-react";
 import { useAuth } from "../../hooks/useAuth";
 import { api, getAdminSession } from "../../services/api";
-import NotificationsMenu from "./NotificationsMenu";
 
 function getInitials(name = "") {
   return name
@@ -182,7 +181,8 @@ export default function Header({ isAsideOpen, onMenuClick }) {
             </span>
           )}
 
-          <NotificationsMenu />
+          {/* Notificações ocultas por enquanto */}
+          {/* <NotificationsMenu /> */}
 
           <div className="flex items-center gap-3">
             <div className="grid size-9 place-items-center rounded-full bg-sidebar text-xs font-bold text-white">
