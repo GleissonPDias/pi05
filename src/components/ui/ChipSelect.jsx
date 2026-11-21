@@ -10,7 +10,7 @@ import { cn } from "../../utils/cn";
  * - highlight: destaca o chip (padrão: quando há valor selecionado)
  */
 function ChipSelect({ icon: Icon, label, value, options, onChange, allLabel = "Todos", highlight }) {
-  const current = options.find((option) => option.value === value);
+  const current = options.find((option) => String(option?.value) === String(value));
   const active = highlight ?? Boolean(value);
 
   return (
@@ -30,9 +30,9 @@ function ChipSelect({ icon: Icon, label, value, options, onChange, allLabel = "T
         className="absolute inset-0 w-full cursor-pointer opacity-0"
       >
         {allLabel !== null && <option value="">{allLabel}</option>}
-        {options.map((option) => (
-          <option key={option.value} value={option.value}>
-            {option.label}
+        {options.map((option, index) => (
+          <option key={`${option.value}-${index}`} value={option.value}>
+            {option.label ?? option.value ?? ""}
           </option>
         ))}
       </select>

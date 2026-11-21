@@ -261,6 +261,7 @@ function Orcamentos() {
           onSearchChange={withReset(setSearch)}
           seller={seller}
           onSellerChange={withReset(setSeller)}
+          sellers={sellers}
           period={period}
           onPeriodChange={withReset(setPeriod)}
           status={status}
