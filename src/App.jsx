@@ -6,6 +6,7 @@ import RequirePermission from "./components/RequirePermission";
 import AppProviders from "./context/AppProviders";
 import MainLayout from "./layouts/MainLayout";
 import Agenda from "./pages/Agenda/Agenda";
+import Ajuda from "./pages/Ajuda/Ajuda";
 import Clientes from "./pages/Clientes/Clientes";
 import Configuracoes from "./pages/Configuracoes/Configuracoes";
 import Dashboard from "./pages/Dashboard/Dashboard";
@@ -33,6 +34,7 @@ const implementedPaths = [
   "/orcamentos",
   "/estoque",
   "/agenda",
+  "/ajuda",
   "/equipe",
   "/financeiro",
   "/configuracoes",
@@ -79,6 +81,7 @@ function App() {
             <Route element={<RequireAdmin />}>
               <Route path="/equipe" element={<Equipe />} />
               <Route path="/configuracoes" element={<Configuracoes />} />
+            <Route path="/ajuda" element={<Ajuda />} />
             </Route>
             <Route element={<RequirePermission modulo="FINANCEIRO" />}>
               <Route path="/financeiro" element={<Financeiro />} />
