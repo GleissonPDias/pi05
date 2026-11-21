@@ -1,10 +1,11 @@
-import { useId, useRef, useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 import { BoxesIcon, PackagePlusIcon, SaveIcon, SquarePenIcon, TagIcon, Trash2Icon, WarehouseIcon } from "lucide-react";
 import Button from "../../../components/ui/Button";
 import Modal, { ModalBody, ModalFooter, ModalHeader } from "../../../components/ui/Modal";
 import MoneyInput from "../../../components/ui/MoneyInput";
 import SelectField from "../../../components/ui/SelectField";
 import TextField from "../../../components/ui/TextField";
+import { api } from "../../../services/api";
 import { PART_CATEGORIES } from "../../../mocks/catalogo";
 import { formatBRL } from "../../../utils/format";
 import { DEFAULT_MARKUP, UNITS } from "../constants";
@@ -35,7 +36,19 @@ const cleanCode = (value) => value.toUpperCase().replace(/[^A-Z0-9-]/g, "").slic
  * - onSubmit(data) · onDelete() (só na edição) · onClose()
  */
 function PartFormModal({ part, parts, suppliers = [], onSubmit, onDelete, onClose }) {
-  const supplierOptions = (suppliers ?? []).map((supplier) => ({ value: supplier.id, label: supplier.name }));
+  const [localSuppliers, setLocalSuppliers] = useState(suppliers);
+  useEffect(() => {
+    if (localSuppliers.length) return;
+    let ativo = true;
+    api.fornecedores
+      .list()
+      .then((lista) => {
+        if (ativo) setLocalSuppliers(Array.isArray(lista) ? lista : lista?.content ?? []);
+      })
+      .catch(() => {});
+    return () => { ativo = false; };
+  }, [localSuppliers.length]);
+  const supplierOptions = (localSuppliers.length ? localSuppliers : suppliers).map((supplier) => ({ value: supplier.id, label: supplier.name }));
   const isEdit = Boolean(part);
   const titleId = useId();
   const formRef = useRef(null);

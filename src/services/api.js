@@ -464,8 +464,8 @@ export const api = {
   },
 
   fornecedores: {
-    list() {
-      return request("/fornecedores");
+    list({ incluirInativos = false } = {}) {
+      return request(`/fornecedores${query({ incluirInativos: incluirInativos || undefined })}`);
     },
     create(payload) {
       return request("/fornecedores", { method: "POST", body: payload });

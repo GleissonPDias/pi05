@@ -96,7 +96,6 @@ export default function FornecedoresManager() {
   };
 
   const remove = async (item) => {
-    if (!window.confirm(`Excluir ${item.name ?? item.nome}?`)) return;
     if (demo) {
       setItems((current) => current.filter((entry) => String(entry.id) !== String(item.id)));
       return;
