@@ -503,8 +503,8 @@ export const api = {
   },
 
   auditoria: {
-    list({ usuarioId, modulo, de, ate, page = 0, size = 50 } = {}) {
-      return request(`/auditoria${query({ usuarioId, modulo, de, ate, page, size })}`);
+    list({ usuarioId, modulo, de, ate, page = 0, size = 20, sort = "criadoEm,desc" } = {}) {
+      return request(`/auditoria${query({ usuarioId, modulo, de, ate, page, size, sort })}`);
     },
   },
 
