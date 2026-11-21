@@ -198,7 +198,7 @@ function EquipeFormModal({ member, isDemo, onSubmit, onClose }) {
                     </p>
                   </div>
 
-                  {values.profile === "FUNCIONARIO" && (
+                  {values.profile !== "ADMIN" && (
                     <div className="grid gap-2 sm:grid-cols-2">
                       {[
                         ["CLIENTES", "Clientes"],
