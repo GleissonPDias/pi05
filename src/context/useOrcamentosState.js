@@ -215,7 +215,8 @@ export function useOrcamentosState() {
     await reload();
   }, [demo, quotes, reload]);
 
-  const sendQuote = useCallback(async (id, channel = "whatsapp") => {
+  const sendQuote = useCallback(async (quoteOrId, channel = "whatsapp") => {
+    const id = typeof quoteOrId === "object" && quoteOrId !== null ? quoteOrId.id : quoteOrId;
     if (demo) {
       patch(id, () => ({
         status: "enviado",
@@ -224,7 +225,7 @@ export function useOrcamentosState() {
       }));
       return;
     }
-    const quote = quotes.find((q) => q.id === id);
+    const quote = typeof quoteOrId === "object" && quoteOrId !== null ? quoteOrId : quotes.find((q) => q.id === quoteOrId);
     const bid = backendIdOf(quote, quotes);
     await api.orcamentos.changeStatus(bid, "ENVIADO", { canal: channel });
     await reload();

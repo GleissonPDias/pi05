@@ -128,7 +128,7 @@ function Orcamentos() {
 
   /** Envia (abre o WhatsApp) e registra o envio. */
   const send = async (quote, channel = "whatsapp", { silent = false } = {}) => {
-    await sendQuote(quote.id, channel);
+    await sendQuote(quote, channel);
     // eslint-disable-next-line react-hooks/purity
     const renew = quote.status === "rascunho" || new Date(quote.validUntil) < Date.now();
     // eslint-disable-next-line react-hooks/purity
