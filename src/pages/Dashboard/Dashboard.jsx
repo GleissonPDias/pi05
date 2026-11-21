@@ -32,15 +32,15 @@ function useDynamicDashboard(period = "today") {
 
     // 1. Status das Ordens de Serviço
     const runningCount = orders.filter(
-      (o) => o.status === "em_execucao" || o.status === "em_teste",
+      (o) => o.status === "execucao" || o.status === "pronta",
     ).length;
     const waitingPartCount = orders.filter(
-      (o) => o.status === "aguardando_peca" || o.status === "aguardando_aprovacao",
+      (o) => o.status === "aguardando_pecas" || o.status === "aprovacao",
     ).length;
     const diagnosticoCount = orders.filter(
-      (o) => o.status === "aberta" || o.status === "em_diagnostico",
+      (o) => o.status === "aberta" || o.status === "orcamento",
     ).length;
-    const doneCount = orders.filter((o) => o.status === "concluida").length;
+    const doneCount = orders.filter((o) => o.status === "entregue").length;
 
     const orderStatus = [
       {
@@ -184,6 +184,7 @@ function Dashboard() {
       <div className={isAdmin ? "grid gap-6 xl:grid-cols-3" : "grid gap-6"}>
         {isAdmin && (
           <WeeklyFinanceCard
+            period={period}
             summary={data.weeklyFinance.summary}
             days={data.weeklyFinance.days}
           />
