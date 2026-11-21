@@ -145,7 +145,6 @@ function OficinaDadosCard({ values, setValues, readOnly, saving, onSave }) {
           inputMode="decimal"
           {...field("descontoMaximoPercentual")}
         />
-        <TextField label="Cor primária" maxLength={7} placeholder="#2563eb" hint="Formato #RRGGBB." {...field("corPrimaria")} />
       </section>
 
       <div className="flex flex-col-reverse gap-3 border-t border-slate-200 pt-4 sm:flex-row sm:justify-end">

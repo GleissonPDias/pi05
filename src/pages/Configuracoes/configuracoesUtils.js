@@ -48,7 +48,6 @@ export function oficinaToForm(dto) {
     horarioFuncionamento: dto.horarioFuncionamento ?? "",
     validadeOrcamentoDias: dto.validadeOrcamentoDias ?? 7,
     descontoMaximoPercentual: Number(dto.descontoMaximoPercentual ?? 0),
-    corPrimaria: dto.corPrimaria ?? "",
     logoUrl: dto.logoUrl ?? "",
   };
 }
@@ -77,7 +76,6 @@ export function oficinaToPayload(values) {
     horarioFuncionamento: text(values.horarioFuncionamento),
     validadeOrcamentoDias: Number(values.validadeOrcamentoDias),
     descontoMaximoPercentual: Number(values.descontoMaximoPercentual || 0),
-    corPrimaria: text(values.corPrimaria),
     logoUrl: text(values.logoUrl),
   };
 }

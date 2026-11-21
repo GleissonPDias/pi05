@@ -14,10 +14,8 @@ function PrintHeader({ kind, number, children }) {
   const { workshop } = useOficina();
   const workshopName = workshop.name || user?.workshopName;
   const logoSrc = workshop.logoUrl || logo;
-  const accent = workshop.corPrimaria || "#000000";
-
   return (
-    <header className="flex items-center justify-between gap-6 border-b-2 pb-3" style={{ borderColor: accent }}>
+    <header className="flex items-center justify-between gap-6 border-b-2 border-black pb-3">
       <div className="flex items-center gap-4">
         <img src={logoSrc} alt={workshopName} className="h-16 w-auto rounded-md object-contain" />
         <div>

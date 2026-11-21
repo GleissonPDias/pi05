@@ -238,16 +238,18 @@ function EquipeFormModal({ member, isDemo, onSubmit, onClose }) {
                       Aparece como “Mecânico responsável” na criação e edição de OS.
                     </span>
                   </Checkbox>
-                  <Checkbox
-                    checked={values.lead}
-                    onChange={(event) => setField("lead", event.target.checked)}
-                    className="text-sm"
-                  >
-                    <strong className="text-slate-900">Líder técnico</strong>
-                    <span className="mt-0.5 block text-xs text-slate-600">
-                      Fica no topo da lista e pode validar diagnósticos.
-                    </span>
-                  </Checkbox>
+                  {values.profile !== "VENDEDOR" && (
+                    <Checkbox
+                      checked={values.lead}
+                      onChange={(event) => setField("lead", event.target.checked)}
+                      className="text-sm"
+                    >
+                      <strong className="text-slate-900">Líder técnico</strong>
+                      <span className="mt-0.5 block text-xs text-slate-600">
+                        Fica no topo da lista e pode validar diagnósticos.
+                      </span>
+                    </Checkbox>
+                  )}
                 </div>
 
                 <div className="mt-4 grid gap-4 sm:grid-cols-2">
