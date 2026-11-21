@@ -15,7 +15,7 @@ import {
 } from "../services/api";
 import { resetCatalogs } from "../services/catalogs";
 import { resetMechanics } from "../services/mechanics";
-import { currentUser } from "../mocks/user";
+import { currentUser, setCurrentOperator } from "../mocks/user";
 
 const DEMO_USER = {
   id: "demo",
@@ -146,6 +146,7 @@ export function AuthProvider({ children }) {
     try {
       const dto = await api.me();
       const nextUser = mapUser(dto);
+      setCurrentOperator(nextUser.name, nextUser.role);
       setSessionUser(nextUser);
       applyAuthenticated(nextUser, "api");
     } catch (error) {
@@ -198,6 +199,7 @@ export function AuthProvider({ children }) {
       }
 
       const nextUser = dto ? mapUser(dto) : sessionUser(email.split("@")[0]);
+      setCurrentOperator(nextUser.name, nextUser.role);
       if (dto) setSessionUser(nextUser);
       applyAuthenticated(nextUser, "api");
       return { ok: true };
@@ -232,6 +234,7 @@ export function AuthProvider({ children }) {
           const nextUser = dto
             ? mapUser(dto)
             : sessionUser(payload.nomeUsuario || payload.email.split("@")[0]);
+          setCurrentOperator(nextUser.name, nextUser.role);
           if (dto) setSessionUser(nextUser);
           applyAuthenticated(nextUser, "api");
           return { ok: true, autoLogin: true };
@@ -254,6 +257,7 @@ export function AuthProvider({ children }) {
     setDemoMode(true);
     resetMechanics();
     resetCatalogs();
+    setCurrentOperator(DEMO_USER.name, DEMO_USER.role);
     applyAuthenticated(DEMO_USER, "demo");
     return { ok: true };
   }, [applyAuthenticated]);

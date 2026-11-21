@@ -8,4 +8,8 @@ export const currentUser = {
 };
 
 /** Texto gravado como autor das alterações: "Carlos Eduardo (Gerente)". */
-export const currentOperator = `${currentUser.name} (${currentUser.role.split(" ")[0]})`;
+export let currentOperator = `${currentUser.name} (${currentUser.role.split(" ")[0]})`;
+
+export function setCurrentOperator(name, role) {
+  currentOperator = `${name || "Operador"} (${String(role || "Oficina").split(" ")[0]})`;
+}
