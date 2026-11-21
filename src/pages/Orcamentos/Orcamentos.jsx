@@ -10,6 +10,7 @@ import { useOrcamentos } from "../../hooks/useOrcamentos";
 import { useOrdens } from "../../hooks/useOrdens";
 import { useToast } from "../../hooks/useToast";
 import { useVeiculos } from "../../hooks/useVeiculos";
+import { api } from "../../services/api";
 import { downloadCsv } from "../../utils/csv";
 import { printDocument } from "../../utils/print";
 import { whatsappLink } from "../OrdensServico/ordemUtils";
@@ -50,6 +51,7 @@ function Orcamentos() {
   } = useOrcamentos();
   const { vehicles, createVehicle, updateMileage } = useVeiculos();
   const { clients, createClient } = useClientes();
+  const [sellers, setSellers] = useState([]);
   const { createOrder, addEvent } = useOrdens();
   const { toast, showToast, dismissToast } = useToast();
   const location = useLocation();
@@ -73,6 +75,23 @@ function Orcamentos() {
   useEffect(() => {
     if (location.state?.novo) navigate(`${location.pathname}${location.search}`, { replace: true, state: null });
   }, [location, navigate]);
+
+  useEffect(() => {
+    let ativo = true;
+    api.usuarios
+      .list()
+      .then((lista) => {
+        if (!ativo) return;
+        const users = Array.isArray(lista) ? lista : lista?.content ?? [];
+        setSellers(users.map((u) => ({ id: u.id, name: u.nome, role: u.cargo, profile: u.perfil })));
+      })
+      .catch(() => {
+        if (ativo) setSellers([]);
+      });
+    return () => {
+      ativo = false;
+    };
+  }, []);
 
   const vehiclesById = useMemo(() => new Map(vehicles.map((v) => [v.id, v])), [vehicles]);
   const clientsById = useMemo(() => new Map(clients.map((c) => [c.id, c])), [clients]);
@@ -290,6 +309,7 @@ function Orcamentos() {
           initialVehicleId={modal.vehicleId}
           vehicles={vehicles}
           clients={clients}
+          sellers={sellers}
           createVehicle={createVehicle}
           createClient={createClient}
           onSubmit={handleSubmit}
@@ -302,6 +322,7 @@ function Orcamentos() {
           quote={selected}
           vehicles={vehicles}
           clients={clients}
+          sellers={sellers}
           createVehicle={createVehicle}
           createClient={createClient}
           onSubmit={handleSubmit}

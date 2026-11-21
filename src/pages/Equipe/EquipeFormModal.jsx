@@ -190,6 +190,7 @@ function EquipeFormModal({ member, isDemo, onSubmit, onClose }) {
                       onChange={(event) => setField("profile", event.target.value)}
                     >
                       <option value="FUNCIONARIO">Funcionário</option>
+                      <option value="VENDEDOR">Vendedor</option>
                       <option value="ADMIN">Administrador</option>
                     </select>
                     <p className="mt-1 text-xs text-slate-500">

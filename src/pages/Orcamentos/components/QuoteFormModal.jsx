@@ -6,8 +6,6 @@ import MoneyInput from "../../../components/ui/MoneyInput";
 import SelectField from "../../../components/ui/SelectField";
 import TextAreaField from "../../../components/ui/TextAreaField";
 import TextField from "../../../components/ui/TextField";
-import { CONSULTANTS } from "../../../mocks/oficina";
-import { currentUser } from "../../../mocks/user";
 import { formatBRL } from "../../../utils/format";
 import AdicionarPecaModal from "../../OrdensServico/detalhe/AdicionarPecaModal";
 import AdicionarServicoModal from "../../OrdensServico/detalhe/AdicionarServicoModal";
@@ -35,9 +33,6 @@ function Section({ icon: Icon, title, aside, className, children }) {
   );
 }
 
-const sellerOptions = CONSULTANTS.map((c) => ({ value: c.id, label: `${c.name} — ${c.role}` }));
-const defaultSeller = CONSULTANTS.find((c) => c.name === currentUser.name)?.id ?? CONSULTANTS[0].id;
-
 /**
  * Pop-up de criação / edição de orçamento (horizontal no desktop).
  * - quote: orçamento editado (ausente = novo) · initialVehicleId: veículo pré-selecionado
@@ -45,8 +40,10 @@ const defaultSeller = CONSULTANTS.find((c) => c.name === currentUser.name)?.id ?
  * - createVehicle / createClient: cadastro rápido de veículo (e cliente) sem sair do pop-up
  * - onSubmit(data, { send }) · onClose() · onToast(message, tone)
  */
-function QuoteFormModal({ quote, initialVehicleId, vehicles, clients, createVehicle, createClient, onSubmit, onClose, onToast }) {
+function QuoteFormModal({ quote, initialVehicleId, vehicles, clients, sellers = [], createVehicle, createClient, onSubmit, onClose, onToast }) {
   const isEdit = Boolean(quote);
+  const sellerOptions = (sellers ?? []).map((seller) => ({ value: String(seller.id), label: `${seller.name ?? seller.nome} — ${seller.role ?? seller.cargo ?? ""}` }));
+  const defaultSeller = sellers.length ? String(sellers[0].id) : "";
   const titleId = useId();
   const formRef = useRef(null);
   const clientsById = useMemo(() => new Map(clients.map((c) => [c.id, c])), [clients]);

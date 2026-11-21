@@ -14,6 +14,7 @@ export const CARGO_SUGGESTIONS = [
 const PROFILE_LABELS = {
   ADMIN: "Administrador",
   FUNCIONARIO: "Funcionário",
+  VENDEDOR: "Vendedor",
 };
 
 export function profileLabel(profile) {

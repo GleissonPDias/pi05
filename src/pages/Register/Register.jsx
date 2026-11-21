@@ -11,6 +11,8 @@ import Button from "../../components/ui/Button";
 import TextField from "../../components/ui/TextField";
 import { useAuth } from "../../hooks/useAuth";
 import { api } from "../../services/api";
+import { maskCpfCnpj, maskPhone } from "../../utils/masks";
+import { isValidCpfCnpj, isValidEmail, isValidPhone } from "../../utils/validators";
 
 function Register() {
   const { status, register } = useAuth();
@@ -24,6 +26,7 @@ function Register() {
   const [cnpj, setCnpj] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
+  const [errors, setErrors] = useState({});
   const [successMessage, setSuccessMessage] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
@@ -31,27 +34,27 @@ function Register() {
     return <Navigate to="/" replace />;
   }
 
+  const validate = () => {
+    const found = {};
+    if (!nomeOficina.trim()) found.nomeOficina = "Informe o nome da oficina.";
+    if (!nomeUsuario.trim()) found.nomeUsuario = "Informe o seu nome.";
+    if (!email.trim()) found.email = "Informe o e-mail.";
+    else if (!isValidEmail(email)) found.email = "Informe um e-mail válido.";
+    if (!password) found.password = "Informe a senha.";
+    else if (password.length < 6) found.password = "A senha deve ter no mínimo 6 caracteres.";
+    if (telefone.trim() && !isValidPhone(telefone)) found.telefone = "Informe um telefone com DDD.";
+    if (cnpj.trim() && !isValidCpfCnpj(cnpj)) found.cnpj = "Informe um CPF/CNPJ válido.";
+    return found;
+  };
+
   const handleSubmit = async (event) => {
     event.preventDefault();
     setError("");
     setSuccessMessage("");
 
-    if (!nomeOficina.trim()) {
-      setError("Informe o nome da oficina.");
-      return;
-    }
-    if (!nomeUsuario.trim()) {
-      setError("Informe o seu nome.");
-      return;
-    }
-    if (!email.trim() || !password) {
-      setError("Informe o e-mail e a senha.");
-      return;
-    }
-    if (password.length < 6) {
-      setError("A senha deve conter no mínimo 6 caracteres.");
-      return;
-    }
+    const found = validate();
+    setErrors(found);
+    if (Object.keys(found).length) return;
 
     setSubmitting(true);
     const result = await register({
@@ -59,8 +62,8 @@ function Register() {
       nomeUsuario: nomeUsuario.trim(),
       email: email.trim(),
       password,
-      telefone: telefone.trim() || null,
-      cnpj: cnpj.trim() || null,
+      telefone: telefone.trim() ? telefone.trim() : null,
+      cnpj: cnpj.trim() ? cnpj.trim() : null,
     });
     setSubmitting(false);
 
@@ -156,6 +159,7 @@ function Register() {
                 placeholder="Ex.: Auto Mecânica Silva"
                 value={nomeOficina}
                 onChange={(event) => setNomeOficina(event.target.value)}
+                error={errors.nomeOficina}
                 required
               />
 
@@ -166,6 +170,7 @@ function Register() {
                 placeholder="Ex.: Carlos Silva"
                 value={nomeUsuario}
                 onChange={(event) => setNomeUsuario(event.target.value)}
+                error={errors.nomeUsuario}
                 required
               />
 
@@ -175,14 +180,16 @@ function Register() {
                   type="tel"
                   placeholder="(11) 99999-9999"
                   value={telefone}
-                  onChange={(event) => setTelefone(event.target.value)}
+                  onChange={(event) => setTelefone(maskPhone(event.target.value))}
+                  error={errors.telefone}
                 />
                 <TextField
                   label="CNPJ (opcional)"
                   type="text"
                   placeholder="00.000.000/0001-00"
                   value={cnpj}
-                  onChange={(event) => setCnpj(event.target.value)}
+                  onChange={(event) => setCnpj(maskCpfCnpj(event.target.value))}
+                  error={errors.cnpj}
                 />
               </div>
 
@@ -192,7 +199,8 @@ function Register() {
                 autoComplete="username"
                 placeholder="voce@suaoficina.com"
                 value={email}
-                onChange={(event) => setEmail(event.target.value)}
+                onChange={(event) => setEmail(event.target.value.trim())}
+                error={errors.email}
                 required
               />
 
@@ -203,6 +211,7 @@ function Register() {
                 placeholder="Mínimo de 6 caracteres"
                 value={password}
                 onChange={(event) => setPassword(event.target.value)}
+                error={errors.password}
                 required
                 trailing={
                   <button
