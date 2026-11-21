@@ -16,7 +16,7 @@ import WeeklyFinanceCard from "./components/WeeklyFinanceCard";
 
 function useDynamicDashboard(period = "today") {
   const { isDemo, isAdmin } = useAuth();
-  const weeklyFinance = useWeeklyFinance(!isDemo && isAdmin);
+  const weeklyFinance = useWeeklyFinance(!isDemo && isAdmin, period === "today" ? 1 : period === "month" ? 30 : 7);
   const { orders } = useOrdens();
   const { quotes } = useOrcamentos();
   const { vehicles } = useVeiculos();

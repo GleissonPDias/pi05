@@ -14,7 +14,7 @@ function paidKey(item) {
  * Fluxo financeiro dos últimos 7 dias a partir dos lançamentos pagos/recebidos.
  * A variação compara com os 7 dias anteriores.
  */
-export function buildWeeklyFinance(pagamentos, despesas, today = new Date()) {
+export function buildWeeklyFinance(pagamentos, despesas, today = new Date(), days = 7) {
   const received = new Map();
   const spent = new Map();
   const addTo = (map, key, value) => map.set(key, (map.get(key) ?? 0) + value);
@@ -28,13 +28,14 @@ export function buildWeeklyFinance(pagamentos, despesas, today = new Date()) {
 
   const dayAt = (offset) => {
     const date = new Date(today.getFullYear(), today.getMonth(), today.getDate() - offset);
-    return { key: toISODate(date), name: DAY_NAMES[date.getDay()] };
+    const name = days > 7 ? `${String(date.getDate()).padStart(2, "0")}/${String(date.getMonth() + 1).padStart(2, "0")}` : DAY_NAMES[date.getDay()];
+    return { key: toISODate(date), name };
   };
 
-  const days = [];
-  for (let offset = 6; offset >= 0; offset -= 1) {
+  const result = [];
+  for (let offset = days - 1; offset >= 0; offset -= 1) {
     const { key, name } = dayAt(offset);
-    days.push({
+    result.push({
       day: name,
       revenue: Math.round(received.get(key) ?? 0),
       expenses: Math.round(spent.get(key) ?? 0),
@@ -47,9 +48,9 @@ export function buildWeeklyFinance(pagamentos, despesas, today = new Date()) {
     return total;
   };
 
-  const revenue = sumRange(received, 0, 6);
-  const expenses = sumRange(spent, 0, 6);
-  const previousRevenue = sumRange(received, 7, 13);
+  const revenue = sumRange(received, 0, days - 1);
+  const expenses = sumRange(spent, 0, days - 1);
+  const previousRevenue = sumRange(received, days, 2 * days - 1);
   const revenueGrowth = previousRevenue > 0 ? Math.round(((revenue - previousRevenue) / previousRevenue) * 1000) / 10 : 0;
 
   return {
@@ -59,12 +60,12 @@ export function buildWeeklyFinance(pagamentos, despesas, today = new Date()) {
       expenses: Math.round(expenses),
       balance: Math.round(revenue - expenses),
     },
-    days,
+    days: result,
   };
 }
 
 /** Carrega pagamentos e despesas (somente administrador, modo API). */
-export function useWeeklyFinance(enabled) {
+export function useWeeklyFinance(enabled, days = 7) {
   const [finance, setFinance] = useState(null);
 
   useEffect(() => {
@@ -78,6 +79,8 @@ export function useWeeklyFinance(enabled) {
             buildWeeklyFinance(
               Array.isArray(pagamentos) ? pagamentos : [],
               Array.isArray(despesas) ? despesas : [],
+              new Date(),
+              days,
             ),
           );
         }
@@ -88,7 +91,7 @@ export function useWeeklyFinance(enabled) {
     return () => {
       active = false;
     };
-  }, [enabled]);
+  }, [enabled, days]);
 
   return finance ?? buildWeeklyFinance([], []);
 }
