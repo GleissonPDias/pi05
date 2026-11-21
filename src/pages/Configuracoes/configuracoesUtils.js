@@ -108,7 +108,7 @@ export function validateOficina(values) {
     errors.descontoMaximoPercentual = "O desconto máximo deve ficar entre 0 e 100%.";
   }
 
-  if (values.corPrimaria.trim() && !/^#[0-9A-Fa-f]{6}$/.test(values.corPrimaria.trim())) {
+  if (values.corPrimaria?.trim() && !/^#[0-9A-Fa-f]{6}$/.test(values.corPrimaria.trim())) {
     errors.corPrimaria = "Use o formato #RRGGBB.";
   }
 
