@@ -147,8 +147,8 @@ function EquipeFormModal({ member, isDemo, onSubmit, onClose }) {
                   placeholder="(11) 98888-7777"
                   error={errors.phone}
                   name="phone"
-                  value={maskPhone(values.phone)}
-                  onChange={(event) => setField("phone", event.target.value)}
+                  value={values.phone}
+                  onChange={(event) => setField("phone", maskPhone(event.target.value))}
                 />
                 <div>
                   <TextField

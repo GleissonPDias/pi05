@@ -1,4 +1,5 @@
 import { getMechanics } from "../../services/mechanics";
+import { maskPhone } from "../../utils/masks";
 import { isValidEmail, isValidPhone } from "../../utils/validators";
 
 export const CARGO_SUGGESTIONS = [
@@ -72,7 +73,7 @@ export function memberToValues(member) {
     name: member.name,
     email: member.email,
     role: member.role,
-    phone: member.phone,
+    phone: maskPhone(member.phone ?? ""),
     specialties: member.specialties,
     lead: member.lead,
     commission: member.commission,
