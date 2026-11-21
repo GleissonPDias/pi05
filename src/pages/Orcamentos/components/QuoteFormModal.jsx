@@ -43,6 +43,7 @@ function Section({ icon: Icon, title, aside, className, children }) {
  */
 function QuoteFormModal({ quote, initialVehicleId, vehicles, clients, sellers = [], createVehicle, createClient, onSubmit, onClose, onToast }) {
   const isEdit = Boolean(quote);
+  const maxDiscount = Number(getWorkshop()?.descontoMaximoPercentual ?? 0);
   const sellerOptions = (sellers ?? []).map((seller) => ({ value: String(seller.id), label: `${seller.name ?? seller.nome} — ${seller.role ?? seller.cargo ?? ""}` }));
   const defaultSeller = sellers.length ? String(sellers[0].id) : "";
   const titleId = useId();
@@ -195,13 +196,17 @@ function QuoteFormModal({ quote, initialVehicleId, vehicles, clients, sellers = 
                         label="Percentual"
                         type="number"
                         min="0"
-                        max="100"
+                        max={maxDiscount > 0 ? maxDiscount : 100}
                         step="0.5"
                         value={values.discount.value}
                         trailing={<PercentIcon className="size-4 text-slate-400" />}
-                        onChange={(event) =>
-                          update({ discount: { type: "percentual", value: Math.min(100, Math.max(0, Number(event.target.value))) } })
-                        }
+                        error={errors.discount}
+                        hint={maxDiscount > 0 ? `Desconto máximo permitido: ${maxDiscount}%.` : undefined}
+                        onChange={(event) => {
+                          const raw = Math.max(0, Number(event.target.value));
+                          const clamped = maxDiscount > 0 ? Math.min(raw, maxDiscount) : Math.min(raw, 100);
+                          update({ discount: { type: "percentual", value: clamped } });
+                        }}
                       />
                     )}
                   </div>
