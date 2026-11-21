@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
-import { isDemo } from "../services/api";
-import { api } from "../services/api";
+import { getWorkshop } from "../services/workshop";
+import { api, isDemo } from "../services/api";
 import { orcamentosMock } from "../mocks/orcamentos";
 import { currentOperator } from "../mocks/user";
 
@@ -101,7 +101,7 @@ function toPayload(data) {
     tipo: data.type?.trim() || null,
     observacoes: data.notes?.trim() || null,
     validade: data.validUntil ? data.validUntil.slice(0, 10) : null,
-    validadeDias: data.validityDays ?? 7,
+    validadeDias: data.validityDays ?? getWorkshop()?.validadeOrcamentoDias ?? 7,
     desconto: Number(data.discount?.value ?? 0),
     descontoTipo: (data.discount?.type ?? "valor").toUpperCase(),
     canalEnvio: null,
@@ -166,12 +166,13 @@ export function useOrcamentosState() {
       if (demo) {
         const number = quotes.reduce((max, quote) => Math.max(max, quote.number), 0) + 1;
         const issuedAt = now();
+        const defaultValidity = getWorkshop()?.validadeOrcamentoDias ?? 7;
         const quote = {
           parts: [],
           services: [],
           discount: { type: "valor", value: 0 },
           notes: "",
-          validityDays: 7,
+          validityDays: defaultValidity,
           sentAt: null,
           sentChannel: null,
           viewedAt: null,
@@ -185,7 +186,7 @@ export function useOrcamentosState() {
           number,
           status: "rascunho",
           issuedAt,
-          validUntil: validUntilFrom(issuedAt, data.validityDays ?? 7),
+          validUntil: validUntilFrom(issuedAt, data.validityDays ?? defaultValidity),
           timeline: [makeEvent(`Orçamento criado por ${currentOperator}`, "slate")],
           updatedAt: issuedAt,
           updatedBy: currentOperator,

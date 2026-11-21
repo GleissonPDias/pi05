@@ -16,15 +16,15 @@ import StockAlertCard from "./components/StockAlertCard";
 import WeeklyFinanceCard from "./components/WeeklyFinanceCard";
 
 function useDynamicDashboard(period = "today") {
-  const { isDemo, isAdmin } = useAuth();
-  const weeklyFinance = useWeeklyFinance(!isDemo && isAdmin, period === "today" ? 1 : period === "month" ? 30 : 7);
+  const { isDemo: demoMode, isAdmin } = useAuth();
+  const weeklyFinance = useWeeklyFinance(!demoMode && isAdmin, period === "today" ? 1 : period === "month" ? 30 : 7);
   const { orders } = useOrdens();
   const { quotes } = useOrcamentos();
   const { vehicles } = useVeiculos();
   const { clients } = useClientes();
 
   return useMemo(() => {
-    if (isDemo) {
+    if (demoMode) {
       return dashboardMock;
     }
 
@@ -164,7 +164,7 @@ function useDynamicDashboard(period = "today") {
       returnOpportunities,
       pendingQuotes,
     };
-  }, [isDemo, orders, quotes, vehicles, clients, weeklyFinance, period]);
+  }, [demoMode, orders, quotes, vehicles, clients, weeklyFinance, period]);
 }
 
 function Dashboard() {

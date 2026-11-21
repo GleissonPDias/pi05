@@ -13,11 +13,13 @@ function PrintHeader({ kind, number, children }) {
   const { user } = useAuth();
   const { workshop } = useOficina();
   const workshopName = workshop.name || user?.workshopName;
+  const logoSrc = workshop.logoUrl || logo;
+  const accent = workshop.corPrimaria || "#000000";
 
   return (
-    <header className="flex items-center justify-between gap-6 border-b-2 border-black pb-3">
+    <header className="flex items-center justify-between gap-6 border-b-2 pb-3" style={{ borderColor: accent }}>
       <div className="flex items-center gap-4">
-        <img src={logo} alt="Salvô — Gestão para Oficina" className="h-16 w-auto rounded-md" />
+        <img src={logoSrc} alt={workshopName} className="h-16 w-auto rounded-md object-contain" />
         <div>
           <p className="text-sm font-extrabold">{workshopName}</p>
           <p className="text-[10px]">CNPJ {workshop.document}</p>

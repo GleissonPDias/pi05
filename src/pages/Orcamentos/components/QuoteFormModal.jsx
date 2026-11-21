@@ -7,6 +7,7 @@ import SelectField from "../../../components/ui/SelectField";
 import TextAreaField from "../../../components/ui/TextAreaField";
 import TextField from "../../../components/ui/TextField";
 import { formatBRL } from "../../../utils/format";
+import { getWorkshop } from "../../../services/workshop";
 import AdicionarPecaModal from "../../OrdensServico/detalhe/AdicionarPecaModal";
 import AdicionarServicoModal from "../../OrdensServico/detalhe/AdicionarServicoModal";
 import ModeToggle from "../../OrdensServico/detalhe/ModeToggle";
@@ -81,6 +82,10 @@ function QuoteFormModal({ quote, initialVehicleId, vehicles, clients, sellers = 
     else if (!vehicle.ownerId) found.vehicleId = "Vincule um proprietário ao veículo antes de orçar.";
     if (!values.services.length && !values.parts.length) found.items = "Adicione ao menos um serviço ou peça.";
     if (send && vehicle && !clientsById.get(vehicle.ownerId)?.phone) found.vehicleId = "O cliente não tem telefone para envio.";
+    const maxDiscount = Number(getWorkshop()?.descontoMaximoPercentual ?? 0);
+    if (values.discount?.type === "percentual" && maxDiscount > 0 && Number(values.discount.value) > maxDiscount) {
+      found.discount = `O desconto máximo permitido é de ${maxDiscount}%.`;
+    }
     setErrors(found);
     if (Object.keys(found).length) {
       if (found.vehicleId) formRef.current?.elements.namedItem("vehicleId")?.focus();

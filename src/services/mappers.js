@@ -921,5 +921,9 @@ export function mapWorkshop(dto) {
     address: [street, district].filter(Boolean).join(" — "),
     phone: dto.telefone ?? "",
     whatsapp: dto.whatsapp ?? "",
+    logoUrl: dto.logoUrl ?? "",
+    validadeOrcamentoDias: Number(dto.validadeOrcamentoDias ?? 7),
+    descontoMaximoPercentual: Number(dto.descontoMaximoPercentual ?? 0),
+    corPrimaria: dto.corPrimaria ?? "",
   };
 }

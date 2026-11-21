@@ -86,6 +86,46 @@ function OficinaDadosCard({ values, setValues, readOnly, saving, onSave }) {
         </div>
       </section>
 
+      <section className="grid gap-4 sm:grid-cols-1">
+        <h3 className="text-xs font-bold uppercase tracking-wide text-blue-700 sm:col-span-1">Identidade visual</h3>
+        <div className="flex items-center gap-4 sm:col-span-1">
+          {values.logoUrl ? (
+            <img src={values.logoUrl} alt="Logo da oficina" className="h-16 w-auto rounded-md object-contain border border-slate-200" />
+          ) : (
+            <div className="grid h-16 w-16 place-items-center rounded-md border border-dashed border-slate-300 text-xs text-slate-400">
+              Sem logo
+            </div>
+          )}
+          <div className="flex flex-col gap-2">
+            <label className="inline-flex cursor-pointer items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50">
+              <input
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={(event) => {
+                  const file = event.target.files?.[0];
+                  if (!file) return;
+                  const reader = new FileReader();
+                  reader.onload = () => setValues((current) => ({ ...current, logoUrl: String(reader.result) }));
+                  reader.readAsDataURL(file);
+                }}
+              />
+              Enviar logo
+            </label>
+            {values.logoUrl && (
+              <button
+                type="button"
+                onClick={() => setValues((current) => ({ ...current, logoUrl: "" }))}
+                className="text-xs text-red-600 hover:underline"
+              >
+                Remover logo
+              </button>
+            )}
+            <p className="text-xs text-slate-500">PNG ou JPG, preferencialmente quadrado.</p>
+          </div>
+        </div>
+      </section>
+
       <section className="grid gap-4 sm:grid-cols-3">
         <h3 className="text-xs font-bold uppercase tracking-wide text-blue-700 sm:col-span-3">Orçamentos e identidade</h3>
         <TextField
