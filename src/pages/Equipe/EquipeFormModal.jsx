@@ -252,26 +252,7 @@ function EquipeFormModal({ member, isDemo, onSubmit, onClose }) {
                   )}
                 </div>
 
-                <div className="mt-4 grid gap-4 sm:grid-cols-2">
-                  <TextField
-                    label="Comissão (%)"
-                    type="number"
-                    min="0"
-                    max="100"
-                    step="0.1"
-                    inputMode="decimal"
-                    error={errors.commission}
-                    {...bind("commission")}
-                  />
-                  <TextField
-                    label="Cor na agenda"
-                    maxLength={7}
-                    placeholder="#2563eb"
-                    hint="Formato #RRGGBB."
-                    error={errors.color}
-                    {...bind("color")}
-                  />
-                </div>
+
               </Section>
 
               {!isEdit && (
