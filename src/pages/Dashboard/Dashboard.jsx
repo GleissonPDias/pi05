@@ -5,8 +5,9 @@ import { useOrcamentos } from "../../hooks/useOrcamentos";
 import { useOrdens } from "../../hooks/useOrdens";
 import { useVeiculos } from "../../hooks/useVeiculos";
 import { dashboardMock } from "../../mocks/dashboard";
-import { useWeeklyFinance } from "./useWeeklyFinance";
+import { downloadCsv } from "../../utils/csv";
 import DashboardHeader from "./components/DashboardHeader";
+import { useWeeklyFinance } from "./useWeeklyFinance";
 import OrderStatusCard from "./components/OrderStatusCard";
 import PendingQuotesCard from "./components/PendingQuotesCard";
 import QuickActions from "./components/QuickActions";
@@ -171,12 +172,30 @@ function Dashboard() {
   const { isAdmin } = useAuth();
   const data = useDynamicDashboard(period);
 
+  const handleExport = () => {
+    const rows = [];
+    // Fluxo financeiro
+    data.weeklyFinance.days.forEach((day) => {
+      rows.push(["Fluxo Financeiro", day.day, "Receita", day.revenue]);
+      rows.push(["Fluxo Financeiro", day.day, "Despesa", day.expenses]);
+    });
+    rows.push(["Fluxo Financeiro", "Total", "Receita", data.weeklyFinance.summary.revenue]);
+    rows.push(["Fluxo Financeiro", "Total", "Despesa", data.weeklyFinance.summary.expenses]);
+    rows.push(["Fluxo Financeiro", "Total", "Saldo", data.weeklyFinance.summary.balance]);
+    // Status das OS
+    data.orderStatus.forEach((item) => {
+      rows.push(["Status das OS", item.label, "Quantidade", item.count]);
+    });
+    downloadCsv("dashboard.csv", ["Seção", "Item", "Métrica", "Valor"], rows);
+  };
+
   return (
     <div className="flex flex-col gap-6">
       <DashboardHeader
         updatedAt={data.updatedAt}
         period={period}
         onPeriodChange={setPeriod}
+        onExport={handleExport}
       />
 
       <QuickActions />
