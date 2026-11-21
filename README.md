@@ -2,7 +2,7 @@
 
 Sistema de gestão para oficinas mecânicas. Reúne em um só lugar o dia a dia da oficina: agenda, clientes, veículos, ordens de serviço (OS), orçamentos, estoque e financeiro.
 
-Este repositório contém o **front-end** (React), integrado à API **salvo-api** (Spring Boot). Clientes, veículos, ordens de serviço, catálogo de serviços/peças, estoque, agenda, financeiro, notificações, equipe, boxes, fornecedores e orçamentos vêm da API; parte dos campos complementares continua em overlays locais (veja [Integração com a API](#integração-com-a-api)). Sem back-end disponível, use o **modo demonstração** na tela de login.
+Este repositório contém o **front-end** (React), integrado à API **salvo-api** (Spring Boot). Clientes, veículos, ordens de serviço, catálogo de serviços/peças, estoque, agenda, financeiro, equipe, boxes, fornecedores e orçamentos vêm da API; notificações existem no back-end mas o sino está oculto no front por enquanto; parte dos campos complementares continua em overlays locais (veja [Integração com a API](#integração-com-a-api)). Sem back-end disponível, use o **modo demonstração** na tela de login.
 
 > A API já expõe endpoints de **fornecedores, pedidos de compra e vistoria**, mas as telas correspondentes (ou parte delas) ainda não foram migradas neste front.
 
@@ -140,7 +140,7 @@ pi05/
     │   ├── RequireAuth.jsx     # Protege as rotas internas (redireciona para /login)
     │   ├── RequireAdmin.jsx    # Restringe /equipe, /financeiro e /configuracoes ao ADMIN
     │   ├── Aside/              # Menu lateral (gaveta no celular)
-    │   ├── Header/             # Cabeçalho (busca, status, usuário); NotificationsMenu com o sino de notificações
+    │   ├── Header/             # Cabeçalho (busca, status, usuário); NotificationsMenu disponível mas oculto
     │   ├── print/              # PrintHeader: cabeçalho com logo dos documentos impressos
     │   └── ui/                 # Peças reutilizáveis: Button, Card, Modal, TextField...
     │
@@ -448,7 +448,7 @@ Esta integração está detalhada em [docs/ALTERACOES.md](docs/ALTERACOES.md). R
 - Clientes, veículos, OS, catálogo e estoque migrados para a API.
 - Tela `/equipe` com cadastro, edição, ativação/desativação e senha temporária via `/usuarios`.
 - Telas de **Agenda**, **Financeiro** e **Configurações** (dados da oficina e boxes) integradas à API.
-- Sino de **notificações** com contador real e lista das mais recentes.
+- Sino de **notificações** disponível no back-end, mas oculto no front por enquanto.
 - Dashboard com fluxo financeiro semanal calculado a partir de pagamentos e despesas reais (ADMIN).
 - Boxes e dados da oficina carregados da API; impressos usam os dados reais da oficina.
 - Perfis `ADMIN`/`FUNCIONARIO`: `RequireAdmin`, menu filtrado e dashboard financeiro oculto para funcionários.
