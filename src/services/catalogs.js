@@ -121,16 +121,14 @@ export function serviceApiId(code) {
   if (!code) return null;
   const item = serviceByCode.get(code);
   if (item?.apiId !== null && item?.apiId !== undefined) return Number(item.apiId);
-  const numeric = Number(code);
-  return Number.isFinite(numeric) ? numeric : null;
+  return null;
 }
 
 export function partApiId(code) {
   if (!code) return null;
   const item = partByCode.get(code);
   if (item?.apiId !== null && item?.apiId !== undefined) return Number(item.apiId);
-  const numeric = Number(code);
-  return Number.isFinite(numeric) ? numeric : null;
+  return null;
 }
 
 export function resetCatalogs() {
