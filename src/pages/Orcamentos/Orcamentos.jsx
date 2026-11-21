@@ -129,10 +129,15 @@ function Orcamentos() {
   /** Envia (abre o WhatsApp) e registra o envio. */
   const send = async (quote, channel = "whatsapp", { silent = false } = {}) => {
     await sendQuote(quote.id, channel);
-    // Rascunhos e propostas vencidas recebem nova validade a partir do envio
+    // eslint-disable-next-line react-hooks/purity
     const renew = quote.status === "rascunho" || new Date(quote.validUntil) < Date.now();
+    // eslint-disable-next-line react-hooks/purity
     const validUntil = renew ? new Date(Date.now() + (quote.validityDays ?? 7) * 86_400_000).toISOString() : quote.validUntil;
-    if (channel === "whatsapp" && !silent) openWhatsapp(quote, buildProposalMessage({ ...quote, validUntil }));
+    if (channel === "whatsapp" && !silent) {
+      openWhatsapp(quote, buildProposalMessage({ ...quote, validUntil }));
+      // Abre a impressão para que o PDF do orçamento possa ser anexado no WhatsApp.
+      setTimeout(() => print(quote), 500);
+    }
     showToast(`Proposta ${quote.id} enviada via ${RESPONSE_CHANNELS[channel]}.`);
   };
 
