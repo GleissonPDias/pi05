@@ -186,7 +186,7 @@ function VehicleFormModal({
             title={
               isEdit ? (
                 <>
-                  Editar Veículo <span className="whitespace-nowrap">#{vehicle.id}</span>
+                  Editar Veículo <span className="whitespace-nowrap">#{vehicle.number ?? vehicle.id}</span>
                 </>
               ) : (
                 "Cadastrar Novo Veículo na Frota"

@@ -150,7 +150,7 @@ function VehicleDetailModal({ vehicle, owner, onUpdateMileage, onEdit, onToast, 
           <>
             Ficha Técnica & Histórico Operacional{" "}
             <span className="whitespace-nowrap font-mono text-base text-blue-700">
-              ID #{vehicle.id}
+              ID #{vehicle.number ?? vehicle.id}
             </span>
           </>
         }

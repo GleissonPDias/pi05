@@ -173,6 +173,7 @@ export function mapCliente(dto, overlay = {}) {
 
   return {
     id,
+    number: dto.numero ?? null,
     name: dto.nome ?? "",
     email: dto.email ?? "",
     document: onlyDigits(dto.cpfCnpj),
@@ -182,7 +183,7 @@ export function mapCliente(dto, overlay = {}) {
     acceptsComms: overlay.acceptsComms ?? true,
     classification: classificationFromApi(dto.classificacao),
     status: dto.ativo === false ? "inativo" : "ativo",
-    servicesCompleted: overlay.servicesCompleted ?? 0,
+    servicesCompleted: dto.ordensConcluidas ?? overlay.servicesCompleted ?? 0,
     lastVisit: overlay.lastVisit ?? null,
     address: { ...emptyAddress(), ...address },
     updatedAt: dto.criadoEm ?? overlay.updatedAt ?? nowIso(),
