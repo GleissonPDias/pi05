@@ -63,7 +63,7 @@ export function filterParts(parts, reserved, { search, status, category, supplie
     if (status === "baixo" && current.key !== "baixo") return false;
     if (status === "critico" && current.key !== "critico") return false;
     if (status === "pedido" && !part.onOrder) return false;
-    if (category && part.category !== category) return false;
+    if (category && (part.category ?? "").toUpperCase() !== String(category).toUpperCase()) return false;
     if (supplier && part.supplierId !== supplier) return false;
     if (!text) return true;
     return normalize(

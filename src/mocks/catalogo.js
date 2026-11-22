@@ -11,19 +11,19 @@ export const SUPPLIERS = [
 ];
 
 export const PART_CATEGORIES = [
-  "Freios",
-  "Filtros",
-  "Lubrificantes",
-  "Fluidos",
-  "Ignição",
-  "Injeção",
-  "Motor",
-  "Suspensão",
-  "Transmissão",
-  "Elétrica",
-  "Ar-Condicionado",
-  "Pneus",
-  "Acessórios",
+  "FREIOS",
+  "FILTROS",
+  "LUBRIFICANTES",
+  "FLUIDOS",
+  "IGNIÇÃO",
+  "INJEÇÃO",
+  "MOTOR",
+  "SUSPENSÃO",
+  "TRANSMISSÃO",
+  "ELÉTRICA",
+  "AR-CONDICIONADO",
+  "PNEUS",
+  "ACESSÓRIOS",
 ];
 
 /*
@@ -86,16 +86,16 @@ export const PARTS_CATALOG = [
 
 /** Categorias da tabela de serviços. */
 export const SERVICE_CATEGORIES = [
-  "Revisão",
-  "Freios",
-  "Motor",
-  "Suspensão & Direção",
-  "Transmissão",
-  "Elétrica & Injeção",
-  "Ar-Condicionado",
-  "Pneus & Geometria",
-  "Diagnóstico",
-  "Garantia",
+  "REVISÃO",
+  "FREIOS",
+  "MOTOR",
+  "SUSPENSÃO & DIREÇÃO",
+  "TRANSMISSÃO",
+  "ELÉTRICA & INJEÇÃO",
+  "AR-CONDICIONADO",
+  "PNEUS & GEOMETRIA",
+  "DIAGNÓSTICO",
+  "GARANTIA",
 ];
 
 /*
