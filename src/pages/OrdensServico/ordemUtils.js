@@ -211,8 +211,14 @@ export function normalize(text) {
 export function withRelations(orders, vehiclesById, clientsById) {
   return orders.map((order) => ({
     ...order,
-    vehicle: vehiclesById.get(order.vehicleId) ?? null,
-    client: clientsById.get(order.clientId) ?? null,
+    vehicle:
+      vehiclesById.get(order.vehicleId) ??
+      (order.vehicleId
+        ? { id: order.vehicleId, plate: order.vehiclePlate ?? "", brand: "", model: order.vehicleModel ?? "", mileage: 0 }
+        : null),
+    client:
+      clientsById.get(order.clientId) ??
+      (order.clientId ? { id: order.clientId, name: order.clientName ?? "", phone: order.clientPhone ?? "" } : null),
   }));
 }
 

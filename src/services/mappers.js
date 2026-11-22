@@ -596,10 +596,14 @@ export function mapOrdem(dto, overlay = {}) {
       dto.veiculoId !== null && dto.veiculoId !== undefined
         ? String(dto.veiculoId)
         : overlay.vehicleId ?? null,
+    vehiclePlate: dto.veiculoPlaca ?? overlay.vehiclePlate ?? null,
+    vehicleModel: dto.veiculoModelo ?? overlay.vehicleModel ?? null,
     clientId:
       dto.clienteId !== null && dto.clienteId !== undefined
         ? String(dto.clienteId)
         : overlay.clientId ?? null,
+    clientName: dto.clienteNome ?? overlay.clientName ?? null,
+    clientPhone: dto.clienteTelefone ?? overlay.clientPhone ?? null,
     createdById:
       dto.criadoPorId !== null && dto.criadoPorId !== undefined
         ? String(dto.criadoPorId)
