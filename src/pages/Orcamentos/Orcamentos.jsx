@@ -142,7 +142,7 @@ function Orcamentos() {
   };
 
   const handleSubmit = async (data, { send: shouldSend }) => {
-    const enrich = (quote) => ({ ...quote, vehicle: vehiclesById.get(quote.vehicleId), client: clientsById.get(quote.clientId) });
+    const enrich = (quote) => withRelations([quote], vehiclesById, clientsById)[0];
     if (modal.type === "edit") {
       await updateQuote(selected.id, data, "Proposta editada");
       if (shouldSend) send(enrich({ ...selected, ...data }));

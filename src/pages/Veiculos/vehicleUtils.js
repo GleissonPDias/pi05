@@ -94,6 +94,11 @@ function matchesSearch(vehicle, owner, query) {
 /** Aplica busca, filtro de OS em aberto, marca e ordenação. */
 export function filterVehicles(vehicles, ownersById, { search, filter, brand, sort }) {
   const result = vehicles.filter((vehicle) => {
+    if (filter === "inativos") {
+      if (vehicle.status !== "inativo") return false;
+    } else if (vehicle.status === "inativo") {
+      return false;
+    }
     if (filter === "open" && !vehicle.openOrder) return false;
     if (brand && vehicle.brand !== brand) return false;
     return matchesSearch(vehicle, ownersById.get(vehicle.ownerId), search);

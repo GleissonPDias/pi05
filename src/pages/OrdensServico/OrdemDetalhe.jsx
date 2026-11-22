@@ -31,6 +31,7 @@ import {
   isClosed,
   missingParts,
   whatsappLink,
+  withRelations,
 } from "./ordemUtils";
 
 /** Aba aberta por padrão, conforme a etapa da OS. */
@@ -83,7 +84,7 @@ function OrdemDetalhe() {
   const number = Number(numero);
   const idPrefix = useId();
   const { orders, drafts, setDraft, discardDraft, saveDraft, updateOrder, changeStatus, addEvent, loading } = useOrdens();
-  const { vehicles } = useVeiculos();
+  const { vehicles, allVehicles } = useVeiculos();
   const { clients } = useClientes();
   const { partsByCode } = useEstoque();
   const { toast, showToast, dismissToast } = useToast();
@@ -108,12 +109,11 @@ function OrdemDetalhe() {
   if (!stored && loading) return <LoadingOrder />;
   if (!stored) return <NotFound number={numero} />;
 
-  const order = {
-    ...stored,
-    ...draft,
-    vehicle: vehicles.find((vehicle) => vehicle.id === stored.vehicleId) ?? null,
-    client: clients.find((client) => client.id === stored.clientId) ?? null,
-  };
+  const [order] = withRelations(
+    [{ ...stored, ...draft }],
+    new Map((allVehicles ?? vehicles).map((vehicle) => [vehicle.id, vehicle])),
+    new Map(clients.map((client) => [client.id, client])),
+  );
   const dirty = Boolean(draft);
   const readOnly = isClosed(stored);
   const requestedTab = searchParams.get("aba");
