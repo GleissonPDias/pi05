@@ -58,7 +58,7 @@ function OrdensToolbar({
         <ChipSelect
           icon={UserCogIcon}
           label="Mecânico"
-          allLabel="Todos"
+          allLabel="TODOS"
           value={mechanic}
           options={mechanicOptions}
           onChange={onMechanicChange}
@@ -66,7 +66,7 @@ function OrdensToolbar({
         <ChipSelect
           icon={FlagIcon}
           label="Prioridade"
-          allLabel="Todas"
+          allLabel="TODAS"
           value={priority}
           options={priorityOptions}
           onChange={onPriorityChange}
@@ -76,7 +76,7 @@ function OrdensToolbar({
           <ChipSelect
             icon={ListIcon}
             label="Etapa"
-            allLabel="Todas"
+            allLabel="TODAS"
             value={status === "todas" ? "" : status}
             options={statusOptions}
             onChange={(value) => onStatusChange(value || "todas")}

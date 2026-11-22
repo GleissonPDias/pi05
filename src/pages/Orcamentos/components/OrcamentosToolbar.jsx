@@ -23,7 +23,7 @@ function OrcamentosToolbar({ search, onSearchChange, seller, onSellerChange, sel
           />
         </div>
         <div className="flex flex-wrap items-center gap-2">
-          <ChipSelect icon={UserRoundIcon} label="Vendedor" allLabel="Todos" value={seller} options={sellerOptions} onChange={onSellerChange} />
+          <ChipSelect icon={UserRoundIcon} label="Vendedor" allLabel="TODOS" value={seller} options={sellerOptions} onChange={onSellerChange} />
           <ChipSelect
             icon={CalendarRangeIcon}
             label="Período"

@@ -26,8 +26,8 @@ function EstoqueToolbar({ search, onSearchChange, status, onStatusChange, catego
           />
         </div>
         <div className="flex flex-wrap items-center gap-2">
-          <ChipSelect icon={TagIcon} label="Categoria" allLabel="Todas as peças" value={category} options={categoryOptions} onChange={onCategoryChange} />
-          <ChipSelect icon={WarehouseIcon} label="Fornecedor" allLabel="Todos" value={supplier} options={supplierOptions} onChange={onSupplierChange} />
+          <ChipSelect icon={TagIcon} label="Categoria" allLabel="TODAS AS PEÇAS" value={category} options={categoryOptions} onChange={onCategoryChange} />
+          <ChipSelect icon={WarehouseIcon} label="Fornecedor" allLabel="TODOS" value={supplier} options={supplierOptions} onChange={onSupplierChange} />
           <Button variant="outline" icon={DownloadIcon} onClick={onExport} disabled={!canExport} className="disabled:opacity-50">
             Exportar Inventário
           </Button>
