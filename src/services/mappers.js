@@ -210,6 +210,7 @@ export function clienteUpdatePayload(data) {
     telefone: data.phone,
     telefoneSecundario: data.phoneSecondary || null,
     classificacao: classificationToApi(data.classification),
+    ativo: data.status ? data.status === "ativo" : undefined,
   };
 }
 
