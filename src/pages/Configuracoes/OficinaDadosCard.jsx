@@ -5,6 +5,7 @@ import Card from "../../components/ui/Card";
 import CardHeader from "../../components/ui/CardHeader";
 import SelectField from "../../components/ui/SelectField";
 import TextField from "../../components/ui/TextField";
+import { fetchAddressByCep } from "../../services/cep";
 import { maskCep, maskCnpj, maskPhone } from "../../utils/masks";
 import { UF_OPTIONS, oficinaToPayload, validateOficina } from "./configuracoesUtils";
 
@@ -65,6 +66,21 @@ function OficinaDadosCard({ values, setValues, readOnly, saving, onSave }) {
         <h3 className="text-xs font-bold uppercase tracking-wide text-blue-700 sm:col-span-6">Endereço</h3>
         <div className="sm:col-span-2">
           <TextField label="CEP" inputMode="numeric" placeholder="00000-000" {...field("cep")} />
+          <button
+            type="button"
+            disabled={readOnly || saving}
+            onClick={async () => {
+              try {
+                const address = await fetchAddressByCep(values.cep);
+                setValues((current) => ({ ...current, logradouro: address.street, bairro: address.district, cidade: address.city, uf: address.state }));
+              } catch (error) {
+                setErrors((current) => ({ ...current, cep: error.message }));
+              }
+            }}
+            className="mt-2 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-50 disabled:opacity-50"
+          >
+            Buscar CEP
+          </button>
         </div>
         <div className="sm:col-span-4">
           <TextField label="Logradouro" maxLength={160} {...field("logradouro")} />
