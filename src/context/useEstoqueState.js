@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { useAuth } from "../hooks/useAuth";
 import { api, isDemo } from "../services/api";
 import { registerParts } from "../services/catalogs";
 import {
@@ -46,6 +47,8 @@ function persistPartOverlay(part) {
  * para a baixa automática das peças na entrega da OS.
  */
 export function useEstoqueState() {
+  const { hasPermission } = useAuth();
+  const canStock = hasPermission("ESTOQUE");
   const [parts, setParts] = useState(() => (isDemo() ? PARTS_CATALOG : []));
   const [suppliers, setSuppliers] = useState(() => (isDemo() ? SUPPLIERS : []));
   const [movements, setMovements] = useState(() => (isDemo() ? movimentacoesMock : []));
@@ -75,9 +78,9 @@ export function useEstoqueState() {
         Promise.resolve(readMap(KEYS.parts)),
         Promise.resolve(readList(KEYS.localParts)),
         Promise.resolve(readList(KEYS.deletedParts)),
-        api.estoque.movimentacoes(200).catch(() => []),
+        canStock ? api.estoque.movimentacoes(200).catch(() => []) : Promise.resolve([]),
         Promise.resolve(readList(KEYS.movements)),
-        api.fornecedores.list().catch(() => []),
+        canStock ? api.fornecedores.list().catch(() => []) : Promise.resolve([]),
       ]);
 
       const deletedSet = new Set(deleted.map(String));
@@ -115,7 +118,7 @@ export function useEstoqueState() {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [canStock]);
 
   useEffect(() => {
     // Adia o primeiro carregamento para não atualizar estado no corpo do efeito.

@@ -47,6 +47,10 @@ let mode = localStorage.getItem(MODE_KEY) || null;
 let busyCount = 0;
 const listeners = new Set();
 
+export function notifyError(error) {
+  notify({ type: "error", error });
+}
+
 function notify(event) {
   listeners.forEach((listener) => {
     try {
@@ -357,6 +361,12 @@ export const api = {
     },
     update(numero, payload) {
       return request(`/ordens-servico/${numero}`, { method: "PUT", body: payload });
+    },
+    vistoria(numero) {
+      return request(`/ordens-servico/${numero}/vistoria`);
+    },
+    saveVistoria(numero, payload) {
+      return request(`/ordens-servico/${numero}/vistoria`, { method: "PUT", body: payload });
     },
     changeStatus(numero, status, observacao) {
       return request(`/ordens-servico/${numero}/status`, {

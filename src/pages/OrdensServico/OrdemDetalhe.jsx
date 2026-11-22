@@ -83,7 +83,7 @@ function OrdemDetalhe() {
   const { numero } = useParams();
   const number = Number(numero);
   const idPrefix = useId();
-  const { orders, drafts, setDraft, discardDraft, saveDraft, updateOrder, changeStatus, addEvent, loading } = useOrdens();
+  const { orders, drafts, setDraft, discardDraft, saveDraft, updateOrder, changeStatus, addEvent, loading, refreshInspection } = useOrdens();
   const { vehicles, allVehicles } = useVeiculos();
   const { clients } = useClientes();
   const { partsByCode } = useEstoque();
@@ -105,6 +105,11 @@ function OrdemDetalhe() {
       navigate(`${location.pathname}${location.search}`, { replace: true, state: null });
     }
   }, [location, navigate, showToast]);
+
+  const orderLoaded = Boolean(stored);
+  useEffect(() => {
+    if (orderLoaded) refreshInspection(number);
+  }, [number, orderLoaded, refreshInspection]);
 
   if (!stored && loading) return <LoadingOrder />;
   if (!stored) return <NotFound number={numero} />;

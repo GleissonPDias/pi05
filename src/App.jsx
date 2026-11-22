@@ -68,14 +68,26 @@ function App() {
           >
             {/* Telas prontas */}
             <Route index element={<Dashboard />} />
-            <Route path="/clientes" element={<Clientes key={busca} />} />
-            <Route path="/veiculos" element={<Veiculos key={busca} />} />
-            <Route path="/ordens-de-servico" element={<OrdensServico key={busca} />} />
-            <Route path="/estoque" element={<Estoque key={busca} />} />
-            <Route path="/agenda" element={<Agenda />} />
-            <Route path="/orcamentos" element={<Orcamentos key={busca} />} />
-            <Route path="/ordens-de-servico/servicos" element={<ServicosCatalogo />} />
-            <Route path="/ordens-de-servico/:numero" element={<OrdemDetalhe />} />
+            <Route element={<RequirePermission modulo="CLIENTES" />}>
+              <Route path="/clientes" element={<Clientes key={busca} />} />
+            </Route>
+            <Route element={<RequirePermission modulo="VEICULOS" />}>
+              <Route path="/veiculos" element={<Veiculos key={busca} />} />
+            </Route>
+            <Route element={<RequirePermission modulo="OS" />}>
+              <Route path="/ordens-de-servico" element={<OrdensServico key={busca} />} />
+              <Route path="/ordens-de-servico/servicos" element={<ServicosCatalogo />} />
+              <Route path="/ordens-de-servico/:numero" element={<OrdemDetalhe />} />
+            </Route>
+            <Route element={<RequirePermission modulo="ESTOQUE" />}>
+              <Route path="/estoque" element={<Estoque key={busca} />} />
+            </Route>
+            <Route element={<RequirePermission modulo="AGENDA" />}>
+              <Route path="/agenda" element={<Agenda />} />
+            </Route>
+            <Route element={<RequirePermission modulo="ORCAMENTOS" />}>
+              <Route path="/orcamentos" element={<Orcamentos key={busca} />} />
+            </Route>
 
             {/* Telas exclusivas do administrador */}
             <Route element={<RequireAdmin />}>

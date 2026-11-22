@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { api, isDemo } from "../services/api";
+import { api, isDemo, notifyError } from "../services/api";
 import { loadCatalogs, partApiId, serviceApiId } from "../services/catalogs";
 import {
   mapOrdem,
@@ -17,6 +17,7 @@ import {
 import { KEYS, readMap, writeMap } from "../services/storage";
 import { ordensMock } from "../mocks/ordens";
 import { currentOperator } from "../mocks/user";
+import { vistoriaFromApi, vistoriaToApi } from "../services/mappers";
 import { STATUS } from "../pages/OrdensServico/constants";
 
 let eventSeq = 0;
@@ -146,20 +147,23 @@ export function useOrdensState() {
     setLoading(true);
     setError(null);
     try {
-      await loadCatalogs();
+      await loadCatalogs().catch(() => null);
       const summaries = await api.ordens.list();
-      const details = await Promise.all(
+      const results = await Promise.allSettled(
         summaries.map((summary) =>
-          api.ordens.get(summary.numero).catch(() => null),
+          api.ordens.get(summary.numero).catch(() => api.ordens.get(summary.numero)),
         ),
       );
+      const details = results.filter((result) => result.status === "fulfilled").map((result) => result.value);
+      const failed = results.length - details.length;
       const overlays = readMap(KEYS.orders);
-      const list = details
-        .filter(Boolean)
-        .map((dto) => mapOrdem(dto, overlays[String(dto.numero)] ?? {}));
+      const list = details.map((dto) => mapOrdem(dto, overlays[String(dto.numero)] ?? {}));
 
       commit(list);
       setSource("api");
+      if (failed > 0) {
+        notifyError(new Error(`${failed} OS não puderam ser carregadas. Atualize a página para tentar de novo.`));
+      }
     } catch (loadError) {
       setError(loadError);
     } finally {
@@ -472,11 +476,16 @@ export function useOrdensState() {
       try {
         await pushHeader(next);
         await syncItems(number, current, targetServices, targetParts);
+        let inspection = metadata.inspection;
+        if (inspection) {
+          inspection = vistoriaFromApi(await api.ordens.saveVistoria(number, vistoriaToApi(inspection)));
+        }
         const detail = await api.ordens.get(number);
         const overlay = readMap(KEYS.orders)[String(number)] ?? {};
         const base = mapOrdem(detail, overlay);
         const order = withItems({
           ...base,
+          ...(inspection ? { inspection } : {}),
           services: applyItemOverlays(base.services, targetServices, "service"),
           parts: applyItemOverlays(base.parts, targetParts, "part"),
           ...stamp(),
@@ -495,7 +504,22 @@ export function useOrdensState() {
     [drafts, updateOrder, applyOrder, pushHeader, discardDraft, syncItems, persistOverlay, commit],
   );
 
+  /** Carrega a vistoria salva na API e atualiza a OS (a API é a fonte da vistoria). */
+  const refreshInspection = useCallback(
+    async (number) => {
+      if (isDemo()) return;
+      try {
+        const inspection = vistoriaFromApi(await api.ordens.vistoria(number));
+        commit((list) => list.map((item) => (item.number === number ? { ...item, inspection } : item)));
+      } catch {
+        // Sem conexão ou sem permissão: mantém a vistoria local.
+      }
+    },
+    [commit],
+  );
+
   return {
+    refreshInspection,
     orders,
     drafts,
     createOrder,

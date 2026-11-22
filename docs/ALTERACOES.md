@@ -1,5 +1,14 @@
 # Changelog — Front-end (integração com a API)
 
+## Correções de permissões, carregamento e vistoria
+
+- Rotas de Clientes, Veículos, OS, Orçamentos, Estoque e Agenda passam a exigir o módulo correspondente (funcionário sem o módulo é redirecionado ao dashboard).
+- Estoque não carrega movimentações nem fornecedores sem a permissão ESTOQUE.
+- Lista de OS não depende mais do catálogo: uma falha em serviços/peças não esconde as OS, e um detalhe que falha é tentado de novo; se ainda falhar, aparece um aviso.
+- Falha ao carregar veículos mostra aviso (antes ficava vazio sem explicação).
+- Vistoria de entrada é salva e carregada pela API (checklist incluído). Antes ficava só no navegador.
+- Impressão da OS não mostra mais "(null/null)" quando o veículo não tem ano cadastrado.
+
 ## Inativação e reativação de veículos e clientes
 
 - Ações de exclusão renomeadas para **Inativar** (clientes, veículos e fornecedores); o modal informa que OS e orçamentos mantêm os dados.

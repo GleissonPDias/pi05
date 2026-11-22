@@ -151,6 +151,40 @@ export const emptyInspection = () => ({
   checklist: {},
 });
 
+/** Vistoria vinda da API (`GET /ordens-servico/{n}/vistoria`) no formato do front. */
+export function vistoriaFromApi(dto) {
+  return {
+    ...emptyInspection(),
+    done: Boolean(dto?.realizadaEm),
+    realizadaEm: dto?.realizadaEm ?? null,
+    customerAgreed: Boolean(dto?.clienteCiente),
+    belongings: dto?.pertences ?? "",
+    notes: dto?.observacoes ?? "",
+    damages: (dto?.danos ?? []).map((damage) => ({
+      id: String(damage.id ?? `${damage.area}-${damage.tipo}`),
+      area: damage.area,
+      type: damage.tipo,
+    })),
+    checklist: dto?.checklist ?? {},
+  };
+}
+
+/** Converte a vistoria do front para o corpo de `PUT /ordens-servico/{n}/vistoria`. */
+export function vistoriaToApi(inspection) {
+  return {
+    clienteCiente: Boolean(inspection.customerAgreed),
+    pertences: inspection.belongings || null,
+    observacoes: inspection.notes || null,
+    realizadaEm: inspection.done ? inspection.realizadaEm ?? new Date().toISOString() : null,
+    danos: (inspection.damages ?? []).map((damage) => ({
+      area: damage.area,
+      tipo: damage.type,
+      observacao: null,
+    })),
+    checklist: inspection.checklist ?? {},
+  };
+}
+
 export const defaultApproval = () => ({
   status: "pendente",
   channel: null,

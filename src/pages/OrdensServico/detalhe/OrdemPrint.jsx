@@ -77,7 +77,7 @@ function OrdemPrint({ order, variant }) {
         </Block>
         <Block title="Veículo">
           <Field label="Placa" value={vehicle && maskPlate(vehicle.plate)} />
-          <Field label="Modelo" value={vehicle && `${vehicle.brand} ${vehicle.model} (${vehicle.yearManufacture}/${vehicle.yearModel})`} />
+          <Field label="Modelo" value={vehicle && [`${vehicle.brand} ${vehicle.model}`.trim(), vehicle.yearManufacture && vehicle.yearModel ? `(${vehicle.yearManufacture}/${vehicle.yearModel})` : null].filter(Boolean).join(" ")} />
           <Field label="Cor / combustível" value={vehicle && `${vehicle.color} • ${vehicle.fuel}`} />
           <Field label="Chassi" value={vehicle?.chassis} />
         </Block>

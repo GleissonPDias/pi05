@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { api, isDemo } from "../services/api";
+import { api, isDemo, notifyError } from "../services/api";
 import { registerParts } from "../services/catalogs";
 import {
   mapVeiculo,
@@ -86,6 +86,7 @@ export function useVeiculosState() {
       setSource("api");
     } catch (loadError) {
       setError(loadError);
+      notifyError(loadError);
     } finally {
       setLoading(false);
     }
