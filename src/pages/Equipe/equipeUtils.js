@@ -132,15 +132,6 @@ export function validateMember(values, { isEdit = false } = {}) {
     errors.phone = "Informe um telefone com DDD.";
   }
 
-  const commission = Number(values.commission);
-  if (values.commission !== "" && (!Number.isFinite(commission) || commission < 0 || commission > 100)) {
-    errors.commission = "A comissão deve ficar entre 0 e 100%.";
-  }
-
-  if (values.color.trim() && !/^#[0-9A-Fa-f]{6}$/.test(values.color.trim())) {
-    errors.color = "Use o formato #RRGGBB.";
-  }
-
   if (!isEdit && values.password.trim() && values.password.trim().length < 8) {
     errors.password = "A senha inicial deve ter pelo menos 8 caracteres.";
   }
