@@ -1,4 +1,5 @@
 import { getBoxes, getMechanic } from "../../services/mechanics";
+import { getWorkshop } from "../../services/workshop";
 import { formatBRL } from "../../utils/format";
 import { maskPlate } from "../../utils/masks";
 import {
