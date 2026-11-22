@@ -344,13 +344,20 @@ export function veiculoCreatePayload(data) {
 
 export function veiculoUpdatePayload(data) {
   return {
-    cor: data.color || null,
+    placa: data.plate ? data.plate.toUpperCase() : null,
+    marca: data.brand ? data.brand.toUpperCase() : null,
+    modelo: data.model ? data.model.toUpperCase() : null,
+    cor: data.color ? data.color.toUpperCase() : null,
     combustivel: data.fuel || null,
-    motorizacao: data.engine || null,
+    motorizacao: data.engine ? data.engine.toUpperCase() : null,
     transmissao: data.transmission || null,
     kmAtual: data.mileage ?? null,
-    versao: data.version || null,
+    versao: data.version ? data.version.toUpperCase() : null,
     fotoUrl: data.photoUrl && !data.photoUrl.startsWith("blob:") ? data.photoUrl : null,
+    categoria: data.category ?? null,
+    chassi: data.chassis ? data.chassis.toUpperCase() : null,
+    anoFabricacao: data.yearManufacture ?? null,
+    anoModelo: data.yearModel ?? null,
   };
 }
 

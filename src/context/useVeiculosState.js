@@ -144,6 +144,7 @@ export function useVeiculosState() {
         persistOverlay(dto.id, overlay);
         const vehicle = mapVeiculo(dto, overlay);
         setVehicles((current) => [vehicle, ...current].sort(byPlate));
+        setAllVehicles((current) => [vehicle, ...current.filter((v) => v.id !== vehicle.id)].sort(byPlate));
         return vehicle;
       } catch (createError) {
         setError(createError);
@@ -156,9 +157,15 @@ export function useVeiculosState() {
   const updateVehicle = useCallback(
     async (id, data) => {
       if (isDemo()) {
+        const next = { ...data, ...stamp() };
         setVehicles((current) =>
           current.map((vehicle) =>
-            vehicle.id === id ? { ...vehicle, ...data, ...stamp() } : vehicle,
+            vehicle.id === id ? { ...vehicle, ...next } : vehicle,
+          ),
+        );
+        setAllVehicles((current) =>
+          current.map((vehicle) =>
+            vehicle.id === id ? { ...vehicle, ...next } : vehicle,
           ),
         );
         return true;
@@ -197,6 +204,9 @@ export function useVeiculosState() {
         setVehicles((current) =>
           current.map((item) => (item.id === id ? { ...item, ...next } : item)),
         );
+        setAllVehicles((current) =>
+          current.map((item) => (item.id === id ? { ...item, ...next } : item)),
+        );
         return true;
       }
 
@@ -204,10 +214,18 @@ export function useVeiculosState() {
         const dto = await api.veiculos.update(id, veiculoUpdatePayload(data));
         const overlay = { ...readMap(KEYS.vehicles)[String(id)], ...vehicleOverlayFrom(data) };
         persistOverlay(id, overlay);
+        const updated = { ...mapVeiculo(dto, overlay), ...stamp() };
         setVehicles((current) =>
           current
             .map((vehicle) =>
-              vehicle.id === String(id) ? { ...mapVeiculo(dto, overlay), ...stamp() } : vehicle,
+              vehicle.id === String(id) ? updated : vehicle,
+            )
+            .sort(byPlate),
+        );
+        setAllVehicles((current) =>
+          current
+            .map((vehicle) =>
+              vehicle.id === String(id) ? updated : vehicle,
             )
             .sort(byPlate),
         );

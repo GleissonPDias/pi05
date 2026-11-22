@@ -202,6 +202,7 @@ function Veiculos() {
       )}
       {modal?.type === "edit" && selected && (
         <VehicleFormModal
+          key={selected.id}
           mode="edit"
           vehicle={selected}
           vehicles={vehicles}
