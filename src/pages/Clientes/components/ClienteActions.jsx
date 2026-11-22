@@ -23,8 +23,8 @@ function ClienteActions({ client, onEdit, onDelete }) {
         type="button"
         onClick={() => onDelete(client)}
         disabled={isInactive}
-        aria-label={`Excluir ${client.name}`}
-        title={isInactive ? "Cadastro já está inativo" : "Excluir cliente"}
+        aria-label={`Inativar ${client.name}`}
+        title={isInactive ? "Cadastro já está inativo" : "Inativar cliente"}
         className={cn(
           base,
           "text-slate-500 hover:bg-red-50 hover:text-red-600",

@@ -141,7 +141,7 @@ export default function FornecedoresManager() {
                   <td className="px-2 py-2">
                     <div className="flex gap-2">
                       <Button size="sm" variant="soft" onClick={() => startEdit(item)}>Editar</Button>
-                      <Button size="sm" variant="soft" onClick={() => remove(item)}>Excluir</Button>
+                      <Button size="sm" variant="soft" onClick={() => remove(item)}>Inativar</Button>
                     </div>
                   </td>
                 </tr>

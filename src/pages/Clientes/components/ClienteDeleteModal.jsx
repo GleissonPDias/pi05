@@ -67,8 +67,8 @@ function ClienteDeleteModal({ client, onConfirm, onClose }) {
           className="border-red-100 bg-red-50"
           subtitleClassName="text-red-700"
           titleId={titleId}
-          title="Excluir Cadastro de Cliente?"
-          subtitle="Atenção: ação irreversível para novas operações e agendamentos."
+          title="Inativar Cadastro de Cliente?"
+          subtitle="O cadastro será inativado. OS e orçamentos existentes mantêm os dados."
           onClose={onClose}
         />
 

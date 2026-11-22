@@ -31,8 +31,8 @@ function VehicleActions({ vehicle, onView, onEdit, onDelete }) {
       <button
         type="button"
         onClick={() => onDelete(vehicle)}
-        aria-label={`Excluir ${name}`}
-        title="Excluir veículo"
+        aria-label={`Inativar ${name}`}
+        title="Inativar veículo"
         className={cn(base, "hover:bg-red-50 hover:text-red-600")}
       >
         <Trash2Icon className="size-4" />
