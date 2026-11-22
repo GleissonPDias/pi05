@@ -14,8 +14,9 @@ import { downloadCsv } from "../../utils/csv";
 import { printDocument } from "../../utils/print";
 import { whatsappLink } from "../OrdensServico/ordemUtils";
 import EstoqueStats from "./components/EstoqueStats";
-import EstoqueTable from "./components/EstoqueTable";
 import EstoqueToolbar from "./components/EstoqueToolbar";
+import EstoqueTable from "./components/EstoqueTable";
+import FornecedoresManager from "./components/FornecedoresManager";
 import MovementModal from "./components/MovementModal";
 import MovementsTable from "./components/MovementsTable";
 import PartDeleteModal from "./components/PartDeleteModal";
@@ -37,7 +38,7 @@ import {
 const movementFilters = [{ key: "todos", label: "Todas" }, ...Object.entries(MOVEMENT_TYPES).map(([key, item]) => ({ key, label: item.label }))];
 
 function Estoque() {
-  const { parts, partsByCode, movements, createPart, updatePart, deletePart, registerMovement, placeOrder } = useEstoque();
+  const { parts, partsByCode, movements, suppliers, createPart, updatePart, deletePart, registerMovement, placeOrder } = useEstoque();
   const { orders } = useOrdens();
   const { quotes } = useOrcamentos();
   const { toast, showToast, dismissToast } = useToast();
@@ -45,7 +46,12 @@ function Estoque() {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
 
-  const view = searchParams.get("visao") === "movimentacoes" ? "movimentacoes" : "inventario";
+  const view =
+    searchParams.get("visao") === "movimentacoes"
+      ? "movimentacoes"
+      : searchParams.get("visao") === "fornecedores"
+        ? "fornecedores"
+        : "inventario";
   const [search, setSearch] = useState(searchParams.get("busca") ?? "");
   const [status, setStatus] = useState("todos");
   const [category, setCategory] = useState("");
@@ -106,6 +112,7 @@ function Estoque() {
       (params) => {
         const updated = new URLSearchParams(params);
         if (next === "movimentacoes") updated.set("visao", "movimentacoes");
+        else if (next === "fornecedores") updated.set("visao", "fornecedores");
         else updated.delete("visao");
         return updated;
       },
@@ -138,8 +145,8 @@ function Estoque() {
     showToast(`Pedido de ${items.length} item(ns) registrado para ${supplierData.name}.`);
   };
 
-  const handleMovement = (data) => {
-    const movement = registerMovement(data);
+  const handleMovement = async (data) => {
+    const movement = await registerMovement(data);
     if (!movement) return;
     const part = partsByCode.get(data.code);
     showToast(`${MOVEMENT_TYPES[data.type].label} de ${part.code} registrada. Saldo: ${movement.balance} ${part.unit}.`);
@@ -148,6 +155,7 @@ function Estoque() {
   const tabs = [
     { key: "inventario", label: "Inventário" },
     { key: "movimentacoes", label: `Movimentações (${movements.length})` },
+    { key: "fornecedores", label: "Fornecedores" },
   ];
 
   return (
@@ -206,7 +214,9 @@ function Estoque() {
         ))}
       </div>
 
-      {view === "inventario" ? (
+      {view === "fornecedores" ? (
+        <FornecedoresManager />
+      ) : view === "inventario" ? (
         <Card className="overflow-hidden p-0!">
           <EstoqueToolbar
             search={search}
@@ -217,6 +227,7 @@ function Estoque() {
             onCategoryChange={withReset(setCategory)}
             supplier={supplier}
             onSupplierChange={withReset(setSupplier)}
+            suppliers={suppliers}
             counts={counts}
             canExport={filtered.length > 0}
             onExport={() => {
@@ -296,9 +307,10 @@ function Estoque() {
       {modal?.type === "create" && (
         <PartFormModal
           parts={parts}
+          suppliers={suppliers}
           onClose={close}
-          onSubmit={(data) => {
-            const created = createPart(data);
+          onSubmit={async (data) => {
+            const created = await createPart(data);
             showToast(`Peça ${created.code} cadastrada.`);
           }}
         />
@@ -307,10 +319,11 @@ function Estoque() {
         <PartFormModal
           part={selected}
           parts={parts}
+          suppliers={suppliers}
           onClose={close}
           onDelete={() => setModal({ type: "delete", code: selected.code })}
-          onSubmit={(data) => {
-            updatePart(selected.code, data);
+          onSubmit={async (data) => {
+            await updatePart(selected.code, data);
             showToast(`Peça ${selected.code} atualizada.`);
           }}
         />
@@ -320,12 +333,12 @@ function Estoque() {
           part={selected}
           usageCount={usageCount(selected.code)}
           onClose={close}
-          onDelete={() => {
-            deletePart(selected.code);
+          onDelete={async () => {
+            await deletePart(selected.code);
             showToast(`Peça ${selected.code} excluída.`, "warning");
           }}
-          onDeactivate={() => {
-            updatePart(selected.code, { status: "inativo" });
+          onDeactivate={async () => {
+            await updatePart(selected.code, { status: "inativo" });
             showToast(`Peça ${selected.code} inativada.`, "warning");
           }}
         />
@@ -335,6 +348,7 @@ function Estoque() {
           part={selected}
           initialType={modal.movementType}
           parts={parts.filter((part) => part.status === "ativo")}
+          suppliers={suppliers}
           reserved={reserved}
           onClose={close}
           onConfirm={handleMovement}
@@ -351,7 +365,7 @@ function Estoque() {
         />
       )}
       {modal?.type === "purchase" && (
-        <PurchaseOrderModal parts={parts} reserved={reserved} preselected={modal.code} onClose={close} onSend={handlePurchase} />
+        <PurchaseOrderModal parts={parts} suppliers={suppliers} reserved={reserved} preselected={modal.code} onClose={close} onSend={handlePurchase} />
       )}
 
       {printing && <PurchaseOrderPrint supplier={printing.supplier} items={printing.items} />}

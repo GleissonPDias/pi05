@@ -6,9 +6,8 @@ import MoneyInput from "../../../components/ui/MoneyInput";
 import SelectField from "../../../components/ui/SelectField";
 import TextAreaField from "../../../components/ui/TextAreaField";
 import TextField from "../../../components/ui/TextField";
-import { CONSULTANTS } from "../../../mocks/oficina";
-import { currentUser } from "../../../mocks/user";
 import { formatBRL } from "../../../utils/format";
+import { getWorkshop } from "../../../services/workshop";
 import AdicionarPecaModal from "../../OrdensServico/detalhe/AdicionarPecaModal";
 import AdicionarServicoModal from "../../OrdensServico/detalhe/AdicionarServicoModal";
 import ModeToggle from "../../OrdensServico/detalhe/ModeToggle";
@@ -35,9 +34,6 @@ function Section({ icon: Icon, title, aside, className, children }) {
   );
 }
 
-const sellerOptions = CONSULTANTS.map((c) => ({ value: c.id, label: `${c.name} — ${c.role}` }));
-const defaultSeller = CONSULTANTS.find((c) => c.name === currentUser.name)?.id ?? CONSULTANTS[0].id;
-
 /**
  * Pop-up de criação / edição de orçamento (horizontal no desktop).
  * - quote: orçamento editado (ausente = novo) · initialVehicleId: veículo pré-selecionado
@@ -45,11 +41,15 @@ const defaultSeller = CONSULTANTS.find((c) => c.name === currentUser.name)?.id ?
  * - createVehicle / createClient: cadastro rápido de veículo (e cliente) sem sair do pop-up
  * - onSubmit(data, { send }) · onClose() · onToast(message, tone)
  */
-function QuoteFormModal({ quote, initialVehicleId, vehicles, clients, createVehicle, createClient, onSubmit, onClose, onToast }) {
+function QuoteFormModal({ quote, initialVehicleId, vehicles, clients, sellers = [], createVehicle, createClient, onSubmit, onClose, onToast }) {
   const isEdit = Boolean(quote);
+  const maxDiscount = Number(getWorkshop()?.descontoMaximoPercentual ?? 0);
+  const sellerOptions = (sellers ?? []).map((seller) => ({ value: String(seller.id), label: `${seller.name ?? seller.nome} — ${seller.role ?? seller.cargo ?? ""}` }));
+  const defaultSeller = sellers.length ? String(sellers[0].id) : "";
   const titleId = useId();
   const formRef = useRef(null);
   const clientsById = useMemo(() => new Map(clients.map((c) => [c.id, c])), [clients]);
+  const [submitting, setSubmitting] = useState(false);
   const [values, setValues] = useState(() => ({
     vehicleId: quote?.vehicleId ?? initialVehicleId ?? "",
     sellerId: quote?.sellerId ?? defaultSeller,
@@ -77,33 +77,45 @@ function QuoteFormModal({ quote, initialVehicleId, vehicles, clients, createVehi
     });
   };
 
-  const submit = (send) => {
+  const submit = async (send) => {
     const found = {};
     if (!vehicle) found.vehicleId = "Selecione o veículo do orçamento.";
     else if (!vehicle.ownerId) found.vehicleId = "Vincule um proprietário ao veículo antes de orçar.";
     if (!values.services.length && !values.parts.length) found.items = "Adicione ao menos um serviço ou peça.";
     if (send && vehicle && !clientsById.get(vehicle.ownerId)?.phone) found.vehicleId = "O cliente não tem telefone para envio.";
+    const maxDiscount = Number(getWorkshop()?.descontoMaximoPercentual ?? 0);
+    if (values.discount?.type === "percentual" && maxDiscount > 0 && Number(values.discount.value) > maxDiscount) {
+      found.discount = `O desconto máximo permitido é de ${maxDiscount}%.`;
+    }
     setErrors(found);
     if (Object.keys(found).length) {
       if (found.vehicleId) formRef.current?.elements.namedItem("vehicleId")?.focus();
       return;
     }
-    onSubmit(
-      {
-        vehicleId: vehicle.id,
-        clientId: vehicle.ownerId,
-        sellerId: values.sellerId,
-        type: values.type,
-        title: values.title.trim(),
-        validityDays: Number(values.validityDays),
-        notes: values.notes.trim(),
-        services: values.services,
-        parts: values.parts,
-        discount: values.discount,
-      },
-      { send },
-    );
-    onClose();
+
+    setSubmitting(true);
+    try {
+      await onSubmit(
+        {
+          vehicleId: vehicle.id,
+          clientId: vehicle.ownerId,
+          sellerId: values.sellerId,
+          type: values.type,
+          title: values.title.trim(),
+          validityDays: Number(values.validityDays),
+          notes: values.notes.trim(),
+          services: values.services,
+          parts: values.parts,
+          discount: values.discount,
+        },
+        { send },
+      );
+      onClose();
+    } catch {
+      // erro mostrado pelo banner global
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   const canSend = !quote || quote.status !== "aprovado";
@@ -184,13 +196,17 @@ function QuoteFormModal({ quote, initialVehicleId, vehicles, clients, createVehi
                         label="Percentual"
                         type="number"
                         min="0"
-                        max="100"
+                        max={maxDiscount > 0 ? maxDiscount : 100}
                         step="0.5"
                         value={values.discount.value}
                         trailing={<PercentIcon className="size-4 text-slate-400" />}
-                        onChange={(event) =>
-                          update({ discount: { type: "percentual", value: Math.min(100, Math.max(0, Number(event.target.value))) } })
-                        }
+                        error={errors.discount}
+                        hint={maxDiscount > 0 ? `Desconto máximo permitido: ${maxDiscount}%.` : undefined}
+                        onChange={(event) => {
+                          const raw = Math.max(0, Number(event.target.value));
+                          const clamped = maxDiscount > 0 ? Math.min(raw, maxDiscount) : Math.min(raw, 100);
+                          update({ discount: { type: "percentual", value: clamped } });
+                        }}
                       />
                     )}
                   </div>
@@ -239,11 +255,11 @@ function QuoteFormModal({ quote, initialVehicleId, vehicles, clients, createVehi
             <Button variant="soft" size="lg" onClick={onClose} className="w-full sm:w-auto">
               Cancelar
             </Button>
-            <Button variant="outline" size="lg" icon={SaveIcon} onClick={() => submit(false)} className="w-full sm:w-auto">
+            <Button variant="outline" size="lg" icon={SaveIcon} onClick={() => submit(false)} className="w-full sm:w-auto" disabled={submitting}>
               {isEdit ? "Salvar Alterações" : "Salvar como Rascunho"}
             </Button>
             {canSend && (
-              <Button type="submit" variant="success" size="lg" icon={MessageCircleIcon} className="w-full sm:w-auto">
+              <Button type="submit" variant="success" size="lg" icon={MessageCircleIcon} className="w-full sm:w-auto" disabled={submitting}>
                 {isEdit && quote.status !== "rascunho" ? "Salvar e Reenviar" : "Salvar e Enviar por WhatsApp"}
               </Button>
             )}
@@ -267,8 +283,9 @@ function QuoteFormModal({ quote, initialVehicleId, vehicles, clients, createVehi
           createClient={createClient}
           onToast={onToast}
           onClose={() => setAdding(null)}
-          onSubmit={(data, { draft }) => {
-            const created = createVehicle(data);
+          onSubmit={async (data, { draft }) => {
+            const created = await createVehicle(data);
+            if (!created) return;
             if (draft) {
               onToast("Rascunho do veículo salvo. Complete o cadastro para orçar.", "warning");
               return;

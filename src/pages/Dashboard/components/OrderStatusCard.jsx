@@ -73,7 +73,7 @@ function OrderStatusCard({ items }) {
               <span className="truncate">{item.label}</span>
             </span>
             <span className="shrink-0 font-bold text-slate-900">
-              {item.count} OS ({Math.round((item.count / total) * 100)}%)
+              {item.count} OS ({total > 0 ? Math.round((item.count / total) * 100) : 0}%)
             </span>
           </li>
         ))}

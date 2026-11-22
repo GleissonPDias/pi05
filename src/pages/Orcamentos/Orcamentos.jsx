@@ -10,6 +10,7 @@ import { useOrcamentos } from "../../hooks/useOrcamentos";
 import { useOrdens } from "../../hooks/useOrdens";
 import { useToast } from "../../hooks/useToast";
 import { useVeiculos } from "../../hooks/useVeiculos";
+import { api } from "../../services/api";
 import { downloadCsv } from "../../utils/csv";
 import { printDocument } from "../../utils/print";
 import { whatsappLink } from "../OrdensServico/ordemUtils";
@@ -48,8 +49,9 @@ function Orcamentos() {
     deleteQuote,
     addQuoteEvent,
   } = useOrcamentos();
-  const { vehicles, createVehicle, updateMileage } = useVeiculos();
+  const { vehicles, allVehicles, createVehicle, updateMileage } = useVeiculos();
   const { clients, createClient } = useClientes();
+  const [sellers, setSellers] = useState([]);
   const { createOrder, addEvent } = useOrdens();
   const { toast, showToast, dismissToast } = useToast();
   const location = useLocation();
@@ -74,7 +76,24 @@ function Orcamentos() {
     if (location.state?.novo) navigate(`${location.pathname}${location.search}`, { replace: true, state: null });
   }, [location, navigate]);
 
-  const vehiclesById = useMemo(() => new Map(vehicles.map((v) => [v.id, v])), [vehicles]);
+  useEffect(() => {
+    let ativo = true;
+    api.usuarios
+      .list()
+      .then((lista) => {
+        if (!ativo) return;
+        const users = Array.isArray(lista) ? lista : lista?.content ?? [];
+        setSellers(users.map((u) => ({ id: u.id, name: u.nome, role: u.cargo, profile: u.perfil })));
+      })
+      .catch(() => {
+        if (ativo) setSellers([]);
+      });
+    return () => {
+      ativo = false;
+    };
+  }, []);
+
+  const vehiclesById = useMemo(() => new Map((allVehicles ?? vehicles).map((v) => [v.id, v])), [allVehicles, vehicles]);
   const clientsById = useMemo(() => new Map(clients.map((c) => [c.id, c])), [clients]);
   const enriched = useMemo(() => withRelations(quotes, vehiclesById, clientsById), [quotes, vehiclesById, clientsById]);
 
@@ -108,32 +127,37 @@ function Orcamentos() {
   };
 
   /** Envia (abre o WhatsApp) e registra o envio. */
-  const send = (quote, channel = "whatsapp", { silent = false } = {}) => {
-    sendQuote(quote.id, channel);
-    // Rascunhos e propostas vencidas recebem nova validade a partir do envio
+  const send = async (quote, channel = "whatsapp", { silent = false } = {}) => {
+    await sendQuote(quote, channel);
+    // eslint-disable-next-line react-hooks/purity
     const renew = quote.status === "rascunho" || new Date(quote.validUntil) < Date.now();
+    // eslint-disable-next-line react-hooks/purity
     const validUntil = renew ? new Date(Date.now() + (quote.validityDays ?? 7) * 86_400_000).toISOString() : quote.validUntil;
-    if (channel === "whatsapp" && !silent) openWhatsapp(quote, buildProposalMessage({ ...quote, validUntil }));
+    if (channel === "whatsapp" && !silent) {
+      openWhatsapp(quote, buildProposalMessage({ ...quote, validUntil }));
+      // Abre a impressão para que o PDF do orçamento possa ser anexado no WhatsApp.
+      setTimeout(() => print(quote), 500);
+    }
     showToast(`Proposta ${quote.id} enviada via ${RESPONSE_CHANNELS[channel]}.`);
   };
 
-  const handleSubmit = (data, { send: shouldSend }) => {
-    const enrich = (quote) => ({ ...quote, vehicle: vehiclesById.get(quote.vehicleId), client: clientsById.get(quote.clientId) });
+  const handleSubmit = async (data, { send: shouldSend }) => {
+    const enrich = (quote) => withRelations([quote], vehiclesById, clientsById)[0];
     if (modal.type === "edit") {
-      updateQuote(selected.id, data, "Proposta editada");
+      await updateQuote(selected.id, data, "Proposta editada");
       if (shouldSend) send(enrich({ ...selected, ...data }));
       else showToast(`Orçamento ${selected.id} atualizado.`);
       return;
     }
-    const created = createQuote(data);
+    const created = await createQuote(data);
     if (shouldSend) send(enrich(created));
     else showToast(`Rascunho ${created.id} salvo.`);
   };
 
-  const handleConvert = ({ mileageIn, expectedAt, priority, mechanicId }) => {
+  const handleConvert = async ({ mileageIn, expectedAt, priority, mechanicId }) => {
     const quote = selected;
     const copy = (lines) => lines.map((line) => ({ ...line, done: false, mechanicId: line.mechanicId ?? mechanicId }));
-    const order = createOrder({
+    const order = await createOrder({
       vehicleId: quote.vehicleId,
       clientId: quote.clientId,
       type: quote.type,
@@ -158,8 +182,9 @@ function Orcamentos() {
         viewedAt: quote.viewedAt,
       },
     });
+    if (!order) return;
     addEvent(order.number, `Criada a partir do orçamento ${quote.id} (já aprovado pelo cliente)`, "indigo");
-    convertQuote(quote.id, order.number);
+    await convertQuote(quote.id, order.id ?? order.number);
     if (quote.vehicle && mileageIn > quote.vehicle.mileage) updateMileage(quote.vehicle.id, mileageIn);
     navigate(`/ordens-de-servico/${order.number}?aba=vistoria`, {
       state: { toast: `OS #${order.number} aberta a partir do ${quote.id}. Faça a vistoria de entrada.` },
@@ -177,8 +202,8 @@ function Orcamentos() {
     }
   };
 
-  const duplicate = (quote) => {
-    const copy = duplicateQuote(quote.id);
+  const duplicate = async (quote) => {
+    const copy = await duplicateQuote(quote.id);
     setModal({ type: "edit", id: copy.id });
     showToast(`${copy.id} criado a partir do ${quote.id}. Revise e envie.`);
   };
@@ -188,8 +213,8 @@ function Orcamentos() {
     onDuplicate: () => duplicate(selected),
     onDelete: () => open("delete", selected),
     onSend: (channel, options) => send(selected, channel, options),
-    onApprove: (channel) => {
-      approveQuote(selected.id, channel);
+    onApprove: async (channel) => {
+      await approveQuote(selected.id, channel);
       showToast(`${selected.id} aprovado! Converta em OS quando o veículo chegar.`);
     },
     onReject: () => open("reject", selected),
@@ -241,6 +266,7 @@ function Orcamentos() {
           onSearchChange={withReset(setSearch)}
           seller={seller}
           onSellerChange={withReset(setSeller)}
+          sellers={sellers}
           period={period}
           onPeriodChange={withReset(setPeriod)}
           status={status}
@@ -289,6 +315,7 @@ function Orcamentos() {
           initialVehicleId={modal.vehicleId}
           vehicles={vehicles}
           clients={clients}
+          sellers={sellers}
           createVehicle={createVehicle}
           createClient={createClient}
           onSubmit={handleSubmit}
@@ -301,6 +328,7 @@ function Orcamentos() {
           quote={selected}
           vehicles={vehicles}
           clients={clients}
+          sellers={sellers}
           createVehicle={createVehicle}
           createClient={createClient}
           onSubmit={handleSubmit}
@@ -313,8 +341,8 @@ function Orcamentos() {
         <QuoteRejectModal
           quote={selected}
           onClose={() => open("detail", selected)}
-          onConfirm={({ reason, channel }) => {
-            rejectQuote(selected.id, reason, channel);
+          onConfirm={async ({ reason, channel }) => {
+            await rejectQuote(selected.id, reason, channel);
             showToast(`Rejeição de ${selected.id} registrada.`, "warning");
           }}
         />
@@ -323,8 +351,8 @@ function Orcamentos() {
         <QuoteDeleteModal
           quote={selected}
           onClose={close}
-          onConfirm={() => {
-            deleteQuote(selected.id);
+          onConfirm={async () => {
+            await deleteQuote(selected.id);
             showToast(`Orçamento ${selected.id} excluído.`, "warning");
           }}
         />

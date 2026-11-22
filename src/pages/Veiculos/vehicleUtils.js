@@ -1,6 +1,6 @@
 import { daysSince, formatDate } from "../../utils/dates";
 import { maskPlate } from "../../utils/masks";
-import { BOXES_TOTAL } from "./constants";
+import { getBoxes } from "../../services/mechanics";
 
 /** Texto e cor de cada situação de manutenção. */
 export const MAINTENANCE = {
@@ -94,6 +94,11 @@ function matchesSearch(vehicle, owner, query) {
 /** Aplica busca, filtro de OS em aberto, marca e ordenação. */
 export function filterVehicles(vehicles, ownersById, { search, filter, brand, sort }) {
   const result = vehicles.filter((vehicle) => {
+    if (filter === "inativos") {
+      if (vehicle.status !== "inativo") return false;
+    } else if (vehicle.status === "inativo") {
+      return false;
+    }
     if (filter === "open" && !vehicle.openOrder) return false;
     if (brand && vehicle.brand !== brand) return false;
     return matchesSearch(vehicle, ownersById.get(vehicle.ownerId), search);
@@ -121,7 +126,10 @@ export function computeStats(vehicles) {
     registered: registered.length,
     open: inService,
     newThisMonth: registered.filter((vehicle) => daysSince(vehicle.createdAt) <= 30).length,
-    occupancy: Math.min(100, Math.round((registered.filter((vehicle) => vehicle.box).length / BOXES_TOTAL) * 100)),
+    occupancy: Math.min(
+      100,
+      Math.round((registered.filter((vehicle) => vehicle.box).length / Math.max(1, getBoxes().length)) * 100),
+    ),
     compliance:
       registered.length === 0
         ? 100

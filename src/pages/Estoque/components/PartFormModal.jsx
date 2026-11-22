@@ -1,16 +1,16 @@
-import { useId, useRef, useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 import { BoxesIcon, PackagePlusIcon, SaveIcon, SquarePenIcon, TagIcon, Trash2Icon, WarehouseIcon } from "lucide-react";
 import Button from "../../../components/ui/Button";
 import Modal, { ModalBody, ModalFooter, ModalHeader } from "../../../components/ui/Modal";
 import MoneyInput from "../../../components/ui/MoneyInput";
 import SelectField from "../../../components/ui/SelectField";
 import TextField from "../../../components/ui/TextField";
-import { PART_CATEGORIES, SUPPLIERS } from "../../../mocks/catalogo";
+import { api } from "../../../services/api";
+import { PART_CATEGORIES } from "../../../mocks/catalogo";
 import { formatBRL } from "../../../utils/format";
 import { DEFAULT_MARKUP, UNITS } from "../constants";
 
 const categoryOptions = PART_CATEGORIES.map((category) => ({ value: category, label: category }));
-const supplierOptions = SUPPLIERS.map((supplier) => ({ value: supplier.id, label: supplier.name }));
 const round = (value) => Math.round(value * 100) / 100;
 
 function Section({ icon: Icon, title, aside, children }) {
@@ -35,7 +35,20 @@ const cleanCode = (value) => value.toUpperCase().replace(/[^A-Z0-9-]/g, "").slic
  * - part: peça editada (ausente = nova) · parts: catálogo (evita códigos repetidos)
  * - onSubmit(data) · onDelete() (só na edição) · onClose()
  */
-function PartFormModal({ part, parts, onSubmit, onDelete, onClose }) {
+function PartFormModal({ part, parts, suppliers = [], onSubmit, onDelete, onClose }) {
+  const [localSuppliers, setLocalSuppliers] = useState(suppliers);
+  useEffect(() => {
+    if (localSuppliers.length) return;
+    let ativo = true;
+    api.fornecedores
+      .list()
+      .then((lista) => {
+        if (ativo) setLocalSuppliers(Array.isArray(lista) ? lista : lista?.content ?? []);
+      })
+      .catch(() => {});
+    return () => { ativo = false; };
+  }, [localSuppliers.length]);
+  const supplierOptions = (localSuppliers.length ? localSuppliers : suppliers).map((supplier) => ({ value: supplier.id, label: supplier.name }));
   const isEdit = Boolean(part);
   const titleId = useId();
   const formRef = useRef(null);
@@ -58,6 +71,8 @@ function PartFormModal({ part, parts, onSubmit, onDelete, onClose }) {
     status: part?.status ?? "ativo",
   }));
   const [errors, setErrors] = useState({});
+  const [submitting, setSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState("");
 
   const set = (patch) => {
     setValues((current) => ({ ...current, ...patch }));
@@ -76,8 +91,9 @@ function PartFormModal({ part, parts, onSubmit, onDelete, onClose }) {
   const markupValue = values.cost > 0 ? ((values.price - values.cost) / values.cost) * 100 : 0;
   const marginValue = values.price > 0 ? ((values.price - values.cost) / values.price) * 100 : 0;
 
-  const handleSubmit = (event) => {
+  const handleSubmit = async (event) => {
     event.preventDefault();
+    if (submitting) return;
     const found = {};
     if (!isEdit) {
       if (values.code.length < 3) found.code = "Informe o código (SKU) da peça.";
@@ -112,8 +128,17 @@ function PartFormModal({ part, parts, onSubmit, onDelete, onClose }) {
       delete data.code;
       delete data.stock;
     }
-    onSubmit(data);
-    onClose();
+
+    setSubmitting(true);
+    setSubmitError("");
+    try {
+      await onSubmit(data);
+      onClose();
+    } catch (error) {
+      setSubmitError(error?.message || "Não foi possível salvar a peça.");
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   const moneyField = (name, label, extra) => (
@@ -230,20 +255,31 @@ function PartFormModal({ part, parts, onSubmit, onDelete, onClose }) {
               </Section>
             </div>
           </div>
+          {submitError && (
+            <p role="alert" className="mt-4 rounded-lg border border-red-200 bg-red-50 p-3 text-sm font-medium text-red-700">
+              {submitError}
+            </p>
+          )}
         </ModalBody>
 
         <ModalFooter className={isEdit ? "sm:justify-between" : undefined}>
           {isEdit && (
-            <Button variant="outline" icon={Trash2Icon} onClick={onDelete} className="w-full border-red-200 text-red-700 hover:bg-red-50 sm:w-auto">
+            <Button
+              variant="outline"
+              icon={Trash2Icon}
+              onClick={onDelete}
+              disabled={submitting}
+              className="w-full border-red-200 text-red-700 hover:bg-red-50 sm:w-auto"
+            >
               Excluir
             </Button>
           )}
           <div className="flex flex-col-reverse gap-3 sm:flex-row">
-            <Button variant="soft" size="lg" onClick={onClose} className="w-full sm:w-auto">
+            <Button variant="soft" size="lg" onClick={onClose} disabled={submitting} className="w-full sm:w-auto">
               Cancelar
             </Button>
-            <Button type="submit" size="lg" icon={SaveIcon} className="w-full sm:w-auto">
-              {isEdit ? "Salvar Alterações" : "Cadastrar Peça"}
+            <Button type="submit" size="lg" icon={SaveIcon} disabled={submitting} className="w-full sm:w-auto">
+              {submitting ? "Salvando..." : isEdit ? "Salvar Alterações" : "Cadastrar Peça"}
             </Button>
           </div>
         </ModalFooter>

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { CameraIcon, CheckCheckIcon, CircleCheckBigIcon, ClipboardCheckIcon, ScanSearchIcon, Trash2Icon } from "lucide-react";
+import { CheckCheckIcon, CircleCheckBigIcon, ClipboardCheckIcon, ScanSearchIcon, Trash2Icon } from "lucide-react";
 import Button from "../../../components/ui/Button";
 import Checkbox from "../../../components/ui/Checkbox";
 import TextAreaField from "../../../components/ui/TextAreaField";
@@ -7,7 +7,6 @@ import { cn } from "../../../utils/cn";
 import { CHECKLIST_ITEMS, CHECKLIST_STATES, DAMAGE_AREAS, DAMAGE_TYPES } from "../constants";
 import { createId } from "../ordemUtils";
 import CarDamageMap from "./CarDamageMap";
-import InspectionPhotos from "./InspectionPhotos";
 import SectionCard from "./SectionCard";
 
 /** Linha do checklist: item + OK / Atenção / Avaria. */
@@ -204,19 +203,6 @@ function VistoriaTab({ order, onChange, readOnly, onToast }) {
             </div>
           </div>
         </div>
-      </SectionCard>
-
-      <SectionCard
-        icon={CameraIcon}
-        title="Fotos da vistoria"
-        badge={<span className="text-xs text-slate-500">{inspection.photos.length}/8</span>}
-      >
-        <InspectionPhotos
-          photos={inspection.photos}
-          disabled={readOnly}
-          onError={(message) => onToast(message, "warning")}
-          onChange={(photos) => update({ photos })}
-        />
       </SectionCard>
 
       {!readOnly && !inspection.done && (

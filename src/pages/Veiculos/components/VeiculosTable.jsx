@@ -39,11 +39,17 @@ const mobileLabel =
  * - lg+: tabela
  * - abaixo de lg: um card por veículo
  */
-function VeiculosTable({ vehicles, ownersById, onView, onEdit, onDelete }) {
+function VeiculosTable({ vehicles, ownersById, onView, onEdit, onDelete, onReactivate }) {
   if (vehicles.length === 0) return <EmptyState />;
 
   const actions = (vehicle) => (
-    <VehicleActions vehicle={vehicle} onView={onView} onEdit={onEdit} onDelete={onDelete} />
+    <VehicleActions
+      vehicle={vehicle}
+      onView={onView}
+      onEdit={onEdit}
+      onDelete={onDelete}
+      onReactivate={onReactivate}
+    />
   );
 
   return (

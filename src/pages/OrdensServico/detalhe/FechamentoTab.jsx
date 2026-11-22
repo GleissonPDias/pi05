@@ -16,6 +16,7 @@ import SelectField from "../../../components/ui/SelectField";
 import TextAreaField from "../../../components/ui/TextAreaField";
 import TextField from "../../../components/ui/TextField";
 import { cn } from "../../../utils/cn";
+import { useOficina } from "../../../hooks/useOficina";
 import { formatBRL, formatKm } from "../../../utils/format";
 import { APPROVAL_CHANNELS, PAYMENT_METHODS, WARRANTIES, toOptions } from "../constants";
 import { formatDateTimeShort, orderTotals, paymentCondition, timeShort } from "../ordemUtils";
@@ -39,6 +40,8 @@ const installmentOptions = Array.from({ length: 10 }, (_, index) => ({
  * As ações de aprovação/entrega são gravadas na hora (onApprovalAction).
  */
 function FechamentoTab({ order, onChange, readOnly, onApprovalAction, onDeliver, onCopy }) {
+  const { workshop } = useOficina();
+  const maxDiscount = Number(workshop?.descontoMaximoPercentual ?? 0);
   const [channel, setChannel] = useState("whatsapp");
   const totals = orderTotals(order);
   const { approval } = order;
@@ -72,7 +75,7 @@ function FechamentoTab({ order, onChange, readOnly, onApprovalAction, onDeliver,
         {canDecide && (
           <div className="mt-4 space-y-4">
             <div className="flex flex-wrap gap-2">
-              <Button variant="success" icon={MessageCircleIcon} onClick={() => onApprovalAction("send")} disabled={!order.client?.phone}>
+              <Button variant="success" icon={MessageCircleIcon} onClick={() => onApprovalAction("send")}>
                 {approval.sentAt ? "Reenviar por WhatsApp" : "Enviar orçamento por WhatsApp"}
               </Button>
               <Button variant="outline" icon={CopyIcon} onClick={() => onCopy("quote")}>
@@ -125,7 +128,7 @@ function FechamentoTab({ order, onChange, readOnly, onApprovalAction, onDeliver,
                   ]}
                 />
               </div>
-              {order.discount.type === "valor" ? (
+                {order.discount.type === "valor" ? (
                 <MoneyInput
                   value={order.discount.value}
                   disabled={readOnly}
@@ -137,13 +140,17 @@ function FechamentoTab({ order, onChange, readOnly, onApprovalAction, onDeliver,
                   label="Percentual de desconto"
                   type="number"
                   min="0"
-                  max="100"
+                  max={maxDiscount > 0 ? maxDiscount : 100}
                   step="0.5"
                   value={order.discount.value}
                   trailing={<PercentIcon className="size-4 text-slate-400" />}
-                  onChange={(event) =>
-                    onChange({ discount: { type: "percentual", value: Math.min(100, Math.max(0, Number(event.target.value))) } })
-                  }
+                  onChange={(event) => {
+                    const raw = Math.max(0, Number(event.target.value));
+                    const clamped = maxDiscount > 0 ? Math.min(raw, maxDiscount) : Math.min(raw, 100);
+                    onChange({ discount: { type: "percentual", value: clamped } });
+                  }}
+                  hint={maxDiscount > 0 ? `Desconto máximo permitido: ${maxDiscount}%.` : undefined}
+                  error={maxDiscount > 0 && Number(order.discount.value) > maxDiscount ? `Acima do limite de ${maxDiscount}%.` : undefined}
                 />
               )}
               {totals.discount > 0 && (

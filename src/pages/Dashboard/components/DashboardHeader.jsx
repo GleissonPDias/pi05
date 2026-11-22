@@ -8,7 +8,7 @@ const periodOptions = [
   { value: "month", label: "Este Mês" },
 ];
 
-function DashboardHeader({ updatedAt, period, onPeriodChange }) {
+function DashboardHeader({ updatedAt, period, onPeriodChange, onExport }) {
   return (
     <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
       <div>
@@ -46,7 +46,7 @@ function DashboardHeader({ updatedAt, period, onPeriodChange }) {
           ))}
         </div>
 
-        <Button variant="outline" icon={DownloadIcon}>
+        <Button variant="outline" icon={DownloadIcon} onClick={onExport}>
           Exportar Relatório
         </Button>
       </div>

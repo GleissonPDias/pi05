@@ -42,12 +42,18 @@ function SummaryItem({ label, children }) {
   );
 }
 
-function WeeklyFinanceCard({ summary, days }) {
+function WeeklyFinanceCard({ period = "7days", summary, days }) {
+  const subtitle =
+    period === "today"
+      ? "Receitas vs Despesas (Hoje)"
+      : period === "month"
+        ? "Receitas vs Despesas (Este Mês)"
+        : "Receitas vs Despesas (Últimos 7 dias)";
   return (
     <Card className="flex flex-col xl:col-span-2">
       <CardHeader
         title="Fluxo Financeiro Semanal"
-        subtitle="Receitas vs Despesas (Últimos 7 dias)"
+        subtitle={subtitle}
         action={
           <Link
             to="/financeiro"

@@ -162,8 +162,9 @@ function VehicleFormModal({
     submit(false);
   };
 
-  const handleNewClient = (data) => {
-    const created = createClient(data);
+  const handleNewClient = async (data) => {
+    const created = await createClient(data);
+    if (!created) return;
     setField("ownerId", created.id);
     onToast(`Cliente "${created.name}" cadastrado e vinculado ao veículo.`);
   };
@@ -185,7 +186,7 @@ function VehicleFormModal({
             title={
               isEdit ? (
                 <>
-                  Editar Veículo <span className="whitespace-nowrap">#{vehicle.id}</span>
+                  Editar Veículo <span className="whitespace-nowrap">#{vehicle.number ?? vehicle.id}</span>
                 </>
               ) : (
                 "Cadastrar Novo Veículo na Frota"

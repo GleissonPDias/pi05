@@ -4,7 +4,7 @@ import { buttonClassName } from "../../../components/ui/buttonStyles";
 import SelectField from "../../../components/ui/SelectField";
 import TextAreaField from "../../../components/ui/TextAreaField";
 import TextField from "../../../components/ui/TextField";
-import { BOXES, MECHANICS } from "../../../mocks/oficina";
+import { useOficina } from "../../../hooks/useOficina";
 import { formatKm } from "../../../utils/format";
 import { maskCpfCnpj, maskKm, maskPhone, parseKm } from "../../../utils/masks";
 import MercosulPlate from "../../Veiculos/components/MercosulPlate";
@@ -14,13 +14,14 @@ import { fromDateTimeLocal, toDateTimeLocal } from "../ordemUtils";
 import SectionCard from "./SectionCard";
 
 const priorityOptions = Object.entries(PRIORITIES).map(([value, item]) => ({ value, label: item.label }));
-const mechanicOptions = MECHANICS.map((m) => ({ value: m.id, label: `${m.name} — ${m.role}` }));
 
 /** Aba 1: cliente, veículo e dados da entrada. */
 function DadosIniciaisTab({ order, onChange, busyBoxes }) {
   const { client, vehicle } = order;
+  const { mechanics, boxes } = useOficina();
+  const mechanicOptions = mechanics.map((m) => ({ value: m.id, label: `${m.name} — ${m.role}` }));
 
-  const boxOptions = BOXES.filter((box) => {
+  const boxOptions = boxes.filter((box) => {
     const busy = busyBoxes.get(box.id);
     return !busy || busy.number === order.number;
   }).map((box) => ({ value: box.id, label: `${box.name} — ${box.type}` }));

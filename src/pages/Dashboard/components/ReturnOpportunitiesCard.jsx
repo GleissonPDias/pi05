@@ -16,35 +16,41 @@ function ReturnOpportunitiesCard({ total, items }) {
       />
 
       <ul className="mt-4 flex flex-1 flex-col gap-3">
-        {items.map((item) => (
-          <li key={item.id} className="rounded-lg bg-blue-50 p-3">
-            <div className="flex items-start justify-between gap-2">
-              <p className="text-sm font-bold text-slate-900">{item.client}</p>
-              <span
-                className={cn(
-                  "shrink-0 text-[11px] font-bold",
-                  item.tone === "overdue" ? "text-red-600" : "text-emerald-700",
-                )}
-              >
-                {item.tag}
-              </span>
-            </div>
-            <p className="mt-0.5 text-xs text-slate-600">
-              {item.service} • {item.vehicle} ({item.plate})
-            </p>
-            <div className="mt-2 flex justify-end">
-              {item.action === "whatsapp" ? (
-                <Button size="sm" variant="success" icon={MessageCircleIcon}>
-                  Contatar WhatsApp
-                </Button>
-              ) : (
-                <Button size="sm" variant="neutral" icon={PhoneIcon}>
-                  Ligar
-                </Button>
-              )}
-            </div>
+        {items.length === 0 ? (
+          <li className="flex flex-col items-center justify-center rounded-lg border border-dashed border-slate-200 py-8 text-center text-xs text-slate-500">
+            Nenhuma oportunidade de retorno prevista no momento.
           </li>
-        ))}
+        ) : (
+          items.map((item) => (
+            <li key={item.id} className="rounded-lg bg-blue-50 p-3">
+              <div className="flex items-start justify-between gap-2">
+                <p className="text-sm font-bold text-slate-900">{item.client}</p>
+                <span
+                  className={cn(
+                    "shrink-0 text-[11px] font-bold",
+                    item.tone === "overdue" ? "text-red-600" : "text-emerald-700",
+                  )}
+                >
+                  {item.tag}
+                </span>
+              </div>
+              <p className="mt-0.5 text-xs text-slate-600">
+                {item.service} • {item.vehicle} ({item.plate})
+              </p>
+              <div className="mt-2 flex justify-end">
+                {item.action === "whatsapp" ? (
+                  <Button size="sm" variant="success" icon={MessageCircleIcon}>
+                    Contatar WhatsApp
+                  </Button>
+                ) : (
+                  <Button size="sm" variant="neutral" icon={PhoneIcon}>
+                    Ligar
+                  </Button>
+                )}
+              </div>
+            </li>
+          ))
+        )}
       </ul>
 
       <Button variant="soft" fullWidth className="mt-4">

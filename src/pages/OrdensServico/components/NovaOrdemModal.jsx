@@ -6,7 +6,7 @@ import Modal, { ModalBody, ModalFooter, ModalHeader } from "../../../components/
 import SelectField from "../../../components/ui/SelectField";
 import TextAreaField from "../../../components/ui/TextAreaField";
 import TextField from "../../../components/ui/TextField";
-import { BOXES, MECHANICS } from "../../../mocks/oficina";
+import { useOficina } from "../../../hooks/useOficina";
 import { maskKm } from "../../../utils/masks";
 import VehicleFormModal from "../../Veiculos/components/VehicleFormModal";
 import { CHANNELS, PRIORITIES, SERVICE_TYPES, toOptions } from "../constants";
@@ -30,7 +30,6 @@ function Section({ icon: Icon, title, aside, className, children }) {
 }
 
 const priorityOptions = Object.entries(PRIORITIES).map(([value, item]) => ({ value, label: item.label }));
-const mechanicOptions = MECHANICS.map((m) => ({ value: m.id, label: `${m.name} — ${m.specialty}` }));
 
 /**
  * Pop-up "Abrir Nova Ordem de Serviço" (horizontal no desktop).
@@ -56,6 +55,11 @@ function NovaOrdemModal({
 }) {
   const titleId = useId();
   const formRef = useRef(null);
+  const { mechanics, boxes } = useOficina();
+  const mechanicOptions = useMemo(
+    () => mechanics.map((m) => ({ value: m.id, label: `${m.name} — ${m.specialty}` })),
+    [mechanics],
+  );
   const clientsById = useMemo(() => new Map(clients.map((client) => [client.id, client])), [clients]);
 
   const [values, setValues] = useState(() =>
@@ -67,7 +71,7 @@ function NovaOrdemModal({
   const vehicle = vehicles.find((item) => item.id === values.vehicleId);
   const activeOrder = vehicle?.openOrder ? orders.find((order) => order.number === vehicle.openOrder) : null;
 
-  const boxOptions = BOXES.map((box) => {
+  const boxOptions = boxes.map((box) => {
     const busy = busyBoxes.get(box.id);
     return {
       value: box.id,
@@ -283,8 +287,9 @@ function NovaOrdemModal({
           createClient={createClient}
           onToast={onToast}
           onClose={() => setNewVehicleOpen(false)}
-          onSubmit={(data, { draft }) => {
-            const created = createVehicle(data);
+          onSubmit={async (data, { draft }) => {
+            const created = await createVehicle(data);
+            if (!created) return;
             if (draft) {
               onToast("Rascunho salvo. Complete o cadastro do veículo para abrir a OS.", "warning");
               return;

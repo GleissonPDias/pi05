@@ -11,7 +11,23 @@ import Modal, { ModalBody, ModalFooter, ModalHeader } from "../../../components/
 function PartDeleteModal({ part, usageCount, onDelete, onDeactivate, onClose }) {
   const titleId = useId();
   const [confirmed, setConfirmed] = useState(false);
+  const [pending, setPending] = useState(false);
+  const [error, setError] = useState("");
   const used = usageCount > 0;
+
+  const run = async (action) => {
+    if (pending) return;
+    setPending(true);
+    setError("");
+    try {
+      await action();
+      onClose();
+    } catch (actionError) {
+      setError(actionError?.message || "Não foi possível concluir a ação.");
+    } finally {
+      setPending(false);
+    }
+  };
 
   return (
     <Modal onClose={onClose} labelledBy={titleId} size="md" closeOnOverlay={false}>
@@ -42,20 +58,32 @@ function PartDeleteModal({ part, usageCount, onDelete, onDeactivate, onClose }) 
             </Checkbox>
           </div>
         )}
+        {error && (
+          <p role="alert" className="rounded-lg border border-red-200 bg-red-50 p-3 text-sm font-medium text-red-700">
+            {error}
+          </p>
+        )}
       </ModalBody>
       <ModalFooter>
-        <Button variant="soft" size="lg" onClick={onClose} data-autofocus className="w-full sm:w-auto">
+        <Button variant="soft" size="lg" onClick={onClose} disabled={pending} data-autofocus className="w-full sm:w-auto">
           Voltar
         </Button>
         {used ? (
           part.status === "ativo" && (
-            <Button variant="danger" size="lg" icon={PowerOffIcon} onClick={() => { onDeactivate(); onClose(); }} className="w-full sm:w-auto">
-              Inativar Peça
+            <Button variant="danger" size="lg" icon={PowerOffIcon} disabled={pending} onClick={() => run(onDeactivate)} className="w-full sm:w-auto">
+              {pending ? "Inativando..." : "Inativar Peça"}
             </Button>
           )
         ) : (
-          <Button variant="danger" size="lg" icon={Trash2Icon} disabled={!confirmed} onClick={() => { onDelete(); onClose(); }} className="w-full sm:w-auto">
-            Excluir Definitivamente
+          <Button
+            variant="danger"
+            size="lg"
+            icon={Trash2Icon}
+            disabled={!confirmed || pending}
+            onClick={() => run(onDelete)}
+            className="w-full sm:w-auto"
+          >
+            {pending ? "Excluindo..." : "Excluir Definitivamente"}
           </Button>
         )}
       </ModalFooter>

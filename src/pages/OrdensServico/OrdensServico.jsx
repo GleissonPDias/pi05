@@ -38,7 +38,7 @@ function isTypingTarget(element) {
 
 function OrdensServico() {
   const { orders, createOrder } = useOrdens();
-  const { vehicles, createVehicle, updateMileage } = useVeiculos();
+  const { vehicles, allVehicles, createVehicle, updateMileage } = useVeiculos();
   const { clients, createClient } = useClientes();
   const { toast, showToast, dismissToast } = useToast();
   const { requestStatus, statusModals } = useStatusFlow(showToast);
@@ -70,7 +70,7 @@ function OrdensServico() {
     }
   }, [location, navigate]);
 
-  const vehiclesById = useMemo(() => new Map(vehicles.map((v) => [v.id, v])), [vehicles]);
+  const vehiclesById = useMemo(() => new Map((allVehicles ?? vehicles).map((v) => [v.id, v])), [allVehicles, vehicles]);
   const clientsById = useMemo(() => new Map(clients.map((c) => [c.id, c])), [clients]);
   const enriched = useMemo(
     () => withRelations(orders, vehiclesById, clientsById),
@@ -139,8 +139,9 @@ function OrdensServico() {
     showToast(`Relatório exportado: ${rows.length} OS.`);
   };
 
-  const handleCreate = (data, { startInspection }) => {
-    const created = createOrder(data);
+  const handleCreate = async (data, { startInspection }) => {
+    const created = await createOrder(data);
+    if (!created) return;
     const vehicle = vehiclesById.get(data.vehicleId);
     if (vehicle && data.mileageIn > vehicle.mileage) updateMileage(vehicle.id, data.mileageIn);
 

@@ -45,7 +45,7 @@ function ServicosToolbar({ search, onSearchChange, category, onCategoryChange, s
             </button>
           ))}
         </div>
-        <ChipSelect icon={TagIcon} label="Categoria" allLabel="Todas" value={category} options={categoryOptions} onChange={onCategoryChange} />
+        <ChipSelect icon={TagIcon} label="Categoria" allLabel="TODAS" value={category} options={categoryOptions} onChange={onCategoryChange} />
         <Button variant="outline" icon={DownloadIcon} onClick={onExport} disabled={!canExport} className="disabled:opacity-50">
           Exportar
         </Button>

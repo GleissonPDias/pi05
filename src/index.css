@@ -38,6 +38,16 @@
   }
 }
 
+/* Barra de progresso global das chamadas à API (ApiFeedback). */
+@keyframes api-progress {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(400%);
+  }
+}
+
 @layer base {
   html {
     font-family: var(--font-sans);

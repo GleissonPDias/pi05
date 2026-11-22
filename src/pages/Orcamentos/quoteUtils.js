@@ -1,3 +1,4 @@
+import { getWorkshop } from "../../services/workshop";
 import { formatBRL } from "../../utils/format";
 import { maskPlate } from "../../utils/masks";
 import { normalize, orderTotals, warrantyLabel } from "../OrdensServico/ordemUtils";
@@ -84,8 +85,8 @@ export function inPeriod(quote, period) {
 export function withRelations(quotes, vehiclesById, clientsById) {
   return quotes.map((quote) => ({
     ...quote,
-    vehicle: vehiclesById.get(quote.vehicleId) ?? null,
-    client: clientsById.get(quote.clientId) ?? null,
+    vehicle: vehiclesById.get(quote.vehicleId) ?? (quote.vehicleId ? { id: quote.vehicleId, plate: quote.vehiclePlate ?? "", model: quote.vehicleModel ?? "", brand: "", mileage: 0 } : null),
+    client: clientsById.get(quote.clientId) ?? (quote.clientId ? { id: quote.clientId, name: quote.clientName ?? "", phone: "" } : null),
   }));
 }
 
@@ -173,7 +174,7 @@ export function buildProposalMessage(quote) {
   const totals = quoteTotals(quote);
   const { vehicle, client } = quote;
   return [
-    `Olá, ${firstName(client?.name)}! Aqui é da oficina Salvô. 🚗`,
+    `Olá, ${firstName(client?.name)}! Aqui é da oficina ${getWorkshop()?.name || "Salvô"}. 🚗`,
     `Segue a proposta ${quote.id} para o seu ${vehicle.brand} ${vehicle.model} (${maskPlate(vehicle.plate)}):`,
     "",
     ...quote.services.map((line) => `• ${line.description}: ${formatBRL(line.price)}`),

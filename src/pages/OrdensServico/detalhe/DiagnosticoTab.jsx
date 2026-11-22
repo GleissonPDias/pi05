@@ -2,7 +2,7 @@ import { useState } from "react";
 import { BadgeCheckIcon, StethoscopeIcon } from "lucide-react";
 import Checkbox from "../../../components/ui/Checkbox";
 import TextAreaField from "../../../components/ui/TextAreaField";
-import { MECHANICS } from "../../../mocks/oficina";
+import { useOficina } from "../../../hooks/useOficina";
 import { mergeParts } from "../ordemUtils";
 import AdicionarPecaModal from "./AdicionarPecaModal";
 import AdicionarServicoModal from "./AdicionarServicoModal";
@@ -10,11 +10,11 @@ import PecasTable from "./PecasTable";
 import SectionCard from "./SectionCard";
 import ServicosTable from "./ServicosTable";
 
-const leadMechanic = MECHANICS.find((mechanic) => mechanic.lead);
-
 /** Aba 3: parecer técnico, peças e mão de obra. */
 function DiagnosticoTab({ order, onChange, readOnly, onToast }) {
   const [adding, setAdding] = useState(null); // "peca" | "servico"
+  const { mechanics } = useOficina();
+  const leadMechanic = mechanics.find((mechanic) => mechanic.lead);
 
   const addPart = (line) => {
     const existing = line.code && order.parts.some((item) => item.code === line.code);

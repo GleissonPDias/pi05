@@ -226,7 +226,7 @@ function QuoteDetailModal({ quote, onClose, actions }) {
                       <tr key={line.id}>
                         <td className="px-4 py-2.5">
                           <p className="font-semibold text-slate-900">{line.description}</p>
-                          <p className="text-[11px] text-slate-500">Mão de obra • {line.hours.toLocaleString("pt-BR")}h</p>
+                          <p className="text-[11px] text-slate-500">Mão de obra • {line.hours != null ? Number(line.hours).toLocaleString("pt-BR") : "—"}h</p>
                         </td>
                         <td className="px-2 py-2.5 text-center">—</td>
                         <td className="px-4 py-2.5 text-right font-semibold">{formatBRL(line.price)}</td>

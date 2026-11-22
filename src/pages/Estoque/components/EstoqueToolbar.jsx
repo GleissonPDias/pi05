@@ -1,16 +1,16 @@
 import { CircleSlashIcon, DownloadIcon, PowerOffIcon, SearchIcon, TagIcon, TriangleAlertIcon, TruckIcon, WarehouseIcon } from "lucide-react";
 import Button from "../../../components/ui/Button";
 import ChipSelect from "../../../components/ui/ChipSelect";
-import { PART_CATEGORIES, SUPPLIERS } from "../../../mocks/catalogo";
+import { PART_CATEGORIES } from "../../../mocks/catalogo";
 import { cn } from "../../../utils/cn";
 import { STATUS_FILTERS } from "../constants";
 
 const icons = { alert: TriangleAlertIcon, x: CircleSlashIcon, truck: TruckIcon, off: PowerOffIcon };
 const categoryOptions = PART_CATEGORIES.map((category) => ({ value: category, label: category }));
-const supplierOptions = SUPPLIERS.map((supplier) => ({ value: supplier.id, label: supplier.name }));
 
 /** Busca, chips de situação, categoria, fornecedor e exportação do inventário. */
-function EstoqueToolbar({ search, onSearchChange, status, onStatusChange, category, onCategoryChange, supplier, onSupplierChange, counts, onExport, canExport }) {
+function EstoqueToolbar({ search, onSearchChange, status, onStatusChange, category, onCategoryChange, supplier, onSupplierChange, suppliers = [], counts, onExport, canExport }) {
+  const supplierOptions = (suppliers ?? []).map((s) => ({ value: s.id, label: s.name }));
   return (
     <div className="flex flex-col gap-3 border-b border-slate-200 p-4">
       <div className="flex flex-col gap-3 lg:flex-row lg:items-center">
@@ -26,8 +26,8 @@ function EstoqueToolbar({ search, onSearchChange, status, onStatusChange, catego
           />
         </div>
         <div className="flex flex-wrap items-center gap-2">
-          <ChipSelect icon={TagIcon} label="Categoria" allLabel="Todas as peças" value={category} options={categoryOptions} onChange={onCategoryChange} />
-          <ChipSelect icon={WarehouseIcon} label="Fornecedor" allLabel="Todos" value={supplier} options={supplierOptions} onChange={onSupplierChange} />
+          <ChipSelect icon={TagIcon} label="Categoria" allLabel="TODAS AS PEÇAS" value={category} options={categoryOptions} onChange={onCategoryChange} />
+          <ChipSelect icon={WarehouseIcon} label="Fornecedor" allLabel="TODOS" value={supplier} options={supplierOptions} onChange={onSupplierChange} />
           <Button variant="outline" icon={DownloadIcon} onClick={onExport} disabled={!canExport} className="disabled:opacity-50">
             Exportar Inventário
           </Button>

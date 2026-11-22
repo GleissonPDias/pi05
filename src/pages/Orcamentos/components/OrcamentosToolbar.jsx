@@ -1,14 +1,13 @@
 import { CalendarRangeIcon, DownloadIcon, SearchIcon, UserRoundIcon } from "lucide-react";
 import Button from "../../../components/ui/Button";
 import ChipSelect from "../../../components/ui/ChipSelect";
-import { CONSULTANTS } from "../../../mocks/oficina";
 import { cn } from "../../../utils/cn";
 import { PERIODS, STATUS_FILTERS } from "../constants";
 
-const sellerOptions = CONSULTANTS.map((c) => ({ value: c.id, label: c.name }));
 
 /** Busca, vendedor, período, chips de situação e exportação. */
-function OrcamentosToolbar({ search, onSearchChange, seller, onSellerChange, period, onPeriodChange, status, onStatusChange, counts, onExport, canExport }) {
+function OrcamentosToolbar({ search, onSearchChange, seller, onSellerChange, sellers = [], period, onPeriodChange, status, onStatusChange, counts, onExport, canExport }) {
+  const sellerOptions = (sellers ?? []).map((seller) => ({ value: String(seller.id), label: seller.name ?? seller.nome ?? "" }));
   return (
     <div className="flex flex-col gap-3 border-b border-slate-200 p-4">
       <div className="flex flex-col gap-3 lg:flex-row lg:items-center">
@@ -24,7 +23,7 @@ function OrcamentosToolbar({ search, onSearchChange, seller, onSellerChange, per
           />
         </div>
         <div className="flex flex-wrap items-center gap-2">
-          <ChipSelect icon={UserRoundIcon} label="Vendedor" allLabel="Todos" value={seller} options={sellerOptions} onChange={onSellerChange} />
+          <ChipSelect icon={UserRoundIcon} label="Vendedor" allLabel="TODOS" value={seller} options={sellerOptions} onChange={onSellerChange} />
           <ChipSelect
             icon={CalendarRangeIcon}
             label="Período"

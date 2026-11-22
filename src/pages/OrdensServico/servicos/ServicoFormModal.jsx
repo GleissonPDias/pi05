@@ -48,6 +48,8 @@ function ServicoFormModal({ service, services, onSubmit, onClose }) {
     status: service?.status ?? "ativo",
   }));
   const [errors, setErrors] = useState({});
+  const [submitting, setSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState("");
 
   const setField = (name, value) => {
     setValues((current) => ({ ...current, [name]: value }));
@@ -57,8 +59,9 @@ function ServicoFormModal({ service, services, onSubmit, onClose }) {
   const bind = (name) => ({ name, value: values[name], onChange: (event) => setField(name, event.target.value) });
   const rate = Number(values.hours) > 0 ? values.price / Number(values.hours) : 0;
 
-  const handleSubmit = (event) => {
+  const handleSubmit = async (event) => {
     event.preventDefault();
+    if (submitting) return;
     const found = validateService(values, { services, currentCode: service?.code });
     setErrors(found);
     const [first] = Object.keys(found);
@@ -66,13 +69,22 @@ function ServicoFormModal({ service, services, onSubmit, onClose }) {
       formRef.current?.elements.namedItem(first)?.focus();
       return;
     }
-    onSubmit({
-      ...values,
-      description: values.description.trim(),
-      detail: values.detail.trim(),
-      hours: Number(values.hours),
-    });
-    onClose();
+
+    setSubmitting(true);
+    setSubmitError("");
+    try {
+      await onSubmit({
+        ...values,
+        description: values.description.trim(),
+        detail: values.detail.trim(),
+        hours: Number(values.hours),
+      });
+      onClose();
+    } catch (error) {
+      setSubmitError(error?.message || "Não foi possível salvar o serviço.");
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   const availableParts = parts.filter((part) => part.status === "ativo" && !values.suggestedParts.includes(part.code));
@@ -198,14 +210,19 @@ function ServicoFormModal({ service, services, onSubmit, onClose }) {
               </Section>
             </div>
           </div>
+          {submitError && (
+            <p role="alert" className="mt-4 rounded-lg border border-red-200 bg-red-50 p-3 text-sm font-medium text-red-700">
+              {submitError}
+            </p>
+          )}
         </ModalBody>
 
         <ModalFooter>
-          <Button variant="soft" size="lg" onClick={onClose} className="w-full sm:w-auto">
+          <Button variant="soft" size="lg" onClick={onClose} disabled={submitting} className="w-full sm:w-auto">
             {isEdit ? "Descartar Alterações" : "Cancelar"}
           </Button>
-          <Button type="submit" size="lg" icon={SaveIcon} className="w-full sm:w-auto">
-            {isEdit ? "Salvar Alterações" : "Cadastrar Serviço"}
+          <Button type="submit" size="lg" icon={SaveIcon} disabled={submitting} className="w-full sm:w-auto">
+            {submitting ? "Salvando..." : isEdit ? "Salvar Alterações" : "Cadastrar Serviço"}
           </Button>
         </ModalFooter>
       </form>

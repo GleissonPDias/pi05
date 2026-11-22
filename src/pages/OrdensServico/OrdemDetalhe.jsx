@@ -1,6 +1,6 @@
 import { useEffect, useId, useMemo, useState } from "react";
 import { Link, useLocation, useNavigate, useParams, useSearchParams } from "react-router-dom";
-import { LockIcon, SearchXIcon } from "lucide-react";
+import { LockIcon, LoaderCircleIcon, SearchXIcon } from "lucide-react";
 import { buttonClassName } from "../../components/ui/buttonStyles";
 import Toast from "../../components/ui/Toast";
 import { useClientes } from "../../hooks/useClientes";
@@ -31,6 +31,7 @@ import {
   isClosed,
   missingParts,
   whatsappLink,
+  withRelations,
 } from "./ordemUtils";
 
 /** Aba aberta por padrão, conforme a etapa da OS. */
@@ -45,6 +46,15 @@ function defaultTab(order) {
     default:
       return "fechamento";
   }
+}
+
+function LoadingOrder() {
+  return (
+    <div className="flex items-center justify-center gap-3 py-20 text-sm font-semibold text-slate-600">
+      <LoaderCircleIcon className="size-6 animate-spin text-blue-600" />
+      Carregando ordem de serviço...
+    </div>
+  );
 }
 
 function NotFound({ number }) {
@@ -73,8 +83,8 @@ function OrdemDetalhe() {
   const { numero } = useParams();
   const number = Number(numero);
   const idPrefix = useId();
-  const { orders, drafts, setDraft, discardDraft, saveDraft, updateOrder, changeStatus, addEvent } = useOrdens();
-  const { vehicles } = useVeiculos();
+  const { orders, drafts, setDraft, discardDraft, saveDraft, updateOrder, changeStatus, addEvent, loading, refreshInspection } = useOrdens();
+  const { vehicles, allVehicles } = useVeiculos();
   const { clients } = useClientes();
   const { partsByCode } = useEstoque();
   const { toast, showToast, dismissToast } = useToast();
@@ -96,14 +106,19 @@ function OrdemDetalhe() {
     }
   }, [location, navigate, showToast]);
 
+  const orderLoaded = Boolean(stored);
+  useEffect(() => {
+    if (orderLoaded) refreshInspection(number);
+  }, [number, orderLoaded, refreshInspection]);
+
+  if (!stored && loading) return <LoadingOrder />;
   if (!stored) return <NotFound number={numero} />;
 
-  const order = {
-    ...stored,
-    ...draft,
-    vehicle: vehicles.find((vehicle) => vehicle.id === stored.vehicleId) ?? null,
-    client: clients.find((client) => client.id === stored.clientId) ?? null,
-  };
+  const [order] = withRelations(
+    [{ ...stored, ...draft }],
+    new Map((allVehicles ?? vehicles).map((vehicle) => [vehicle.id, vehicle])),
+    new Map(clients.map((client) => [client.id, client])),
+  );
   const dirty = Boolean(draft);
   const readOnly = isClosed(stored);
   const requestedTab = searchParams.get("aba");
@@ -112,9 +127,9 @@ function OrdemDetalhe() {
 
   const edit = (patch) => setDraft(number, patch);
 
-  const save = () => {
-    saveDraft(number);
-    showToast(`OS ${label} salva.`);
+  const save = async () => {
+    const ok = await saveDraft(number);
+    if (ok) showToast(`OS ${label} salva.`);
   };
 
   const discard = () => {
@@ -133,9 +148,9 @@ function OrdemDetalhe() {
     );
 
   /** Muda a etapa (salvando o rascunho antes, se a mudança for permitida). */
-  const move = (status) => {
-    if (dirty && canMoveTo(order, status).ok) saveDraft(number);
-    requestStatus(order, status);
+  const move = async (status) => {
+    if (dirty && canMoveTo(order, status).ok) await saveDraft(number);
+    await requestStatus(order, status);
   };
 
   const handleNextStep = (step) => (step.tab ? changeTab(step.tab) : move(step.status));
@@ -157,18 +172,22 @@ function OrdemDetalhe() {
   };
 
   /** Aprovação do orçamento e avisos ao cliente (gravados na hora). */
-  const handleApprovalAction = (action, channel) => {
-    if (dirty) saveDraft(number);
+  const handleApprovalAction = async (action, channel) => {
+    if (dirty) await saveDraft(number);
     const now = new Date().toISOString();
 
     if (action === "send") {
+      if (!order.client?.phone) {
+        showToast("Cadastre o telefone do cliente para enviar o orçamento por WhatsApp.", "warning");
+        return;
+      }
       openWhatsapp(buildQuoteMessage(order, order.vehicle, order.client));
       updateOrder(
         number,
         { approval: { ...order.approval, status: "enviado", channel: "whatsapp", sentAt: now } },
         "Orçamento enviado ao cliente via WhatsApp",
       );
-      if (["aberta", "orcamento"].includes(order.status)) changeStatus(number, "aprovacao");
+      if (["aberta", "orcamento"].includes(order.status)) await changeStatus(number, "aprovacao");
       showToast("Orçamento enviado. A OS está aguardando a aprovação do cliente.");
       return;
     }
@@ -181,8 +200,8 @@ function OrdemDetalhe() {
       );
       if (["aberta", "orcamento", "aprovacao"].includes(order.status) && order.services.length) {
         const next = missingParts(order, partsByCode).length ? "aguardando_pecas" : "execucao";
-        changeStatus(number, next);
-        showToast(`Orçamento aprovado! OS movida para "${STATUS[next].label}".`);
+        const ok = await changeStatus(number, next);
+        if (ok) showToast(`Orçamento aprovado! OS movida para "${STATUS[next].label}".`);
       } else {
         showToast("Orçamento aprovado!");
       }

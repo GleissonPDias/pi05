@@ -23,7 +23,7 @@ export function useStatusFlow(onToast) {
   const { updateMileage } = useVeiculos();
   const [pending, setPending] = useState(null); // { type: "cancel" | "deliver", order }
 
-  const requestStatus = (order, status) => {
+  const requestStatus = async (order, status) => {
     const check = canMoveTo(order, status);
     if (!check.ok) {
       if (check.reason) onToast(check.reason, "warning");
@@ -33,9 +33,9 @@ export function useStatusFlow(onToast) {
       setPending({ type: check.action, order });
       return true;
     }
-    changeStatus(order.number, status);
-    onToast(`OS ${formatOrderNumber(order.number)} movida para "${STATUS[status].label}".`);
-    return true;
+    const ok = await changeStatus(order.number, status);
+    if (ok) onToast(`OS ${formatOrderNumber(order.number)} movida para "${STATUS[status].label}".`);
+    return ok;
   };
 
   const close = () => setPending(null);
@@ -46,9 +46,16 @@ export function useStatusFlow(onToast) {
         <CancelarOrdemModal
           order={pending.order}
           onClose={close}
-          onConfirm={({ reason, note }) => {
-            changeStatus(pending.order.number, "cancelada", { cancelReason: reason, cancelNote: note }, `OS cancelada: ${reason}`);
-            onToast(`OS ${formatOrderNumber(pending.order.number)} cancelada.`, "warning");
+          onConfirm={async ({ reason, note }) => {
+            const ok = await changeStatus(
+              pending.order.number,
+              "cancelada",
+              { cancelReason: reason, cancelNote: note },
+              `OS cancelada: ${reason}`,
+            );
+            if (ok) {
+              onToast(`OS ${formatOrderNumber(pending.order.number)} cancelada.`, "warning");
+            }
           }}
         />
       )}
@@ -56,19 +63,20 @@ export function useStatusFlow(onToast) {
         <EntregarOrdemModal
           order={pending.order}
           onClose={close}
-          onConfirm={({ payment, mileageOut, rating }) => {
+          onConfirm={async ({ payment, mileageOut, rating }) => {
             const { order } = pending;
-            changeStatus(
+            const ok = await changeStatus(
               order.number,
               "entregue",
               { payment, mileageOut, rating },
               `Veículo entregue ao cliente — ${formatBRL(orderTotals({ ...order, payment }).total)} via ${PAYMENT_METHODS[payment.method]}`,
             );
+            if (!ok) return;
             if (order.vehicle && mileageOut > order.vehicle.mileage) {
               updateMileage(order.vehicle.id, mileageOut);
             }
             // Baixa automática das peças no almoxarifado
-            const lowered = consumeForOrder(order);
+            const lowered = await consumeForOrder(order);
             if (lowered) addEvent(order.number, `Baixa de ${lowered} item(ns) no estoque`, "slate");
             onToast(
               `OS ${formatOrderNumber(order.number)} entregue. Garantia iniciada${lowered ? ` e ${lowered} peça(s) baixada(s) do estoque` : ""}.`,

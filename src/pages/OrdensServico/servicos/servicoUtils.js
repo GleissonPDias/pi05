@@ -45,7 +45,7 @@ export function hourlyRate(service) {
 export function filterServices(services, { search, category, status }) {
   const text = normalize(search.trim());
   return services.filter((service) => {
-    if (category && service.category !== category) return false;
+    if (category && (service.category ?? "").toUpperCase() !== String(category).toUpperCase()) return false;
     if (status !== "todos" && service.status !== status) return false;
     if (!text) return true;
     return normalize(`${service.code} ${service.description} ${service.detail} ${service.category}`).includes(text);

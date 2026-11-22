@@ -176,7 +176,7 @@ function ClienteFormModal({ mode, client, clients, onSubmit, onClose }) {
             isEdit ? (
               <>
                 Editar Cliente{" "}
-                <span className="whitespace-nowrap">#{client.id}</span>
+                <span className="whitespace-nowrap">#{client.number ?? client.id}</span>
               </>
             ) : (
               "Cadastrar Novo Cliente"

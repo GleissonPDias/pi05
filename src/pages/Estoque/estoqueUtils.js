@@ -1,5 +1,5 @@
 import { SUPPLIERS } from "../../mocks/catalogo";
-import { WORKSHOP } from "../../mocks/oficina";
+import { getWorkshop } from "../../services/workshop";
 import { formatBRL } from "../../utils/format";
 import { ACTIVE_STATUSES } from "../OrdensServico/constants";
 import { normalize } from "../OrdensServico/ordemUtils";
@@ -63,7 +63,7 @@ export function filterParts(parts, reserved, { search, status, category, supplie
     if (status === "baixo" && current.key !== "baixo") return false;
     if (status === "critico" && current.key !== "critico") return false;
     if (status === "pedido" && !part.onOrder) return false;
-    if (category && part.category !== category) return false;
+    if (category && (part.category ?? "").toUpperCase() !== String(category).toUpperCase()) return false;
     if (supplier && part.supplierId !== supplier) return false;
     if (!text) return true;
     return normalize(
@@ -121,7 +121,7 @@ export function consumption(part, movements, days = 90) {
 /** Mensagem de pedido de compra para o fornecedor (WhatsApp). */
 export function buildPurchaseMessage(supplier, items) {
   return [
-    `Olá, ${supplier.contact}! Aqui é da ${WORKSHOP.name}.`,
+    `Olá, ${supplier.contact}! Aqui é da ${getWorkshop().name}.`,
     "Gostaria de cotar/pedir os itens abaixo:",
     "",
     ...items.map((item) => `• ${item.qty} ${item.part.unit} — ${item.part.description} (${item.part.brand}${item.part.oem ? `, OEM ${item.part.oem}` : ""}) [${item.part.code}]`),

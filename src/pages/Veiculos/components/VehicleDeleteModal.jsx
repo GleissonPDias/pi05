@@ -46,7 +46,7 @@ function VehicleDeleteModal({ vehicle, owner, onConfirm, onClose }) {
           className="border-red-100 bg-red-50"
           subtitleClassName="font-bold uppercase tracking-wide text-red-700 text-xs"
           titleId={titleId}
-          title="Excluir Veículo da Frota?"
+          title="Inativar Veículo da Frota?"
           subtitle="Ação crítica e irreversível"
           onClose={onClose}
         />
@@ -132,7 +132,7 @@ function VehicleDeleteModal({ vehicle, owner, onConfirm, onClose }) {
             disabled={!confirmed || Boolean(vehicle.openOrder)}
             className="w-full sm:w-auto"
           >
-            Excluir Definitivamente
+            Inativar Veículo
           </Button>
         </ModalFooter>
       </form>

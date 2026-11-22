@@ -1,4 +1,5 @@
-import { BOXES, MECHANICS } from "../../mocks/oficina";
+import { getBoxes, getMechanic } from "../../services/mechanics";
+import { getWorkshop } from "../../services/workshop";
 import { formatBRL } from "../../utils/format";
 import { maskPlate } from "../../utils/masks";
 import {
@@ -14,21 +15,18 @@ import {
 
 const DAY = 86_400_000;
 
-export const mechanicsById = new Map(MECHANICS.map((m) => [m.id, m]));
-export const boxesById = new Map(BOXES.map((b) => [b.id, b]));
-
 export const formatOrderNumber = (number) => `#${number}`;
 export const isActive = (order) => ACTIVE_STATUSES.includes(order.status);
 export const isClosed = (order) => !isActive(order);
 
 /** "Rafael Sampaio" ou "" */
 export function mechanicName(id) {
-  return mechanicsById.get(id)?.name ?? "";
+  return getMechanic(id)?.name ?? "";
 }
 
 /** "Box 03" ou "" */
 export function boxName(id) {
-  return boxesById.get(id)?.name ?? "";
+  return getBoxes().find((box) => box.id === id)?.name ?? "";
 }
 
 /** Primeiro nome: "Rafael Sampaio" -> "Rafael" */
@@ -214,8 +212,14 @@ export function normalize(text) {
 export function withRelations(orders, vehiclesById, clientsById) {
   return orders.map((order) => ({
     ...order,
-    vehicle: vehiclesById.get(order.vehicleId) ?? null,
-    client: clientsById.get(order.clientId) ?? null,
+    vehicle:
+      vehiclesById.get(order.vehicleId) ??
+      (order.vehicleId
+        ? { id: order.vehicleId, plate: order.vehiclePlate ?? "", brand: "", model: order.vehicleModel ?? "", mileage: 0 }
+        : null),
+    client:
+      clientsById.get(order.clientId) ??
+      (order.clientId ? { id: order.clientId, name: order.clientName ?? "", phone: order.clientPhone ?? "" } : null),
   }));
 }
 
@@ -296,7 +300,7 @@ export function computeOrderStats(orders) {
     rework,
     reworkLabel: rework <= 2 ? "SLA Excelente" : rework <= 5 ? "Dentro da meta" : "Acima da meta",
     boxesBusy: boxes.size,
-    boxesTotal: BOXES.length,
+    boxesTotal: getBoxes().length,
     waitingParts: orders.filter((order) => order.status === "aguardando_pecas").length,
     overdue: active.filter(isOverdue).length,
   };
@@ -310,8 +314,8 @@ export function computeOrderStats(orders) {
 export function buildQuoteMessage(order, vehicle, client) {
   const totals = orderTotals(order);
   const lines = [
-    `Olá, ${firstName(client?.name)}! Aqui é da oficina Salvô. 🚗`,
-    `Segue o orçamento da OS ${formatOrderNumber(order.number)} — ${vehicle.brand} ${vehicle.model} (${maskPlate(vehicle.plate)}):`,
+    `Olá, ${firstName(client?.name)}! Aqui é da oficina ${getWorkshop()?.name || "Salvô"}. 🚗`,
+    `Segue o orçamento da OS ${formatOrderNumber(order.number)} — ${vehicle?.brand ?? ""} ${vehicle?.model ?? ""} (${maskPlate(vehicle?.plate)}):`,
     "",
     ...order.services.map((line) => `• ${line.description}: ${formatBRL(line.price)}`),
     ...order.parts.map((line) => `• ${line.qty}x ${line.description}: ${formatBRL(line.qty * line.unitPrice)}`),
