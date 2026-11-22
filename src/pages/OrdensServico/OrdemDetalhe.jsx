@@ -172,6 +172,10 @@ function OrdemDetalhe() {
     const now = new Date().toISOString();
 
     if (action === "send") {
+      if (!order.client?.phone) {
+        showToast("Cadastre o telefone do cliente para enviar o orçamento por WhatsApp.", "warning");
+        return;
+      }
       openWhatsapp(buildQuoteMessage(order, order.vehicle, order.client));
       updateOrder(
         number,

@@ -75,7 +75,7 @@ function FechamentoTab({ order, onChange, readOnly, onApprovalAction, onDeliver,
         {canDecide && (
           <div className="mt-4 space-y-4">
             <div className="flex flex-wrap gap-2">
-              <Button variant="success" icon={MessageCircleIcon} onClick={() => onApprovalAction("send")} disabled={!order.client?.phone}>
+              <Button variant="success" icon={MessageCircleIcon} onClick={() => onApprovalAction("send")}>
                 {approval.sentAt ? "Reenviar por WhatsApp" : "Enviar orçamento por WhatsApp"}
               </Button>
               <Button variant="outline" icon={CopyIcon} onClick={() => onCopy("quote")}>
