@@ -49,7 +49,7 @@ function Orcamentos() {
     deleteQuote,
     addQuoteEvent,
   } = useOrcamentos();
-  const { vehicles, createVehicle, updateMileage } = useVeiculos();
+  const { vehicles, allVehicles, createVehicle, updateMileage } = useVeiculos();
   const { clients, createClient } = useClientes();
   const [sellers, setSellers] = useState([]);
   const { createOrder, addEvent } = useOrdens();
@@ -93,7 +93,7 @@ function Orcamentos() {
     };
   }, []);
 
-  const vehiclesById = useMemo(() => new Map(vehicles.map((v) => [v.id, v])), [vehicles]);
+  const vehiclesById = useMemo(() => new Map((allVehicles ?? vehicles).map((v) => [v.id, v])), [allVehicles, vehicles]);
   const clientsById = useMemo(() => new Map(clients.map((c) => [c.id, c])), [clients]);
   const enriched = useMemo(() => withRelations(quotes, vehiclesById, clientsById), [quotes, vehiclesById, clientsById]);
 

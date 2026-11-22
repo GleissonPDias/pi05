@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { api, isDemo } from "../services/api";
+import { registerParts } from "../services/catalogs";
 import {
   mapVeiculo,
   veiculoCreatePayload,
@@ -40,6 +41,7 @@ const byPlate = (a, b) =>
  */
 export function useVeiculosState() {
   const [vehicles, setVehicles] = useState(() => (isDemo() ? veiculosMock : []));
+  const [allVehicles, setAllVehicles] = useState(() => (isDemo() ? veiculosMock : []));
   const [loading, setLoading] = useState(() => !isDemo());
   const [error, setError] = useState(null);
   const [source, setSource] = useState(() => (isDemo() ? "demo" : "api"));
@@ -51,6 +53,7 @@ export function useVeiculosState() {
   const load = useCallback(async () => {
     if (isDemo()) {
       setVehicles(veiculosMock);
+      setAllVehicles(veiculosMock);
       setSource("demo");
       setError(null);
       setLoading(false);
@@ -61,7 +64,7 @@ export function useVeiculosState() {
     setError(null);
     try {
       const [dtos, overlays, locals] = await Promise.all([
-        api.veiculos.list(),
+        api.veiculos.list({ incluirInativos: true }),
         Promise.resolve(readMap(KEYS.vehicles)),
         Promise.resolve(readList(KEYS.localVehicles)),
       ]);
@@ -78,7 +81,10 @@ export function useVeiculosState() {
         if (vehicle?.id) merged.set(String(vehicle.id), vehicle);
       });
 
-      setVehicles([...merged.values()].sort(byPlate));
+      const list = [...merged.values()].sort(byPlate);
+      registerParts(list);
+      setAllVehicles(list);
+      setVehicles(list.filter((v) => v.status !== "inativo"));
       setSource("api");
     } catch (loadError) {
       setError(loadError);
@@ -323,6 +329,7 @@ export function useVeiculosState() {
 
   return {
     vehicles,
+    allVehicles,
     createVehicle,
     updateVehicle,
     updateMileage,
