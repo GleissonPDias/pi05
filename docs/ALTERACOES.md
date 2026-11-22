@@ -1,5 +1,11 @@
 # Changelog — Front-end (integração com a API)
 
+## Inativação e reativação de veículos e clientes
+
+- Ações de exclusão renomeadas para **Inativar** (clientes, veículos e fornecedores); o modal informa que OS e orçamentos mantêm os dados.
+- OS e orçamentos continuam exibindo placa, modelo e cliente mesmo quando o veículo ou cliente está inativo (impressão e envio incluídos).
+- Veículos: filtro "Inativos (n)" e botão "Reativar" (usa `PUT /veiculos/{id}` com `ativo=true`).
+
 ## Entrega atual — agenda, financeiro, configurações, boxes e notificações
 
 Escopo: remover as pendências de mock ligadas ao back-end. Telas e integrações que dependiam de dados fictícios passam a usar a API.

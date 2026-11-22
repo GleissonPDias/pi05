@@ -32,8 +32,8 @@ Este repositório contém o **front-end** (React), integrado à API **salvo-api*
 | --- | --- | --- |
 | Dashboard | `/` | Pronto (indicadores e fluxo financeiro semanal via API) |
 | Agenda | `/agenda` | Pronto (lista por dia com filtro de período, criação, edição, status e exclusão; dados da API; exige conexão com a API) |
-| Clientes | `/clientes` | Pronto (lista + cadastro, edição e exclusão em pop-ups; dados da API) |
-| Veículos | `/veiculos` | Pronto (lista, ficha técnica, cadastro/edição com rascunho e exclusão em pop-ups; dados da API + overlay local) |
+| Clientes | `/clientes` | Pronto (lista + cadastro, edição e inativação em pop-ups; dados da API; cliente inativo pode ser reativado) |
+| Veículos | `/veiculos` | Pronto (lista, ficha técnica, cadastro/edição com rascunho e inativação em pop-ups; filtro "Inativos" com reativação; dados da API + overlay local) |
 | OS (Ordens de Serviço) | `/ordens-de-servico`, `/ordens-de-servico/:numero` e `/ordens-de-servico/servicos` (catálogo de serviços) | Pronto (quadro Kanban, lista, detalhes em 4 abas, pop-ups e impressão; cabeçalho/itens/status persistidos na API + overlay local) |
 | Orçamentos | `/orcamentos` | Pronto (indicadores, funil comercial, lista, propostas em pop-up, WhatsApp, impressão e conversão em OS; dados fictícios + overlay local) |
 | Estoque | `/estoque` | Pronto (indicadores, inventário, movimentações, cadastro de peças, entradas/saídas/ajustes, cotação rápida e pedido de compra; catálogo e movimentações na API, pedido de compra local) |
