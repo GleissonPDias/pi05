@@ -26,8 +26,15 @@ import {
 } from "./vehicleUtils";
 
 function Veiculos() {
-  const { vehicles, createVehicle, updateVehicle, updateMileage, deleteVehicle } =
-    useVeiculos();
+  const {
+    vehicles,
+    allVehicles,
+    createVehicle,
+    updateVehicle,
+    updateMileage,
+    deleteVehicle,
+    reactivateVehicle,
+  } = useVeiculos();
   const { clients, createClient } = useClientes();
   const { toast, showToast, dismissToast } = useToast();
   const [searchParams] = useSearchParams();
@@ -46,11 +53,17 @@ function Veiculos() {
     [clients],
   );
 
-  const stats = useMemo(() => computeStats(vehicles), [vehicles]);
+  const stats = useMemo(
+    () => ({
+      ...computeStats(vehicles),
+      inactive: allVehicles.filter((vehicle) => vehicle.status === "inativo").length,
+    }),
+    [vehicles, allVehicles],
+  );
   const brands = useMemo(() => listBrands(vehicles), [vehicles]);
   const filtered = useMemo(
-    () => filterVehicles(vehicles, ownersById, { search, filter, brand, sort }),
-    [vehicles, ownersById, search, filter, brand, sort],
+    () => filterVehicles(allVehicles, ownersById, { search, filter, brand, sort }),
+    [allVehicles, ownersById, search, filter, brand, sort],
   );
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
@@ -58,7 +71,7 @@ function Veiculos() {
   const firstIndex = (currentPage - 1) * PAGE_SIZE;
   const visible = filtered.slice(firstIndex, firstIndex + PAGE_SIZE);
 
-  const selected = modal?.id ? vehicles.find((vehicle) => vehicle.id === modal.id) : null;
+  const selected = modal?.id ? allVehicles.find((vehicle) => vehicle.id === modal.id) : null;
   const closeModal = () => setModal(null);
 
   /** Troca um filtro e volta para a primeira página. */
@@ -91,6 +104,11 @@ function Veiculos() {
         ? `Rascunho do veículo ${data.plate} atualizado.`
         : `Dados do veículo ${data.plate} atualizados.`,
     );
+  };
+
+  const handleReactivate = async (vehicle) => {
+    const ok = await reactivateVehicle(vehicle.id);
+    if (ok) showToast(`Veículo ${vehicle.plate} reativado na frota.`);
   };
 
   const handleDelete = async () => {
@@ -149,6 +167,7 @@ function Veiculos() {
           onView={(vehicle) => setModal({ type: "detail", id: vehicle.id })}
           onEdit={(vehicle) => setModal({ type: "edit", id: vehicle.id })}
           onDelete={(vehicle) => setModal({ type: "delete", id: vehicle.id })}
+          onReactivate={handleReactivate}
         />
 
         <div className="flex flex-col gap-3 border-t border-slate-200 bg-blue-50/60 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">

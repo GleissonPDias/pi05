@@ -70,9 +70,7 @@ export function useVeiculosState() {
       ]);
 
       const merged = new Map();
-      dtos
-        .filter((dto) => dto.ativo !== false)
-        .forEach((dto) => {
+      dtos.forEach((dto) => {
           const id = String(dto.id);
           merged.set(id, mapVeiculo(dto, overlays[id] ?? {}));
         });
@@ -272,9 +270,38 @@ export function useVeiculosState() {
   );
 
   /** Remove o veículo da frota ativa. */
+  const reactivateVehicle = useCallback(
+    async (id) => {
+      if (isDemo()) {
+        setAllVehicles((current) =>
+          current.map((vehicle) => (vehicle.id === id ? { ...vehicle, status: "ativo" } : vehicle)),
+        );
+        setVehicles((current) =>
+          current.some((vehicle) => vehicle.id === id)
+            ? current
+            : [...current, ...veiculosMock.filter((vehicle) => vehicle.id === id)].sort(byPlate),
+        );
+        return true;
+      }
+
+      try {
+        await api.veiculos.update(id, { ativo: true });
+        await load();
+        return true;
+      } catch (reactivateError) {
+        setError(reactivateError);
+        return false;
+      }
+    },
+    [load],
+  );
+
   const deleteVehicle = useCallback(
     async (id) => {
       setVehicles((current) => current.filter((vehicle) => vehicle.id !== id));
+      setAllVehicles((current) =>
+        current.map((vehicle) => (vehicle.id === id ? { ...vehicle, status: "inativo" } : vehicle)),
+      );
 
       if (isDemo()) return true;
 
@@ -334,6 +361,7 @@ export function useVeiculosState() {
     updateVehicle,
     updateMileage,
     deleteVehicle,
+    reactivateVehicle,
     unlinkOwner,
     loading,
     error,

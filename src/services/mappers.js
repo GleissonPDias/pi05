@@ -259,6 +259,7 @@ export function mapVeiculo(dto, overlay = {}) {
     nextReviewDate: overlay.nextReviewDate ?? null,
     createdAt: overlay.createdAt ?? toISODate(new Date()),
     draft: overlay.draft ?? false,
+    status: dto.ativo === false ? "inativo" : "ativo",
     updatedAt: overlay.updatedAt ?? nowIso(),
     updatedBy: overlay.updatedBy ?? currentOperator,
   };

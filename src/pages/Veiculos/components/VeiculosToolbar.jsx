@@ -65,6 +65,20 @@ function VeiculosToolbar({
             Com OS em Aberto ({counts.open})
           </button>
 
+          <button
+            type="button"
+            aria-pressed={filter === "inativos"}
+            onClick={() => onFilterChange(filter === "inativos" ? "all" : "inativos")}
+            className={cn(
+              chip,
+              filter === "inativos"
+                ? "bg-blue-600 font-bold text-white"
+                : "bg-blue-50 font-medium text-slate-700 hover:bg-blue-100",
+            )}
+          >
+            Inativos ({counts.inactive})
+          </button>
+
           <label
             className={cn(
               chip,

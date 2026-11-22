@@ -328,8 +328,8 @@ export const api = {
   },
 
   veiculos: {
-    list() {
-      return getAll("/veiculos", { sort: "modelo" });
+    list(params = {}) {
+      return getAll("/veiculos", { sort: "modelo", ...params });
     },
     create(clienteId, payload) {
       return request(`/clientes/${clienteId}/veiculos`, {
