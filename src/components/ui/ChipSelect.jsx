@@ -20,7 +20,7 @@ function ChipSelect({ icon: Icon, label, value, options, onChange, allLabel = "T
         value={value ?? ""}
         onChange={(event) => onChange(event.target.value)}
         aria-label={label}
-        className="cursor-pointer bg-transparent text-xs font-semibold outline-none"
+        className="cursor-pointer bg-transparent text-xs font-semibold outline-none appearance-none"
         style={{ color: "inherit" }}
       >
         {allLabel !== null && <option value="">{allLabel}</option>}
