@@ -85,11 +85,11 @@ export function memberToValues(member) {
 export function createUsuarioPayload(values) {
   const isAdmin = values.profile === "ADMIN";
   const payload = {
-    nome: values.name.trim(),
+    nome: values.name.trim().toUpperCase(),
     email: values.email.trim(),
-    cargo: values.role.trim(),
+    cargo: values.role.trim().toUpperCase(),
     telefone: values.phone.trim() || null,
-    especialidades: values.specialties.trim() || null,
+    especialidades: values.specialties.trim() ? values.specialties.trim().toUpperCase() : null,
     lider: Boolean(values.lead),
     comissaoPercentual: 0,
     corAgenda: null,
@@ -104,8 +104,8 @@ export function createUsuarioPayload(values) {
 export function updateUsuarioPayload(values) {
   const isAdmin = values.profile === "ADMIN";
   return {
-    nome: values.name.trim(),
-    cargo: values.role.trim(),
+    nome: values.name.trim().toUpperCase(),
+    cargo: values.role.trim().toUpperCase(),
     telefone: values.phone.trim() || null,
     especialidades: values.specialties.trim() || null,
     lider: Boolean(values.lead),

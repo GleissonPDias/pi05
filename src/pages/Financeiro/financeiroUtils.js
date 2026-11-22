@@ -80,7 +80,7 @@ export function emptyLancamento(kind) {
 /** Valores do formulário -> payload de `CriarPagamentoDTO` / `CriarDespesaDTO`. */
 export function lancamentoPayload(kind, values) {
   const base = {
-    descricao: values.descricao.trim(),
+    descricao: values.descricao.trim().toUpperCase(),
     valor: Number(values.valor),
     vencimento: values.vencimento || null,
     status: values.status,

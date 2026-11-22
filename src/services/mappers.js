@@ -193,9 +193,9 @@ export function mapCliente(dto, overlay = {}) {
 
 export function clienteCreatePayload(data) {
   return {
-    nome: data.name,
-    cpfCnpj: data.document,
-    email: data.email || null,
+    nome: (data.name ?? "").toUpperCase(),
+    cpfCnpj: (data.document ?? "").toUpperCase(),
+    email: data.email ? data.email.trim().toLowerCase() : null,
     telefone: data.phone,
     telefoneSecundario: data.phoneSecondary || null,
     classificacao: classificationToApi(data.classification),
@@ -204,8 +204,8 @@ export function clienteCreatePayload(data) {
 
 export function clienteUpdatePayload(data) {
   return {
-    nome: data.name,
-    email: data.email || null,
+    nome: (data.name ?? "").toUpperCase(),
+    email: data.email ? data.email.trim().toLowerCase() : null,
     telefone: data.phone,
     telefoneSecundario: data.phoneSecondary || null,
     classificacao: classificationToApi(data.classification),
@@ -290,14 +290,14 @@ export function vehicleOverlayFrom(data) {
 
 export function veiculoCreatePayload(data) {
   return {
-    placa: data.plate,
-    chassi: data.chassis || null,
-    marca: data.brand,
-    modelo: data.model,
-    versao: data.version || null,
+    placa: (data.plate ?? "").toUpperCase(),
+    chassi: data.chassis ? data.chassis.toUpperCase() : null,
+    marca: (data.brand ?? "").toUpperCase(),
+    modelo: (data.model ?? "").toUpperCase(),
+    versao: data.version ? data.version.toUpperCase() : null,
     anoFabricacao: data.yearManufacture ?? null,
     anoModelo: data.yearModel ?? null,
-    cor: data.color || null,
+    cor: data.color ? data.color.toUpperCase() : null,
     combustivel: data.fuel || null,
     motorizacao: data.engine || null,
     transmissao: data.transmission || null,
@@ -353,11 +353,11 @@ export function mapServico(dto, overlay = {}) {
 
 export function servicoCreatePayload(data) {
   return {
-    codigo: data.code || null,
-    nome: data.description,
-    descricao: data.detail || null,
-    detalhe: data.detail || null,
-    categoria: data.category || null,
+    codigo: data.code ? data.code.toUpperCase() : null,
+    nome: (data.description ?? "").toUpperCase(),
+    descricao: data.detail ? data.detail.toUpperCase() : null,
+    detalhe: data.detail ? data.detail.toUpperCase() : null,
+    categoria: data.category ? data.category.toUpperCase() : null,
     tempoEstimadoHoras: Number(data.hours) || null,
     garantiaTipo: data.warranty || null,
     precoBase: Number(data.price) || 0,
@@ -422,22 +422,22 @@ export function mapPeca(dto, overlay = {}) {
 
 export function pecaCreatePayload(data) {
   return {
-    codigo: data.code || null,
-    nome: data.description,
-    descricao: data.note || null,
-    fabricante: data.brand || null,
-    oem: data.oem || null,
-    categoria: data.category || null,
-    aplicacao: data.application || null,
-    unidade: data.unit || "un",
+    codigo: data.code ? data.code.toUpperCase() : null,
+    nome: (data.description ?? "").toUpperCase(),
+    descricao: data.note ? data.note.toUpperCase() : null,
+    fabricante: data.brand ? data.brand.toUpperCase() : null,
+    oem: data.oem ? data.oem.toUpperCase() : null,
+    categoria: data.category ? data.category.toUpperCase() : null,
+    aplicacao: data.application ? data.application.toUpperCase() : null,
+    unidade: data.unit ? data.unit.toUpperCase() : "un",
     precoCusto: Number(data.cost) || 0,
     precoVenda: Number(data.price) || 0,
     estoqueAtual: Number(data.stock) || 0,
     estoqueMinimo: Number(data.minStock) || 0,
     estoqueMaximo: Number(data.maxStock) || 0,
-    localizacao: data.location || null,
+    localizacao: data.location ? data.location.toUpperCase() : null,
     fornecedorId: toNumberId(data.supplierId),
-    observacao: data.note || null,
+    observacao: data.note ? data.note.toUpperCase() : null,
     ativo: data.status !== "inativo",
   };
 }
@@ -489,8 +489,8 @@ export function movimentacaoPayload({ type, qty, unitCost, supplierId, document,
     quantidade,
     custoUnitario: unitCost !== null && unitCost !== undefined ? Number(unitCost) : null,
     fornecedorId: toNumberId(supplierId),
-    documento: document || null,
-    observacao: note || null,
+    documento: document ? document.toUpperCase() : null,
+    observacao: note ? note.toUpperCase() : null,
   };
 }
 
@@ -682,13 +682,13 @@ export function ordemCreatePayload(data) {
     mecanicoLiderId: toNumberId(data.mechanicId),
     prioridade: priorityToApi(data.priority),
     kmEntrada: data.mileageIn ?? null,
-    diagnostico: data.diagnosis?.text || null,
-    observacoes: data.complaint || null,
-    tipo: data.type || null,
-    canal: data.channel || null,
-    titulo: data.title || null,
-    relatoCliente: data.complaint || null,
-    observacoesInternas: data.internalNotes || null,
+    diagnostico: data.diagnosis?.text ? data.diagnosis.text.toUpperCase() : null,
+    observacoes: data.complaint ? data.complaint.toUpperCase() : null,
+    tipo: data.type ? data.type.toUpperCase() : null,
+    canal: data.channel ? data.channel.toUpperCase() : null,
+    titulo: data.title ? data.title.toUpperCase() : null,
+    relatoCliente: data.complaint ? data.complaint.toUpperCase() : null,
+    observacoesInternas: data.internalNotes ? data.internalNotes.toUpperCase() : null,
     previsaoEntrega: data.expectedAt || null,
     nivelCombustivel: data.fuelLevel ?? null,
   };
@@ -756,7 +756,7 @@ export function osServicoPayload(line) {
   const total = Number(line.price ?? 0);
   return {
     servicoId: toNumberId(line.serviceId) ?? null,
-    descricao: line.description,
+    descricao: (line.description ?? "").toUpperCase(),
     quantidade: quantity,
     valorUnitario:
       line.unitPrice !== undefined

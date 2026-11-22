@@ -307,7 +307,7 @@ export function computeOrderStats(orders) {
 export function buildQuoteMessage(order, vehicle, client) {
   const totals = orderTotals(order);
   const lines = [
-    `Olá, ${firstName(client?.name)}! Aqui é da oficina Salvô. 🚗`,
+    `Olá, ${firstName(client?.name)}! Aqui é da oficina ${getWorkshop()?.name || "Salvô"}. 🚗`,
     `Segue o orçamento da OS ${formatOrderNumber(order.number)} — ${vehicle.brand} ${vehicle.model} (${maskPlate(vehicle.plate)}):`,
     "",
     ...order.services.map((line) => `• ${line.description}: ${formatBRL(line.price)}`),

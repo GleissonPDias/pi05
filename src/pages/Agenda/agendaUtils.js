@@ -101,8 +101,8 @@ export function agendamentoToValues(item) {
 
 export function agendamentoPayload(values, { isEdit = false } = {}) {
   const payload = {
-    titulo: values.titulo.trim(),
-    descricao: values.descricao.trim() || null,
+    titulo: values.titulo.trim().toUpperCase(),
+    descricao: values.descricao.trim() ? values.descricao.trim().toUpperCase() : null,
     inicio: fromLocalInput(values.inicio),
     fim: fromLocalInput(values.fim),
     mecanicoId: values.mecanicoId ? Number(values.mecanicoId) : null,
