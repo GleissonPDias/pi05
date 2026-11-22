@@ -85,8 +85,8 @@ export function inPeriod(quote, period) {
 export function withRelations(quotes, vehiclesById, clientsById) {
   return quotes.map((quote) => ({
     ...quote,
-    vehicle: vehiclesById.get(quote.vehicleId) ?? null,
-    client: clientsById.get(quote.clientId) ?? null,
+    vehicle: vehiclesById.get(quote.vehicleId) ?? (quote.vehicleId ? { id: quote.vehicleId, plate: quote.vehiclePlate ?? "", model: quote.vehicleModel ?? "", brand: "", mileage: 0 } : null),
+    client: clientsById.get(quote.clientId) ?? (quote.clientId ? { id: quote.clientId, name: quote.clientName ?? "", phone: "" } : null),
   }));
 }
 
