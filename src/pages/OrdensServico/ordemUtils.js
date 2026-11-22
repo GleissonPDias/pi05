@@ -314,7 +314,7 @@ export function buildQuoteMessage(order, vehicle, client) {
   const totals = orderTotals(order);
   const lines = [
     `Olá, ${firstName(client?.name)}! Aqui é da oficina ${getWorkshop()?.name || "Salvô"}. 🚗`,
-    `Segue o orçamento da OS ${formatOrderNumber(order.number)} — ${vehicle.brand} ${vehicle.model} (${maskPlate(vehicle.plate)}):`,
+    `Segue o orçamento da OS ${formatOrderNumber(order.number)} — ${vehicle?.brand ?? ""} ${vehicle?.model ?? ""} (${maskPlate(vehicle?.plate)}):`,
     "",
     ...order.services.map((line) => `• ${line.description}: ${formatBRL(line.price)}`),
     ...order.parts.map((line) => `• ${line.qty}x ${line.description}: ${formatBRL(line.qty * line.unitPrice)}`),
