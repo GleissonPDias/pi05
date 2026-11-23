@@ -407,6 +407,7 @@ export function useOrdensState() {
 
       const changed =
         Number(previous.qty) !== Number(line.qty) ||
+        Number(previous.price) !== Number(line.price) ||
         Number(previous.unitPrice) !== Number(line.unitPrice) ||
         Number(previous.hours) !== Number(line.hours) ||
         String(previous.mechanicId ?? "") !== String(line.mechanicId ?? "") ||

@@ -61,7 +61,17 @@ function ServicosTable({ services, readOnly, onChange, onAdd }) {
       step="0.1"
       value={line.hours}
       disabled={readOnly}
-      onChange={(event) => updateLine(line.id, { hours: Math.max(0, Number(event.target.value)) })}
+      onChange={(event) => {
+        const newHours = Math.max(0, Number(event.target.value));
+        const patch = { hours: newHours };
+        // Ao alterar as horas, recalcula o valor da mão de obra mantendo a
+        // taxa horária (valor / horas) do lançamento, para o total refletir.
+        if (line.hours > 0 && newHours > 0) {
+          const rate = Number(line.price || 0) / Number(line.hours);
+          patch.price = Math.round(rate * newHours * 100) / 100;
+        }
+        updateLine(line.id, patch);
+      }}
       aria-label={`Tempo estimado (horas) de ${line.description}`}
       className={cn(smallField, "w-16 text-center")}
     />
