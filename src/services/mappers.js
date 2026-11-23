@@ -808,10 +808,7 @@ export function osServicoPayload(line) {
     servicoId: toNumberId(line.serviceId) ?? null,
     descricao: (line.description ?? "").toUpperCase(),
     quantidade: quantity,
-    valorUnitario:
-      line.unitPrice !== undefined
-        ? Number(line.unitPrice)
-        : Math.round((total / Math.max(quantity, 1)) * 100) / 100,
+    valorUnitario: Math.round((total / Math.max(quantity, 1)) * 100) / 100,
     mecanicoId: toNumberId(line.mechanicId),
     tempoEstimadoHoras: line.hours ?? null,
     concluido: Boolean(line.done),
