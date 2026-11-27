@@ -262,9 +262,23 @@ function Equipe() {
         />
       </div>
 
-      <div className="flex gap-2">
-        <button type="button" onClick={() => setAba("equipe")} className={`rounded-lg px-3 py-2 text-sm font-semibold ${aba === "equipe" ? "bg-blue-600 text-white" : "bg-slate-100 text-slate-700"}`}>Equipe</button>
-        <button type="button" onClick={() => setAba("auditoria")} className={`rounded-lg px-3 py-2 text-sm font-semibold ${aba === "auditoria" ? "bg-blue-600 text-white" : "bg-slate-100 text-slate-700"}`}>Relatório de ações</button>
+      <div role="group" aria-label="Visão da equipe" className="flex self-start rounded-lg bg-blue-50 p-1">
+        {[
+          { key: "equipe", label: "Integrantes" },
+          { key: "auditoria", label: "Relatório de ações" },
+        ].map((item) => (
+          <button
+            key={item.key}
+            type="button"
+            aria-pressed={aba === item.key}
+            onClick={() => setAba(item.key)}
+            className={`whitespace-nowrap rounded-md px-4 py-1.5 text-xs transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 ${
+              aba === item.key ? "bg-white font-bold text-blue-700 shadow-sm" : "font-medium text-slate-700 hover:bg-white/60"
+            }`}
+          >
+            {item.label}
+          </button>
+        ))}
       </div>
 
       {aba === "auditoria" && <EquipeAuditoria members={members} />}

@@ -54,8 +54,8 @@ function EquipeStatusModal({ member, isSelf, onConfirm, onClose }) {
           </p>
         ) : (
           <p className="text-sm text-slate-600">
-            O histórico de OS, orçamentos e movimentações continua intacto. O acesso à API e o login
-            no Supabase são bloqueados.
+            O histórico de OS, orçamentos e movimentações continua intacto. O funcionário não consegue
+            mais entrar no sistema até ser reativado.
           </p>
         )}
 

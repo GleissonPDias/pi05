@@ -169,7 +169,7 @@ function describeError(data, status) {
 
 async function request(
   path,
-  { method = "GET", body, auth = true, notifyError = true, token } = {},
+  { method = "GET", body, auth = true, notifyError = true, token, background = false } = {},
 ) {
   if (mode === "demo") {
     throw new ApiError("Modo demonstração: os dados são locais.", {
@@ -188,7 +188,8 @@ async function request(
     headers.Authorization = `Bearer ${token || session.accessToken}`;
   }
 
-  begin();
+  // Consultas em segundo plano (ex.: sino de notificações) não acionam o indicador de carregamento.
+  if (!background) begin();
   try {
     const response = await fetch(`${BASE_URL}${path}`, options);
     const text = await response.text();
@@ -232,7 +233,7 @@ async function request(
     if (notifyError) notify({ type: "error", error: networkError });
     throw networkError;
   } finally {
-    end();
+    if (!background) end();
   }
 }
 
@@ -567,8 +568,11 @@ export const api = {
   },
 
   agendamentos: {
-    list({ inicio, fim, status, page = 0, size = 20 } = {}) {
-      return request(`/agendamentos${query({ inicio, fim, status, page, size })}`);
+    list({ inicio, fim, status, page = 0, size = 20 } = {}, { background = false } = {}) {
+      return request(`/agendamentos${query({ inicio, fim, status, page, size })}`, {
+        background,
+        notifyError: !background,
+      });
     },
     create(payload) {
       return request("/agendamentos", { method: "POST", body: payload });
@@ -616,10 +620,13 @@ export const api = {
 
   notificacoes: {
     list({ somenteNaoLidas = false, limite = 20 } = {}) {
-      return request(`/notificacoes${query({ somenteNaoLidas: somenteNaoLidas || undefined, limite })}`);
+      return request(`/notificacoes${query({ somenteNaoLidas: somenteNaoLidas || undefined, limite })}`, {
+        background: true,
+        notifyError: false,
+      });
     },
     contador() {
-      return request("/notificacoes/nao-lidas/contador");
+      return request("/notificacoes/nao-lidas/contador", { background: true, notifyError: false });
     },
     markRead(id) {
       return request(`/notificacoes/${id}/lida`, { method: "PATCH" });

@@ -135,7 +135,7 @@ function EquipeFormModal({ member, isDemo, onSubmit, onClose }) {
                   autoComplete="off"
                   placeholder="joao@oficina.com"
                   disabled={isEdit}
-                  hint={isEdit ? "O e-mail é a identidade no Supabase Auth e não pode ser alterado." : undefined}
+                  hint={isEdit ? "O e-mail é o login do funcionário e não pode ser alterado." : undefined}
                   error={errors.email}
                   {...bind("email")}
                 />

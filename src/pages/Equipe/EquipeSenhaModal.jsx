@@ -35,7 +35,7 @@ function EquipeSenhaModal({ member, password, mode = "reset", onClose }) {
       <ModalBody className="space-y-4">
         <p className="text-sm text-slate-600">
           {mode === "created"
-            ? "A conta foi criada no Supabase Auth. Entregue a senha temporária abaixo ao funcionário."
+            ? "Conta criada! Entregue a senha temporária abaixo ao funcionário: ele vai trocá-la no primeiro acesso."
             : "A senha anterior deixou de valer. Entregue a nova senha temporária abaixo."}
         </p>
 

@@ -1,3 +1,4 @@
+import logo from "../../assets/brand/logo-salvo.png";
 import { useState } from "react";
 import { Link, Navigate, useNavigate } from "react-router-dom";
 import {
@@ -5,12 +6,10 @@ import {
   EyeIcon,
   EyeOffIcon,
   UserPlusIcon,
-  WrenchIcon,
 } from "lucide-react";
 import Button from "../../components/ui/Button";
 import TextField from "../../components/ui/TextField";
 import { useAuth } from "../../hooks/useAuth";
-import { api } from "../../services/api";
 import { maskCpfCnpj, maskPhone } from "../../utils/masks";
 import { isValidCpfCnpj, isValidEmail, isValidPhone } from "../../utils/validators";
 
@@ -90,22 +89,14 @@ function Register() {
         <div className="absolute -right-24 -top-24 size-80 rounded-full bg-blue-600/30 blur-3xl" />
         <div className="absolute -bottom-24 -left-24 size-80 rounded-full bg-emerald-500/20 blur-3xl" />
 
-        <div className="relative flex items-center gap-3">
-          <span className="grid size-11 place-items-center rounded-xl bg-blue-600">
-            <WrenchIcon className="size-6" />
-          </span>
-          <div>
-            <p className="text-lg font-black tracking-tight">Salvô</p>
-            <p className="text-xs text-slate-300">Gestão de oficina</p>
-          </div>
-        </div>
+        <img src={logo} alt="Salvô — Gestão para oficina" className="relative h-24 w-auto self-start" />
 
         <div className="relative max-w-md space-y-4">
           <h1 className="text-3xl font-black leading-tight">
             Comece a gerenciar sua oficina mecânica agora.
           </h1>
           <p className="text-sm leading-relaxed text-slate-300">
-            Crie sua conta SaaS em segundos. Tenha controle completo de ordens de serviço,
+            Crie a conta da sua oficina em poucos minutos. Tenha controle completo de ordens de serviço,
             clientes, veículos, catálogo de peças e serviços.
           </p>
           <ul className="space-y-2 text-sm text-slate-200">
@@ -115,21 +106,13 @@ function Register() {
           </ul>
         </div>
 
-        <p className="relative text-xs text-slate-400">
-          API configurada em <code className="text-slate-300">{api.baseUrl}</code>
-        </p>
+        <p className="relative text-xs text-slate-400">Salvô · Gestão automotiva para oficinas mecânicas</p>
       </div>
 
       <div className="flex items-center justify-center p-6 sm:p-10">
         <div className="w-full max-w-md">
-          <div className="mb-6 flex items-center gap-3 lg:hidden">
-            <span className="grid size-10 place-items-center rounded-xl bg-blue-600 text-white">
-              <WrenchIcon className="size-5" />
-            </span>
-            <div>
-              <p className="text-lg font-black text-slate-900">Salvô</p>
-              <p className="text-xs text-slate-500">Gestão de oficina</p>
-            </div>
+          <div className="mb-6 inline-flex rounded-2xl bg-sidebar px-4 py-3 lg:hidden">
+            <img src={logo} alt="Salvô — Gestão para oficina" className="h-14 w-auto" />
           </div>
 
           <h2 className="text-2xl font-black text-slate-900">Cadastre sua oficina</h2>

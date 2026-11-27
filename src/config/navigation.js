@@ -45,6 +45,7 @@ export const mainNav = [
     children: [
       { label: "Inventário", to: "/estoque", view: "inventario" },
       { label: "Movimentações", to: "/estoque?visao=movimentacoes", view: "movimentacoes" },
+      { label: "Fornecedores", to: "/estoque?visao=fornecedores", view: "fornecedores" },
     ],
   },
   { label: "Financeiro", to: "/financeiro", icon: TrendingUpIcon, adminOnly: true, permission: "FINANCEIRO" },

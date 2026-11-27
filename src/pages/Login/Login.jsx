@@ -1,3 +1,4 @@
+import logo from "../../assets/brand/logo-salvo.png";
 import { useState } from "react";
 import { Link, Navigate, useLocation, useNavigate } from "react-router-dom";
 import {
@@ -5,12 +6,10 @@ import {
   EyeOffIcon,
   LogInIcon,
   MonitorPlayIcon,
-  WrenchIcon,
 } from "lucide-react";
 import Button from "../../components/ui/Button";
 import TextField from "../../components/ui/TextField";
 import { useAuth } from "../../hooks/useAuth";
-import { api } from "../../services/api";
 
 /**
  * Tela de login.
@@ -69,23 +68,15 @@ function Login() {
         <div className="absolute -right-24 -top-24 size-80 rounded-full bg-blue-600/30 blur-3xl" />
         <div className="absolute -bottom-24 -left-24 size-80 rounded-full bg-emerald-500/20 blur-3xl" />
 
-        <div className="relative flex items-center gap-3">
-          <span className="grid size-11 place-items-center rounded-xl bg-blue-600">
-            <WrenchIcon className="size-6" />
-          </span>
-          <div>
-            <p className="text-lg font-black tracking-tight">Salvô</p>
-            <p className="text-xs text-slate-300">Gestão de oficina</p>
-          </div>
-        </div>
+        <img src={logo} alt="Salvô — Gestão para oficina" className="relative h-24 w-auto self-start" />
 
         <div className="relative max-w-md space-y-4">
           <h1 className="text-3xl font-black leading-tight">
             Toda a operação da sua oficina em um só lugar.
           </h1>
           <p className="text-sm leading-relaxed text-slate-300">
-            Ordens de serviço, clientes, veículos, orçamentos e estoque —
-            conectados à API da sua oficina.
+            Ordens de serviço, clientes, veículos, orçamentos, agenda e estoque
+            organizados em um só sistema, do computador ou do celular.
           </p>
           <ul className="space-y-2 text-sm text-slate-200">
             <li>• Acompanhe o pátio em tempo real</li>
@@ -94,26 +85,18 @@ function Login() {
           </ul>
         </div>
 
-        <p className="relative text-xs text-slate-400">
-          API configurada em <code className="text-slate-300">{api.baseUrl}</code>
-        </p>
+        <p className="relative text-xs text-slate-400">Salvô · Gestão automotiva para oficinas mecânicas</p>
       </div>
 
       <div className="flex items-center justify-center p-6 sm:p-10">
         <div className="w-full max-w-sm">
-          <div className="mb-8 flex items-center gap-3 lg:hidden">
-            <span className="grid size-10 place-items-center rounded-xl bg-blue-600 text-white">
-              <WrenchIcon className="size-5" />
-            </span>
-            <div>
-              <p className="text-lg font-black text-slate-900">Salvô</p>
-              <p className="text-xs text-slate-500">Gestão de oficina</p>
-            </div>
+          <div className="mb-8 inline-flex rounded-2xl bg-sidebar px-4 py-3 lg:hidden">
+            <img src={logo} alt="Salvô — Gestão para oficina" className="h-14 w-auto" />
           </div>
 
           <h2 className="text-2xl font-black text-slate-900">Entrar na oficina</h2>
           <p className="mt-1 text-sm text-slate-500">
-            Use o e-mail e a senha cadastrados na API.
+            Entre com o e-mail e a senha da sua conta.
           </p>
 
           <form onSubmit={handleSubmit} className="mt-6 space-y-4">
@@ -188,7 +171,7 @@ function Login() {
             Entrar no modo demonstração
           </Button>
           <p className="mt-3 text-center text-xs text-slate-500">
-            O modo demonstração usa dados fictícios e não altera a API.
+            O modo demonstração usa dados de exemplo e não grava nenhuma alteração.
           </p>
         </div>
       </div>

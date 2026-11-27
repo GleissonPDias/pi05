@@ -1,5 +1,22 @@
 # Changelog — Front-end (integração com a API)
 
+## Padronização de Agenda, Financeiro e Ajuda + central de notificações
+
+- **Financeiro** no padrão das demais telas: indicadores (a receber, a pagar, saldo previsto e vencidos), abas "A receber / A pagar" com contadores, busca, filtro de vencimento, chips de situação (incluindo "Vencidos"), exportação CSV, paginação, tabela no desktop e cards no celular.
+  - Ações em ícone (marcar como pago/recebido, cancelar, excluir), cada uma com pop-up de confirmação (`FinanceiroStatusModal`, `FinanceiroDeleteModal`).
+  - Formulário único "Novo lançamento" com escolha Recebimento/Despesa, campo de observações e validação de parcelas.
+- **Agenda** refeita: indicadores (hoje, a confirmar, em andamento, próximo horário), períodos Hoje / 7 dias / 30 dias, faixa com os dias da semana e a quantidade de horários, busca, filtro por mecânico e chips de situação.
+  - Formulário com data + horário + duração, sugestões de veículos cadastrados no título e aviso quando o mecânico ou o box já está ocupado no horário.
+  - Cancelamento com pop-up de confirmação (`AgendaCancelModal`).
+- **Modo demonstração**: Agenda e Financeiro passam a ter dados de exemplo em memória (`services/demoStore.js`), sem chamar a API.
+- **Central de Ajuda**: guias rápidos por módulo (respeitando as permissões), perguntas frequentes com busca e filtro por assunto, contatos do suporte e formulário de relato com validação. A rota `/ajuda` deixou de ser exclusiva do administrador.
+- **Notificações** ao lado do perfil (`NotificationsMenu`): próximos horários da agenda (hoje e amanhã), orçamentos novos, perto de vencer e vencidos, além das notificações da API. Contador de não lidas, filtros por categoria, "marcar todas como lidas" e navegação para a tela do aviso.
+  - As consultas do sino rodam em segundo plano (`background: true` no `request`), sem acender o indicador global nem mostrar erro na tela.
+- **Cabeçalho**: pop-ups de troca de usuário, volta para o admin e troca de senha obrigatória usam o `Modal` padrão (foco preso, Esc, rótulos).
+- **Fornecedores** (Estoque): busca, tabela/cartões, ações em ícone e pop-ups padrão de cadastro e de inativação. Item "Fornecedores" no submenu do Estoque.
+- Textos técnicos trocados por linguagem de oficina (Login, Cadastro e Equipe não citam mais API, SaaS ou Supabase) e logo do Salvô nas telas de Login e Cadastro.
+- Equipe: abas "Integrantes / Relatório de ações" no estilo de segmento usado no restante do sistema.
+
 ## Correções de permissões, carregamento e vistoria
 
 - Rotas de Clientes, Veículos, OS, Orçamentos, Estoque e Agenda passam a exigir o módulo correspondente (funcionário sem o módulo é redirecionado ao dashboard).

@@ -93,8 +93,9 @@ function App() {
             <Route element={<RequireAdmin />}>
               <Route path="/equipe" element={<Equipe />} />
               <Route path="/configuracoes" element={<Configuracoes />} />
-            <Route path="/ajuda" element={<Ajuda />} />
             </Route>
+            {/* Ajuda fica liberada para todos os perfis (o menu mostra o link para todos) */}
+            <Route path="/ajuda" element={<Ajuda />} />
             <Route element={<RequirePermission modulo="FINANCEIRO" />}>
               <Route path="/financeiro" element={<Financeiro />} />
             </Route>

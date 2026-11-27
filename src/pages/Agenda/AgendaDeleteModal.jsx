@@ -42,7 +42,7 @@ function AgendaDeleteModal({ item, onConfirm, onClose }) {
       <ModalBody className="space-y-4">
         <div className="rounded-xl border border-slate-200 bg-slate-50 p-4">
           <p className="truncate text-sm font-bold text-slate-900">{item.titulo}</p>
-          <p className="text-xs capitalize text-slate-600">
+          <p className="text-xs text-slate-600 first-letter:uppercase">
             {formatDayHeading(dayKey(item.inicio))} • {formatTimeRange(item.inicio, item.fim)}
           </p>
           <p className="mt-1 text-xs text-slate-600">Situação: {status}</p>

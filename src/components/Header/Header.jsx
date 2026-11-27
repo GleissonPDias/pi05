@@ -1,8 +1,12 @@
-import { useEffect, useState } from "react";
+import { useEffect, useId, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { LogOutIcon, MenuIcon, SearchIcon, UserIcon } from "lucide-react";
+import { KeyRoundIcon, LogOutIcon, MenuIcon, SaveIcon, SearchIcon, ShieldCheckIcon, UsersIcon } from "lucide-react";
+import Button from "../ui/Button";
+import Modal, { ModalBody, ModalFooter, ModalHeader } from "../ui/Modal";
+import TextField from "../ui/TextField";
 import { useAuth } from "../../hooks/useAuth";
 import { api, getAdminSession } from "../../services/api";
+import NotificationsMenu from "./NotificationsMenu";
 
 function getInitials(name = "") {
   return name
@@ -144,6 +148,8 @@ export default function Header({ isAsideOpen, onMenuClick }) {
     }
   };
 
+  const outrosFuncionarios = funcionarios.filter((item) => String(item.id) !== String(user?.id));
+
   return (
     <>
       <header className="sticky top-0 z-20 flex h-16 items-center gap-3 border-b border-slate-200 bg-white px-4 sm:gap-4 sm:px-6">
@@ -170,22 +176,21 @@ export default function Header({ isAsideOpen, onMenuClick }) {
           />
         </form>
 
-        <div className="ml-auto flex items-center gap-3 sm:gap-4">
-          <span className="hidden items-center gap-2 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-800 md:inline-flex">
+        <div className="ml-auto flex items-center gap-2 sm:gap-3">
+          <span className="hidden items-center gap-2 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-800 xl:inline-flex">
             <span className="size-2 rounded-full bg-emerald-500" />
             {workshop} - Aberta
           </span>
           {mode === "demo" && (
-            <span className="hidden rounded-full border border-amber-200 bg-amber-50 px-3 py-1 text-xs font-semibold text-amber-800 sm:inline-flex">
+            <span className="hidden rounded-full border border-amber-200 bg-amber-50 px-3 py-1 text-xs font-semibold text-amber-800 md:inline-flex">
               Demonstração
             </span>
           )}
 
-          {/* Notificações ocultas por enquanto */}
-          {/* <NotificationsMenu /> */}
+          <NotificationsMenu />
 
-          <div className="flex items-center gap-3">
-            <div className="grid size-9 place-items-center rounded-full bg-sidebar text-xs font-bold text-white">
+          <div className="flex items-center gap-3 border-l border-slate-200 pl-2 sm:pl-3">
+            <div aria-hidden="true" className="grid size-9 shrink-0 place-items-center rounded-full bg-sidebar text-xs font-bold text-white">
               {getInitials(name)}
             </div>
             <div className="hidden text-left leading-tight md:block">
@@ -195,161 +200,192 @@ export default function Header({ isAsideOpen, onMenuClick }) {
                 {hasAdminSession ? " (sessão trocada)" : ""}
               </p>
             </div>
+          </div>
 
-            { (user?.isAdmin || hasAdminSession) && mode !== "demo" && (
-              <div className="relative">
-                <button
-                  type="button"
-                  onClick={() => setMenuAberto((value) => !value)}
-                  className="rounded-lg p-2 text-slate-600 hover:bg-slate-100"
-                  aria-label="Trocar de usuário"
-                  title="Trocar de usuário"
-                >
-                  <UserIcon className="size-5" />
-                </button>
-                {menuAberto && (
-                  <div className="absolute right-0 mt-2 w-72 rounded-xl border border-slate-200 bg-white p-2 shadow-lg">
-                    <p className="px-2 py-1 text-xs font-semibold text-slate-500">Entrar como</p>
-                    <div className="max-h-64 overflow-auto">
-                      {funcionarios
-                        .filter((item) => String(item.id) !== String(user?.id))
-                        .map((item) => (
-                          <button
-                            key={item.id}
-                            type="button"
-                            onClick={() => {
-                              setAlvo(item);
-                              setSenha("");
-                              setErro("");
-                            }}
-                            className="flex w-full items-center gap-2 rounded-lg px-2 py-2 text-left text-sm hover:bg-slate-100"
-                          >
-                            <span className="grid size-7 place-items-center rounded-full bg-slate-200 text-xs font-bold">
-                              {getInitials(item.nome)}
-                            </span>
-                            <span className="truncate">
-                              {item.nome}
-                              <span className="block text-xs text-slate-500">{item.cargo}</span>
-                            </span>
-                          </button>
-                        ))}
-                      {funcionarios.filter((item) => String(item.id) !== String(user?.id)).length === 0 && (
-                        <p className="px-2 py-3 text-xs text-slate-500">Nenhum funcionário cadastrado.</p>
-                      )}
-                    </div>
-                  </div>
-                )}
-              </div>
-            )}
-
-            {hasAdminSession && (
+          {(user?.isAdmin || hasAdminSession) && mode !== "demo" && (
+            <div className="relative">
               <button
                 type="button"
-                onClick={() => {
-                  setModalAdmin(true);
-                  setSenhaAdmin("");
-                  setErroAdmin("");
-                }}
-                className="rounded-lg bg-slate-100 px-3 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-200"
+                onClick={() => setMenuAberto((value) => !value)}
+                aria-expanded={menuAberto}
+                aria-haspopup="true"
+                aria-label="Trocar de usuário"
+                title="Trocar de usuário"
+                className="rounded-lg p-2 text-slate-600 hover:bg-slate-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
               >
-                Voltar para admin
+                <UsersIcon className="size-5" />
               </button>
-            )}
+              {menuAberto && (
+                <div className="absolute right-0 z-30 mt-2 w-72 rounded-xl border border-slate-200 bg-white p-2 shadow-lg">
+                  <p className="px-2 py-1 text-xs font-semibold text-slate-500">Entrar como</p>
+                  <ul className="max-h-64 overflow-auto">
+                    {outrosFuncionarios.map((item) => (
+                      <li key={item.id}>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setAlvo(item);
+                            setSenha("");
+                            setErro("");
+                            setMenuAberto(false);
+                          }}
+                          className="flex w-full items-center gap-2 rounded-lg px-2 py-2 text-left text-sm hover:bg-slate-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+                        >
+                          <span aria-hidden="true" className="grid size-7 shrink-0 place-items-center rounded-full bg-slate-200 text-xs font-bold">
+                            {getInitials(item.nome)}
+                          </span>
+                          <span className="min-w-0 truncate">
+                            {item.nome}
+                            <span className="block text-xs text-slate-500">{item.cargo}</span>
+                          </span>
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                  {outrosFuncionarios.length === 0 && <p className="px-2 py-3 text-xs text-slate-500">Nenhum funcionário cadastrado.</p>}
+                </div>
+              )}
+            </div>
+          )}
 
-            <button
-              type="button"
-              onClick={handleLogout}
-              aria-label="Sair da conta"
-              title="Sair"
-              className="rounded-lg p-2 text-slate-600 hover:bg-red-50 hover:text-red-600 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+          {hasAdminSession && (
+            <Button
+              variant="neutral"
+              size="sm"
+              onClick={() => {
+                setModalAdmin(true);
+                setSenhaAdmin("");
+                setErroAdmin("");
+              }}
             >
-              <LogOutIcon className="size-5" />
-            </button>
-          </div>
+              Voltar para admin
+            </Button>
+          )}
+
+          <button
+            type="button"
+            onClick={handleLogout}
+            aria-label="Sair da conta"
+            title="Sair"
+            className="rounded-lg p-2 text-slate-600 hover:bg-red-50 hover:text-red-600 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+          >
+            <LogOutIcon className="size-5" />
+          </button>
         </div>
       </header>
 
       {alvo && (
-        <div className="fixed inset-0 z-50 grid place-items-center bg-slate-900/40 p-4">
-          <form onSubmit={entrarComo} className="w-full max-w-sm rounded-2xl bg-white p-6 shadow-xl">
-            <h2 className="text-lg font-bold text-slate-900">Entrar como {alvo.nome}</h2>
-            <p className="mt-1 text-sm text-slate-500">Informe a senha do usuário.</p>
-            <input
-              type="password"
-              value={senha}
-              onChange={(event) => setSenha(event.target.value)}
-              placeholder="Senha"
-              className="mt-4 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm"
-              autoFocus
-            />
-            {erro && <p className="mt-2 text-sm text-red-600">{erro}</p>}
-            <div className="mt-4 flex justify-end gap-2">
-              <button type="button" onClick={() => setAlvo(null)} className="rounded-lg px-3 py-2 text-sm text-slate-600 hover:bg-slate-100">
-                Cancelar
-              </button>
-              <button type="submit" disabled={carregando} className="rounded-lg bg-blue-600 px-3 py-2 text-sm font-semibold text-white hover:bg-blue-700 disabled:opacity-60">
-                {carregando ? "Entrando..." : "Entrar"}
-              </button>
-            </div>
-          </form>
-        </div>
+        <PasswordModal
+          icon={UsersIcon}
+          title={`Entrar como ${alvo.nome}`}
+          subtitle="Informe a senha do funcionário para abrir a sessão dele."
+          label="Senha do funcionário"
+          value={senha}
+          onChange={setSenha}
+          error={erro}
+          pending={carregando}
+          submitLabel={carregando ? "Entrando..." : "Entrar"}
+          onSubmit={entrarComo}
+          onClose={() => setAlvo(null)}
+        />
       )}
 
       {modalAdmin && (
-        <div className="fixed inset-0 z-50 grid place-items-center bg-slate-900/40 p-4">
-          <form onSubmit={voltar} className="w-full max-w-sm rounded-2xl bg-white p-6 shadow-xl">
-            <h2 className="text-lg font-bold text-slate-900">Voltar para {adminUser?.name ?? "admin"}</h2>
-            <p className="mt-1 text-sm text-slate-500">Informe a senha do administrador.</p>
-            <input
-              type="password"
-              value={senhaAdmin}
-              onChange={(event) => setSenhaAdmin(event.target.value)}
-              placeholder="Senha do admin"
-              className="mt-4 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm"
-              autoFocus
-            />
-            {erroAdmin && <p className="mt-2 text-sm text-red-600">{erroAdmin}</p>}
-            <div className="mt-4 flex justify-end gap-2">
-              <button type="button" onClick={() => setModalAdmin(false)} className="rounded-lg px-3 py-2 text-sm text-slate-600 hover:bg-slate-100">
-                Cancelar
-              </button>
-              <button type="submit" disabled={carregando} className="rounded-lg bg-blue-600 px-3 py-2 text-sm font-semibold text-white hover:bg-blue-700 disabled:opacity-60">
-                {carregando ? "Validando..." : "Voltar"}
-              </button>
-            </div>
-          </form>
-        </div>
+        <PasswordModal
+          icon={ShieldCheckIcon}
+          title={`Voltar para ${adminUser?.name ?? "o administrador"}`}
+          subtitle="Informe a senha do administrador para retomar a sessão."
+          label="Senha do administrador"
+          value={senhaAdmin}
+          onChange={setSenhaAdmin}
+          error={erroAdmin}
+          pending={carregando}
+          submitLabel={carregando ? "Validando..." : "Voltar"}
+          onSubmit={voltar}
+          onClose={() => setModalAdmin(false)}
+        />
       )}
 
       {trocaObrigatoria && (
-        <div className="fixed inset-0 z-50 grid place-items-center bg-slate-900/40 p-4">
-          <form onSubmit={salvarNovaSenha} className="w-full max-w-sm rounded-2xl bg-white p-6 shadow-xl">
-            <h2 className="text-lg font-bold text-slate-900">Troque sua senha</h2>
-            <p className="mt-1 text-sm text-slate-500">Este é o primeiro acesso. Defina uma nova senha.</p>
-            <input
-              type="password"
-              value={novaSenha}
-              onChange={(event) => setNovaSenha(event.target.value)}
-              placeholder="Nova senha"
-              className="mt-4 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm"
-              autoFocus
-            />
-            <input
-              type="password"
-              value={confirmacaoSenha}
-              onChange={(event) => setConfirmacaoSenha(event.target.value)}
-              placeholder="Confirme a senha"
-              className="mt-2 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm"
-            />
-            {erroSenha && <p className="mt-2 text-sm text-red-600">{erroSenha}</p>}
-            <div className="mt-4 flex justify-end">
-              <button type="submit" disabled={salvandoSenha} className="rounded-lg bg-blue-600 px-3 py-2 text-sm font-semibold text-white hover:bg-blue-700 disabled:opacity-60">
-                {salvandoSenha ? "Salvando..." : "Salvar senha"}
-              </button>
+        <Modal onClose={() => {}} labelledBy="troca-senha-titulo" size="md" closeOnOverlay={false}>
+          <form noValidate onSubmit={salvarNovaSenha} className="flex min-h-0 flex-1 flex-col">
+            <div className="flex items-start gap-3 border-b border-slate-200 px-5 py-4 sm:px-6">
+              <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-blue-100 text-blue-600">
+                <KeyRoundIcon className="size-5" aria-hidden="true" />
+              </span>
+              <div>
+                <h2 id="troca-senha-titulo" className="text-lg font-bold leading-tight text-slate-900">
+                  Crie sua senha
+                </h2>
+                <p className="mt-0.5 text-sm text-slate-600">
+                  Este é o seu primeiro acesso. Troque a senha temporária por uma senha só sua.
+                </p>
+              </div>
             </div>
+            <ModalBody className="space-y-4">
+              <TextField
+                label="Nova senha"
+                type="password"
+                required
+                data-autofocus
+                autoComplete="new-password"
+                hint="Use pelo menos 8 caracteres."
+                value={novaSenha}
+                onChange={(event) => setNovaSenha(event.target.value)}
+              />
+              <TextField
+                label="Confirme a nova senha"
+                type="password"
+                required
+                autoComplete="new-password"
+                value={confirmacaoSenha}
+                error={erroSenha}
+                onChange={(event) => setConfirmacaoSenha(event.target.value)}
+              />
+            </ModalBody>
+            <ModalFooter>
+              <Button variant="soft" size="lg" onClick={handleLogout} className="w-full sm:w-auto">
+                Sair da conta
+              </Button>
+              <Button type="submit" size="lg" icon={SaveIcon} disabled={salvandoSenha} className="w-full sm:w-auto">
+                {salvandoSenha ? "Salvando..." : "Salvar senha"}
+              </Button>
+            </ModalFooter>
           </form>
-        </div>
+        </Modal>
       )}
     </>
+  );
+}
+
+/** Pop-up padrão para pedir uma senha (troca de usuário e retorno ao admin). */
+function PasswordModal({ icon, title, subtitle, label, value, onChange, error, pending, submitLabel, onSubmit, onClose }) {
+  const titleId = useId();
+  return (
+    <Modal onClose={onClose} labelledBy={titleId} size="md" closeOnOverlay={false}>
+      <form noValidate onSubmit={onSubmit} className="flex min-h-0 flex-1 flex-col">
+        <ModalHeader icon={icon} titleId={titleId} title={title} subtitle={subtitle} onClose={onClose} />
+        <ModalBody>
+          <TextField
+            label={label}
+            type="password"
+            required
+            data-autofocus
+            autoComplete="current-password"
+            value={value}
+            error={error}
+            onChange={(event) => onChange(event.target.value)}
+          />
+        </ModalBody>
+        <ModalFooter>
+          <Button variant="soft" size="lg" onClick={onClose} disabled={pending} className="w-full sm:w-auto">
+            Cancelar
+          </Button>
+          <Button type="submit" size="lg" disabled={pending || !value} className="w-full sm:w-auto">
+            {submitLabel}
+          </Button>
+        </ModalFooter>
+      </form>
+    </Modal>
   );
 }
